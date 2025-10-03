@@ -1,0 +1,57 @@
+# Claude Code Ignore File
+# File-file yang tidak boleh dibaca oleh Claude Code
+
+# Environment files dengan kredensial
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Private keys dan certificates
+*.pem
+*.key
+*.cert
+*.p12
+*.pfx
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs yang mungkin contain sensitive info
+*.log
+logs/
+*.log.*
+
+# Backup files
+*.backup
+*.bak
+*.sql.gz
+
+# IDE settings yang mungkin contain paths
+.vscode/settings.json
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node modules
+node_modules/
+
+# Build artifacts
+.next/
+dist/
+build/
+out/
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
