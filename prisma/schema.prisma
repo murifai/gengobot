@@ -1,0 +1,159 @@
+// Prisma schema for Gengotalk - Task-Based Japanese Learning App
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Task model - Primary feature for structured learning
+model Task {
+  id                String   @id @default(cuid())
+  title             String
+  description       String   @db.Text
+  category          String   // Restaurant, Shopping, Travel, etc.
+  difficulty        String   // N1-N5 JLPT levels
+  scenario          String   @db.Text
+  learningObjectives Json    // Array of learning goals
+  successCriteria   Json     // Completion requirements
+  estimatedDuration Int      // Minutes
+  prerequisites     Json?    // Required prior knowledge
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  createdBy         String?  // Admin who created the task
+  usageCount        Int      @default(0)
+  averageScore      Float?   // Average completion score
+
+  characterId       String?
+  character         Character? @relation(fields: [characterId], references: [id])
+  conversations     Conversation[]
+  taskAttempts      TaskAttempt[]
+
+  @@index([category])
+  @@index([difficulty])
+  @@index([isActive])
+}
+
+// TaskAttempt model - Tracks user progress on tasks
+model TaskAttempt {
+  id                String   @id @default(cuid())
+  userId            String
+  taskId            String
+  startTime         DateTime @default(now())
+  endTime           DateTime?
+
+  // Japanese Learning Assessment Criteria
+  taskAchievement   Float?   // タスク達成度 (0-100)
+  fluency           Float?   // 流暢さ (0-100)
+  vocabularyGrammarAccuracy Float? // 語彙・文法的正確さ (0-100)
+  politeness        Float?   // 丁寧さ (0-100)
+  overallScore      Float?   // Combined weighted score
+
+  feedback          String?  @db.Text
+  conversationHistory Json
+  isCompleted       Boolean  @default(false)
+  retryCount        Int      @default(0)
+
+  user              User     @relation(fields: [userId], references: [id])
+  task              Task     @relation(fields: [taskId], references: [id])
+
+  @@index([userId])
+  @@index([taskId])
+  @@index([isCompleted])
+}
+
+// TaskCategory model - Organize tasks by category
+model TaskCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String   @db.Text
+  icon        String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([sortOrder])
+}
+
+// User model - Student and admin accounts
+model User {
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  name                  String?
+  proficiency           String    @default("N5") // N1-N5 JLPT levels
+  isAdmin               Boolean   @default(false)
+  preferredTaskCategories Json?   // Array of preferred task types
+  completedTasks        Json?     // Array of completed task IDs
+  currentTaskId         String?   // Currently active task
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  characters            Character[]
+  conversations         Conversation[]
+  taskAttempts          TaskAttempt[]
+  adminLogs             AdminLog[]
+
+  @@index([email])
+  @@index([isAdmin])
+}
+
+// Character model - For task-based and free-chat scenarios
+model Character {
+  id              String  @id @default(cuid())
+  name            String
+  description     String? @db.Text
+  personality     Json    // Personality traits
+  speakingStyle   String? @db.Text
+  taskSpecific    Boolean @default(false) // Whether designed for specific tasks
+  assignedTasks   Json?   // Array of task IDs where this character is used
+  relationshipType String? // For free chat (secondary feature)
+  isUserCreated   Boolean @default(true)
+
+  userId          String?
+  user            User?   @relation(fields: [userId], references: [id])
+  conversations   Conversation[]
+  tasks           Task[]
+
+  @@index([userId])
+  @@index([taskSpecific])
+}
+
+// Conversation model - Stores chat histories
+model Conversation {
+  id              String   @id @default(cuid())
+  type            String   // "task-based" or "free-chat"
+  messages        Json
+  assessment      Json?
+  taskId          String?  // Associated task (if task-based)
+  characterId     String?  // Character involved
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  character       Character? @relation(fields: [characterId], references: [id])
+  task            Task?    @relation(fields: [taskId], references: [id])
+
+  @@index([userId])
+  @@index([type])
+  @@index([taskId])
+}
+
+// AdminLog model - Track admin actions for auditing
+model AdminLog {
+  id          String   @id @default(cuid())
+  adminId     String
+  actionType  String   // create_task, edit_task, delete_task, etc.
+  entityType  String   // task, character, user, etc.
+  entityId    String?
+  details     Json?
+  createdAt   DateTime @default(now())
+
+  admin       User     @relation(fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([actionType])
+  @@index([createdAt])
+}

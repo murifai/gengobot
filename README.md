@@ -1,36 +1,186 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Gengotalk
 
-## Getting Started
+Aplikasi pembelajaran bahasa Jepang berbasis AI yang meningkatkan kemampuan berbicara melalui percakapan roleplay interaktif berbasis tugas.
 
-First, run the development server:
+## 🌟 Fitur Utama
+
+- **Task-Based Chat**: Skenario pembelajaran terstruktur dengan manajemen tugas komprehensif
+- **Free Chat**: Percakapan terbuka dengan karakter AI (fitur sekunder)
+- **Voice Processing**: Integrasi OpenAI Whisper untuk speech-to-text dan TTS
+- **Japanese Learning Assessment**: Evaluasi berdasarkan 4 kriteria (タスク達成度, 流暢さ, 語彙・文法的正確さ, 丁寧さ)
+- **JLPT Level Tracking**: Pelacakan kemajuan dari N5 hingga N1
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 15, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes, Prisma ORM
+- **Database**: PostgreSQL (via Supabase)
+- **Authentication**: Supabase Auth
+- **AI**: OpenAI GPT-4, Whisper
+- **Testing**: Jest, Playwright, Testing Library
+
+## 📋 Prerequisites
+
+- Node.js 22+
+- PostgreSQL
+- Akun Supabase
+- OpenAI API Key
+
+## 🚀 Getting Started
+
+### 1. Clone dan Install Dependencies
+
+```bash
+git clone https://github.com/yourusername/gengobot.git
+cd gengobot
+npm install
+```
+
+### 2. Setup Environment Variables
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local` dengan kredensial Anda:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+OPENAI_API_KEY=your_openai_key
+DATABASE_URL=your_postgresql_url
+```
+
+### 3. Setup Database
+
+```bash
+# Generate Prisma Client
+npm run db:generate
+
+# Run migrations
+npm run db:migrate
+
+# Seed database dengan data contoh
+npm run db:seed
+```
+
+### 4. Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka [http://localhost:3000](http://localhost:3000) di browser Anda.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📝 Available Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev              # Start development server
+npm run build            # Build untuk production
+npm start                # Start production server
+npm run lint             # Run ESLint
+npm run lint:fix         # Fix ESLint errors
+npm run format:check     # Check Prettier formatting
+npm run format:write     # Format code dengan Prettier
+npm run type-check       # TypeScript type checking
+npm run test             # Run unit tests
+npm run test:watch       # Run tests dalam watch mode
+npm run test:coverage    # Generate coverage report
+npm run test:e2e         # Run E2E tests dengan Playwright
+npm run db:migrate       # Create dan apply migration
+npm run db:seed          # Seed database
+npm run db:studio        # Open Prisma Studio
+npm run db:generate      # Generate Prisma Client
+```
 
-## Learn More
+## 🐳 Docker Development
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Build dan start services
+docker-compose up -d
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Stop services
+docker-compose down
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# View logs
+docker-compose logs -f
+```
 
-## Deploy on Vercel
+## 🧪 Testing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+# Run semua tests
+npm test
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Run specific test file
+npm test -- __tests__/setup/config.test.ts
+
+# Run tests dengan coverage
+npm run test:coverage
+
+# Run E2E tests
+npm run test:e2e
+```
+
+## 📁 Project Structure
+
+```
+gengobot/
+├── src/
+│   ├── app/                 # Next.js App Router
+│   ├── components/          # React components
+│   │   ├── ui/             # UI components
+│   │   ├── voice/          # Voice processing
+│   │   ├── chat/           # Chat interface
+│   │   ├── admin/          # Admin panels
+│   │   └── layout/         # Layout components
+│   ├── lib/                # Utility libraries
+│   │   ├── ai/             # OpenAI integration
+│   │   ├── auth/           # Authentication
+│   │   ├── db/             # Database utilities
+│   │   └── utils/          # Helper functions
+│   ├── types/              # TypeScript types
+│   └── hooks/              # React hooks
+├── prisma/                 # Database schema & migrations
+├── __tests__/              # Test files
+├── public/                 # Static assets
+└── docs/                   # Documentation
+
+```
+
+## 🎨 Custom Colors
+
+```css
+--primary: #ff5e75;
+--secondary: #1dcddc;
+--tertiary-yellow: #fdf29d;
+--tertiary-green: #8bd17b;
+--tertiary-purple: #4a3e72;
+--dark: #0c1231;
+```
+
+## 📖 Development Plan
+
+Lihat [Gengobot-app-dev-plan.md](./docs/Gengobot-app-dev-plan.md) untuk roadmap lengkap pengembangan.
+
+**Current Status**: Phase 1 - Project Setup & Foundation ✅
+
+## 🤝 Contributing
+
+1. Fork repository
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'feat: Add AmazingFeature'`)
+4. Push ke branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🙏 Acknowledgments
+
+- Next.js Team
+- OpenAI
+- Supabase
+- Prisma
