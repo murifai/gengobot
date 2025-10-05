@@ -168,7 +168,15 @@ export async function getCategoryAnalytics(): Promise<CategoryAnalytics[]> {
   });
 
   // Group by category
-  const categoryMap = new Map<string, Record<string, unknown>>();
+  interface CategoryStats {
+    category: string;
+    taskCount: number;
+    totalAttempts: number;
+    completedAttempts: number;
+    totalScore: number;
+  }
+
+  const categoryMap = new Map<string, CategoryStats>();
 
   for (const task of tasks) {
     if (!categoryMap.has(task.category)) {
@@ -181,12 +189,13 @@ export async function getCategoryAnalytics(): Promise<CategoryAnalytics[]> {
       });
     }
 
-    const cat = categoryMap.get(task.category);
+    const cat = categoryMap.get(task.category)!;
     cat.taskCount++;
     cat.totalAttempts += task.usageCount;
     cat.completedAttempts += task.taskAttempts.length;
     cat.totalScore += task.taskAttempts.reduce(
-      (sum: number, a: Record<string, unknown>) => sum + (a.overallScore || 0),
+      (sum: number, a: Record<string, unknown>) =>
+        sum + (typeof a.overallScore === 'number' ? a.overallScore : 0),
       0
     );
   }
