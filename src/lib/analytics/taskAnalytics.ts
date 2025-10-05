@@ -168,7 +168,15 @@ export async function getCategoryAnalytics(): Promise<CategoryAnalytics[]> {
   });
 
   // Group by category
-  const categoryMap = new Map<string, Record<string, unknown>>();
+  interface CategoryStats {
+    category: string;
+    taskCount: number;
+    totalAttempts: number;
+    completedAttempts: number;
+    totalScore: number;
+  }
+
+  const categoryMap = new Map<string, CategoryStats>();
 
   for (const task of tasks) {
     if (!categoryMap.has(task.category)) {
@@ -182,13 +190,15 @@ export async function getCategoryAnalytics(): Promise<CategoryAnalytics[]> {
     }
 
     const cat = categoryMap.get(task.category);
-    cat.taskCount++;
-    cat.totalAttempts += task.usageCount;
-    cat.completedAttempts += task.taskAttempts.length;
-    cat.totalScore += task.taskAttempts.reduce(
-      (sum: number, a: Record<string, unknown>) => sum + (a.overallScore || 0),
-      0
-    );
+    if (cat) {
+      cat.taskCount++;
+      cat.totalAttempts += task.usageCount;
+      cat.completedAttempts += task.taskAttempts.length;
+      cat.totalScore += task.taskAttempts.reduce(
+        (sum: number, a: Record<string, unknown>) => sum + ((a.overallScore as number) || 0),
+        0
+      );
+    }
   }
 
   // Convert to array and calculate averages
@@ -342,13 +352,16 @@ function calculateAverageScores(attempts: Record<string, unknown>[]) {
   }
 
   return {
-    overall: attempts.reduce((sum, a) => sum + (a.overallScore || 0), 0) / attempts.length,
+    overall:
+      attempts.reduce((sum, a) => sum + ((a.overallScore as number) || 0), 0) / attempts.length,
     taskAchievement:
-      attempts.reduce((sum, a) => sum + (a.taskAchievement || 0), 0) / attempts.length,
-    fluency: attempts.reduce((sum, a) => sum + (a.fluency || 0), 0) / attempts.length,
+      attempts.reduce((sum, a) => sum + ((a.taskAchievement as number) || 0), 0) / attempts.length,
+    fluency: attempts.reduce((sum, a) => sum + ((a.fluency as number) || 0), 0) / attempts.length,
     vocabularyGrammar:
-      attempts.reduce((sum, a) => sum + (a.vocabularyGrammarAccuracy || 0), 0) / attempts.length,
-    politeness: attempts.reduce((sum, a) => sum + (a.politeness || 0), 0) / attempts.length,
+      attempts.reduce((sum, a) => sum + ((a.vocabularyGrammarAccuracy as number) || 0), 0) /
+      attempts.length,
+    politeness:
+      attempts.reduce((sum, a) => sum + ((a.politeness as number) || 0), 0) / attempts.length,
   };
 }
 
@@ -484,6 +497,13 @@ async function calculateConsistencyScore(userId: string): Promise<number> {
 }
 
 async function getDifficultyDistribution() {
+  interface DifficultyStats {
+    level: string;
+    count: number;
+    totalScore: number;
+    scoreCount: number;
+  }
+
   const tasks = await prisma.task.findMany({
     where: { isActive: true },
     include: {
@@ -493,7 +513,7 @@ async function getDifficultyDistribution() {
     },
   });
 
-  const difficultyMap = new Map<string, Record<string, unknown>>();
+  const difficultyMap = new Map<string, DifficultyStats>();
 
   for (const task of tasks) {
     if (!difficultyMap.has(task.difficulty)) {
@@ -506,12 +526,14 @@ async function getDifficultyDistribution() {
     }
 
     const diff = difficultyMap.get(task.difficulty);
-    diff.count++;
-    diff.totalScore += task.taskAttempts.reduce(
-      (sum: number, a: Record<string, unknown>) => sum + (a.overallScore || 0),
-      0
-    );
-    diff.scoreCount += task.taskAttempts.length;
+    if (diff) {
+      diff.count++;
+      diff.totalScore += task.taskAttempts.reduce(
+        (sum: number, a: Record<string, unknown>) => sum + ((a.overallScore as number) || 0),
+        0
+      );
+      diff.scoreCount += task.taskAttempts.length;
+    }
   }
 
   return Array.from(difficultyMap.values()).map(diff => ({
