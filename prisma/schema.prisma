@@ -14,6 +14,7 @@ model Task {
   title             String
   description       String   @db.Text
   category          String   // Restaurant, Shopping, Travel, etc.
+  subcategoryId     String?  // Reference to TaskSubcategory
   difficulty        String   // N1-N5 JLPT levels
   scenario          String   @db.Text
   learningObjectives Json    // Array of learning goals
@@ -29,10 +30,12 @@ model Task {
 
   characterId       String?
   character         Character? @relation(fields: [characterId], references: [id])
+  subcategory       TaskSubcategory? @relation(fields: [subcategoryId], references: [id])
   conversations     Conversation[]
   taskAttempts      TaskAttempt[]
 
   @@index([category])
+  @@index([subcategoryId])
   @@index([difficulty])
   @@index([isActive])
 }
@@ -65,16 +68,29 @@ model TaskAttempt {
   @@index([isCompleted])
 }
 
-// TaskCategory model - Organize tasks by category
+// TaskCategory model - Main categories for tasks
 model TaskCategory {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String   @db.Text
-  icon        String?
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
+  id            String            @id @default(cuid())
+  name          String            @unique
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @default(now()) @updatedAt
 
-  @@index([sortOrder])
+  subcategories TaskSubcategory[]
+}
+
+// TaskSubcategory model - Subcategories for tasks (Jalan-jalan, Keseharian, Pekerjaan)
+model TaskSubcategory {
+  id         String       @id @default(cuid())
+  name       String
+  categoryId String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  category   TaskCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tasks      Task[]
+
+  @@unique([name, categoryId])
+  @@index([categoryId])
 }
 
 // User model - Student and admin accounts

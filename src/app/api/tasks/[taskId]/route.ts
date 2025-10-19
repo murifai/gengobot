@@ -95,6 +95,7 @@ export async function PUT(
       'title',
       'description',
       'category',
+      'subcategoryId',
       'difficulty',
       'scenario',
       'learningObjectives',

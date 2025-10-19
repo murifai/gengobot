@@ -9,6 +9,7 @@ interface TaskFormData {
   title: string;
   description: string;
   category: string;
+  subcategoryId: string | null;
   difficulty: string;
   scenario: string;
   learningObjectives: string[];
@@ -24,6 +25,17 @@ interface Character {
   name: string;
 }
 
+interface TaskSubcategory {
+  id: string;
+  name: string;
+  categoryId: string;
+}
+
+interface TaskCategory {
+  id: string;
+  name: string;
+}
+
 interface TaskEditorFormProps {
   taskId?: string;
   initialData?: Partial<TaskFormData>;
@@ -33,10 +45,13 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [characters, setCharacters] = useState<Character[]>([]);
+  const [categories, setCategories] = useState<TaskCategory[]>([]);
+  const [subcategories, setSubcategories] = useState<TaskSubcategory[]>([]);
   const [formData, setFormData] = useState<TaskFormData>({
     title: initialData?.title || '',
     description: initialData?.description || '',
     category: initialData?.category || '',
+    subcategoryId: initialData?.subcategoryId || null,
     difficulty: initialData?.difficulty || 'N5',
     scenario: initialData?.scenario || '',
     learningObjectives: initialData?.learningObjectives || [''],
@@ -51,6 +66,8 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
 
   useEffect(() => {
     fetchCharacters();
+    fetchCategories();
+    fetchSubcategories();
   }, []);
 
   const fetchCharacters = async () => {
@@ -62,6 +79,30 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
       }
     } catch (error) {
       console.error('Error fetching characters:', error);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/categories');
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data.categories);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
+  const fetchSubcategories = async () => {
+    try {
+      const response = await fetch('/api/subcategories');
+      if (response.ok) {
+        const data = await response.json();
+        setSubcategories(data.subcategories);
+      }
+    } catch (error) {
+      console.error('Error fetching subcategories:', error);
     }
   };
 
@@ -202,7 +243,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
         {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
       </div>
 
-      {/* Category & Difficulty */}
+      {/* Category & Subcategory */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -216,32 +257,59 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
             }`}
           >
             <option value="">Select Category</option>
-            <option value="Restaurant">Restaurant</option>
-            <option value="Shopping">Shopping</option>
-            <option value="Travel">Travel</option>
-            <option value="Workplace">Workplace</option>
-            <option value="Daily Life">Daily Life</option>
-            <option value="Social">Social</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.name}>
+                {cat.name}
+              </option>
+            ))}
           </select>
           {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Difficulty Level *
+            Subcategory
           </label>
           <select
-            value={formData.difficulty}
-            onChange={e => setFormData(prev => ({ ...prev, difficulty: e.target.value }))}
+            value={formData.subcategoryId || ''}
+            onChange={e =>
+              setFormData(prev => ({ ...prev, subcategoryId: e.target.value || null }))
+            }
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            disabled={!formData.category}
           >
-            <option value="N5">N5 (Beginner)</option>
-            <option value="N4">N4 (Elementary)</option>
-            <option value="N3">N3 (Intermediate)</option>
-            <option value="N2">N2 (Upper-Intermediate)</option>
-            <option value="N1">N1 (Advanced)</option>
+            <option value="">{formData.category ? 'None' : 'Select a category first'}</option>
+            {subcategories
+              .filter(sub => {
+                // Find the category by name to get its ID
+                const selectedCategory = categories.find(cat => cat.name === formData.category);
+                return selectedCategory ? sub.categoryId === selectedCategory.id : false;
+              })
+              .map(sub => (
+                <option key={sub.id} value={sub.id}>
+                  {sub.name}
+                </option>
+              ))}
           </select>
         </div>
+      </div>
+
+      {/* Difficulty */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Difficulty Level *
+        </label>
+        <select
+          value={formData.difficulty}
+          onChange={e => setFormData(prev => ({ ...prev, difficulty: e.target.value }))}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+        >
+          <option value="N5">N5 (Beginner)</option>
+          <option value="N4">N4 (Elementary)</option>
+          <option value="N3">N3 (Intermediate)</option>
+          <option value="N2">N2 (Upper-Intermediate)</option>
+          <option value="N1">N1 (Advanced)</option>
+        </select>
       </div>
 
       {/* Scenario */}

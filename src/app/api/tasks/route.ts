@@ -132,6 +132,7 @@ export async function POST(request: NextRequest) {
         title: body.title,
         description: body.description,
         category: body.category,
+        subcategoryId: body.subcategoryId || null,
         difficulty: body.difficulty,
         scenario: body.scenario,
         learningObjectives: body.learningObjectives,
