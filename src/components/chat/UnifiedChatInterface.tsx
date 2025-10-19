@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import ConversationContainer, { Message } from '../conversation/ConversationContainer';
 import ChatInput from '../conversation/ChatInput';
@@ -26,6 +27,7 @@ export interface UnifiedChatInterfaceProps {
 
   // Sidebar (optional)
   sidebar?: React.ReactNode;
+  sidebarDefaultOpen?: boolean;
 
   // Empty state
   emptyStateMessage?: string;
@@ -47,9 +49,12 @@ export default function UnifiedChatInterface({
   enableVoice = false,
   autoPlayVoiceResponses = true,
   sidebar,
+  sidebarDefaultOpen = true,
   emptyStateMessage,
   className,
 }: UnifiedChatInterfaceProps) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(sidebarDefaultOpen);
+
   return (
     <div className={cn('flex flex-col h-screen bg-gray-50 dark:bg-gray-900', className)}>
       {/* Header */}
@@ -79,13 +84,47 @@ export default function UnifiedChatInterface({
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
           {subtitle && <p className="text-sm text-gray-600 dark:text-gray-400">{subtitle}</p>}
         </div>
+        {/* Sidebar Toggle Button */}
+        {sidebar && (
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            aria-label={isSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+            title={isSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+          >
+            <svg
+              className="w-6 h-6 text-gray-900 dark:text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              {isSidebarOpen ? (
+                // Icon for "hide sidebar" (panel right close)
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7M15 5v14"
+                />
+              ) : (
+                // Icon for "show sidebar" (panel right open)
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar (optional) */}
-        {sidebar && (
-          <div className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto shrink-0">
+        {sidebar && isSidebarOpen && (
+          <div className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto shrink-0 transition-all duration-300">
             {sidebar}
           </div>
         )}

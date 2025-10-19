@@ -75,37 +75,36 @@ Gengotalk is a web-based application designed to enhance Japanese speaking skill
 3. Select Task
    - By Difficulty
    - By Category
-4. System Assigns Character
-5. **Pre-Task Study (Optional)**
+4. **Pre-Task Study (Optional)**
    - Review vocabulary deck associated with task
    - Review grammar deck associated with task
    - Quick flashcard session for preparation
-6. Begin Task
-7. Conversation Interface
+5. Begin Task
+6. Conversation Interface
    - Text Input/Output
    - Voice Recording
    - Audio Playback
    - Task Progress Indicator
    - **Real-time vocabulary hints from associated deck**
-8. User Speaks/Types
-9. AI Processes Input (Speech-to-Text)
-10. AI Generates Response
-11. AI Speaks Response (Text-to-Speech)
-12. Task Complete?
-    - If No: Continue Task Conversation (return to step 8)
+7. User Speaks/Types
+8. AI Processes Input (Speech-to-Text)
+9. AI Generates Response
+10. AI Speaks Response (Text-to-Speech)
+11. Task Complete?
+    - If No: Continue Task Conversation (return to step 7)
     - If Yes: Proceed to Task Assessment
-13. Task Assessment
+12. Task Assessment
     - Accuracy Score
     - Fluency Score
     - Completion Score
     - Feedback
     - **Vocabulary usage analysis**
-14. **Post-Task Review**
+13. **Post-Task Review**
     - Add encountered vocabulary to review queue
     - Update card performance based on usage
-15. Update Progress Records
-16. Save Conversation
-17. Return to Dashboard
+14. Update Progress Records
+15. Save Conversation
+16. Return to Dashboard
 
 ### Flashcard Study Flow
 

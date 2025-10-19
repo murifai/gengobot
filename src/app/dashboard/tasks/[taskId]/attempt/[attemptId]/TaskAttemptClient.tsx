@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import UnifiedChatInterface from '@/components/chat/UnifiedChatInterface';
+import VocabularyHints from '@/components/task/VocabularyHints';
+import PostTaskReview from '@/components/task/PostTaskReview';
 
 interface TaskAttempt {
   id: string;
@@ -54,6 +56,32 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
   const [error, setError] = useState<string | null>(null);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [showPostTaskReview, setShowPostTaskReview] = useState(false);
+
+  // Vocabulary hints - TODO: Fetch from deck associated with task
+  const vocabularyHints = [
+    {
+      id: '1',
+      word: 'こんにちは',
+      reading: 'konnichiwa',
+      meaning: 'Hello, Good afternoon',
+      example: 'こんにちは、元気ですか？',
+    },
+    {
+      id: '2',
+      word: 'ありがとう',
+      reading: 'arigatou',
+      meaning: 'Thank you',
+      example: 'ありがとうございます。',
+    },
+    {
+      id: '3',
+      word: 'すみません',
+      reading: 'sumimasen',
+      meaning: 'Excuse me, Sorry',
+      example: 'すみません、これはいくらですか？',
+    },
+  ];
 
   useEffect(() => {
     fetchAttempt();
@@ -173,9 +201,23 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
 
       const data = await response.json();
       setAttempt(data.attempt);
+
+      // Show post-task review
+      setShowPostTaskReview(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to complete task');
     }
+  };
+
+  const handleAddToReviewQueue = async (words: string[]) => {
+    // TODO: Implement API call to add words to user's review queue
+    console.log('Adding words to review queue:', words);
+    alert(`${words.length} words will be added to your review queue!`);
+  };
+
+  const handleContinueFromReview = () => {
+    setShowPostTaskReview(false);
+    router.push('/dashboard/tasks');
   };
 
   if (loading) {
@@ -258,6 +300,13 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
               </svg>
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Vocabulary Hints Panel */}
+      {!attempt.isCompleted && (
+        <div className="mb-6">
+          <VocabularyHints hints={vocabularyHints} />
         </div>
       )}
 
@@ -352,15 +401,74 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
         </div>
       )}
 
-      {attempt.isCompleted && (
+      {attempt.isCompleted && !showPostTaskReview && (
         <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
           <p className="text-green-800 dark:text-green-300 font-medium text-sm">
             Task Completed! Check your results above.
           </p>
+          <Button
+            onClick={() => setShowPostTaskReview(true)}
+            variant="secondary"
+            size="sm"
+            className="mt-2"
+          >
+            View Vocabulary Review
+          </Button>
         </div>
       )}
     </div>
   );
+
+  // Show post-task review modal
+  if (showPostTaskReview && attempt.isCompleted) {
+    // Mock data - TODO: Get actual data from task attempt
+    const vocabularyUsed = [
+      {
+        word: 'こんにちは',
+        reading: 'konnichiwa',
+        meaning: 'Hello, Good afternoon',
+        used: true,
+        timesUsed: 2,
+      },
+      {
+        word: 'ありがとう',
+        reading: 'arigatou',
+        meaning: 'Thank you',
+        used: true,
+        timesUsed: 1,
+      },
+    ];
+
+    const missedOpportunities = [
+      {
+        word: 'すみません',
+        reading: 'sumimasen',
+        meaning: 'Excuse me, Sorry',
+        used: false,
+      },
+    ];
+
+    const newWordsEncountered = ['お願いします', 'どうも'];
+
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-4">
+            <Button onClick={() => setShowPostTaskReview(false)} variant="secondary">
+              Back to Results
+            </Button>
+          </div>
+          <PostTaskReview
+            vocabularyUsed={vocabularyUsed}
+            missedOpportunities={missedOpportunities}
+            newWordsEncountered={newWordsEncountered}
+            onAddToReviewQueue={handleAddToReviewQueue}
+            onContinue={handleContinueFromReview}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <UnifiedChatInterface
