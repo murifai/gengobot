@@ -47,15 +47,17 @@ interface TaskAttemptClientProps {
   attemptId: string;
 }
 
-export default function TaskAttemptClient({ user, taskId, attemptId }: TaskAttemptClientProps) {
+export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps) {
   const router = useRouter();
   const [attempt, setAttempt] = useState<TaskAttempt | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
     fetchAttempt();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attemptId]);
 
   const fetchAttempt = async () => {
@@ -93,10 +95,13 @@ export default function TaskAttemptClient({ user, taskId, attemptId }: TaskAttem
     }
   };
 
-  const handleVoiceRecording = async (audioBlob: Blob) => {
+  const handleVoiceRecording = async (audioBlob: Blob, duration: number) => {
     if (sending) return;
 
+    // Clear previous voice error
+    setVoiceError(null);
     setSending(true);
+
     try {
       // Create FormData for audio upload
       const formData = new FormData();
@@ -105,6 +110,7 @@ export default function TaskAttemptClient({ user, taskId, attemptId }: TaskAttem
       console.log('Sending voice recording:', {
         size: audioBlob.size,
         type: audioBlob.type,
+        duration,
         attemptId,
       });
 
@@ -114,9 +120,31 @@ export default function TaskAttemptClient({ user, taskId, attemptId }: TaskAttem
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('Voice API error:', errorData);
-        throw new Error(errorData.error || 'Failed to process voice input');
+        const responseText = await response.text();
+        console.error('Voice API error response:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText,
+        });
+
+        let errorData;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch {
+          errorData = { error: responseText || 'Failed to process voice input' };
+        }
+
+        // Show user-friendly error messages
+        const errorMessage = errorData.error || `Server error: ${response.status}`;
+        const warnings = errorData.warnings || [];
+
+        if (warnings.length > 0) {
+          setVoiceError(`${errorMessage}\n${warnings.join('\n')}`);
+        } else {
+          setVoiceError(errorMessage);
+        }
+
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -126,7 +154,10 @@ export default function TaskAttemptClient({ user, taskId, attemptId }: TaskAttem
       await fetchAttempt();
     } catch (err) {
       console.error('Voice recording error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to process voice input');
+      // Error already set above if it was a response error
+      if (err instanceof Error && !voiceError) {
+        setVoiceError(err.message);
+      }
     } finally {
       setSending(false);
     }
@@ -189,12 +220,46 @@ export default function TaskAttemptClient({ user, taskId, attemptId }: TaskAttem
     content: msg.content,
     isUser: msg.role === 'user',
     timestamp: new Date(msg.timestamp),
+    audioUrl:
+      msg.role === 'assistant'
+        ? (msg as { voiceMetadata?: { audioUrl?: string } }).voiceMetadata?.audioUrl
+        : undefined,
   }));
 
   // Create sidebar content
   const sidebarContent = (
     <div className="p-6">
       <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Task Information</h2>
+
+      {/* Voice Error Display */}
+      {voiceError && (
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-sm font-medium text-red-800 dark:text-red-300 mb-1">
+                Voice Input Error
+              </h3>
+              <p className="text-sm text-red-600 dark:text-red-400 whitespace-pre-line">
+                {voiceError}
+              </p>
+            </div>
+            <button
+              onClick={() => setVoiceError(null)}
+              className="text-red-800 dark:text-red-300 hover:text-red-900 dark:hover:text-red-200"
+              aria-label="Dismiss error"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       {attempt.task && (
         <div className="space-y-4">

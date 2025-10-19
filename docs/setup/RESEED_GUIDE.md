@@ -32,6 +32,7 @@ npx prisma db push --force-reset
 ```
 
 This will:
+
 - Delete all existing tables (if any)
 - Create fresh tables based on your schema
 - Generate Prisma Client
@@ -45,6 +46,7 @@ npm run db:seed
 ```
 
 This will create:
+
 - ✅ 7 task categories (Restaurant, Shopping, Travel, Business, Healthcare, Daily Life, Education)
 - ✅ 5 sample tasks
 - ✅ 2 database users (admin@gengobot.com and student@gengobot.com)
@@ -91,6 +93,7 @@ To avoid CORS errors and authentication issues:
 ## Step 7: Verify Everything Works
 
 1. Start your development server:
+
    ```bash
    npm run dev
    ```
@@ -113,6 +116,7 @@ To avoid CORS errors and authentication issues:
 ## What Data Gets Created
 
 ### Task Categories (7):
+
 1. 🍜 Restaurant - Dining and food ordering
 2. 🛍️ Shopping - Retail scenarios
 3. ✈️ Travel - Transportation scenarios
@@ -122,6 +126,7 @@ To avoid CORS errors and authentication issues:
 7. 📚 Education - Academic scenarios
 
 ### Sample Tasks (5):
+
 1. **Ordering Ramen** (N5 - Restaurant)
 2. **Buying Clothes** (N4 - Shopping)
 3. **Asking for Directions** (N5 - Travel)
@@ -129,26 +134,31 @@ To avoid CORS errors and authentication issues:
 5. **Job Interview** (N2 - Business)
 
 ### Users (2):
+
 - **admin@gengobot.com** - Admin with N1 proficiency
 - **student@gengobot.com** - Student with N5 proficiency
 
 ## Troubleshooting
 
 ### "Can't reach database server" Error
+
 - Double-check your DATABASE_URL in `.env.local`
 - Make sure you replaced `[YOUR-SUPABASE-DB-PASSWORD]` with actual password
 - Verify the password doesn't have special characters that need URL encoding
 
 ### "User not found" After Login
+
 - Make sure you created the Supabase Auth users (Step 5)
 - Email addresses must match exactly: `admin@gengobot.com` and `student@gengobot.com`
 
 ### CORS Errors on Login
+
 - Follow Step 6 to configure Supabase Authentication settings
 - Clear browser cache and cookies
 - Restart your dev server
 
 ### No Tasks Showing Up
+
 - Run `npm run db:seed` again
 - Check database connection with: `npx prisma studio`
 - Verify DATABASE_URL is correct

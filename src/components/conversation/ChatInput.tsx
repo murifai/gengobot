@@ -9,7 +9,7 @@ export type InputMode = 'text' | 'voice';
 
 export interface ChatInputProps {
   onSend: (message: string) => void;
-  onVoiceRecording?: (audioBlob: Blob) => void;
+  onVoiceRecording?: (audioBlob: Blob, duration: number) => void;
   placeholder?: string;
   disabled?: boolean;
   loading?: boolean;
@@ -43,9 +43,9 @@ export default function ChatInput({
     }
   };
 
-  const handleVoiceRecordingComplete = (audioBlob: Blob) => {
+  const handleVoiceRecordingComplete = (audioBlob: Blob, duration: number) => {
     if (onVoiceRecording) {
-      onVoiceRecording(audioBlob);
+      onVoiceRecording(audioBlob, duration);
     }
   };
 

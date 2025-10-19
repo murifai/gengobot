@@ -10,18 +10,21 @@ export interface Message {
   isUser: boolean;
   timestamp: Date;
   avatar?: string;
+  audioUrl?: string;
 }
 
 export interface ConversationContainerProps {
   messages: Message[];
   className?: string;
   loading?: boolean;
+  autoPlayLatest?: boolean;
 }
 
 export default function ConversationContainer({
   messages,
   className,
   loading = false,
+  autoPlayLatest = false,
 }: ConversationContainerProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -31,15 +34,20 @@ export default function ConversationContainer({
 
   return (
     <div className={cn('flex flex-col gap-4 overflow-y-auto p-4', className)}>
-      {messages.map(message => (
-        <MessageBubble
-          key={message.id}
-          content={message.content}
-          isUser={message.isUser}
-          timestamp={message.timestamp}
-          avatar={message.avatar}
-        />
-      ))}
+      {messages.map((message, index) => {
+        const isLatestAIMessage = !message.isUser && index === messages.length - 1;
+        return (
+          <MessageBubble
+            key={message.id}
+            content={message.content}
+            isUser={message.isUser}
+            timestamp={message.timestamp}
+            avatar={message.avatar}
+            audioUrl={message.audioUrl}
+            autoPlay={autoPlayLatest && isLatestAIMessage && !!message.audioUrl}
+          />
+        );
+      })}
 
       {loading && (
         <div className="flex gap-3">

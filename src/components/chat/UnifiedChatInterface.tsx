@@ -16,10 +16,13 @@ export interface UnifiedChatInterfaceProps {
 
   // Input
   onSendMessage: (message: string) => void;
-  onVoiceRecording?: (audioBlob: Blob) => void;
+  onVoiceRecording?: (audioBlob: Blob, duration: number) => void;
   placeholder?: string;
   disabled?: boolean;
   enableVoice?: boolean;
+
+  // Voice
+  autoPlayVoiceResponses?: boolean;
 
   // Sidebar (optional)
   sidebar?: React.ReactNode;
@@ -42,6 +45,7 @@ export default function UnifiedChatInterface({
   placeholder = 'Type your message...',
   disabled = false,
   enableVoice = false,
+  autoPlayVoiceResponses = true,
   sidebar,
   emptyStateMessage,
   className,
@@ -97,7 +101,12 @@ export default function UnifiedChatInterface({
                 </div>
               </div>
             ) : (
-              <ConversationContainer messages={messages} loading={loading} className="h-full" />
+              <ConversationContainer
+                messages={messages}
+                loading={loading}
+                autoPlayLatest={autoPlayVoiceResponses}
+                className="h-full"
+              />
             )}
           </div>
 

@@ -3,6 +3,7 @@
 ## ✅ Implemented Features
 
 ### 1. User Authentication
+
 - **Supabase Integration**: Email/password authentication
 - **Auth Context**: React context for global auth state
 - **Login/Signup Page**: Unified authentication page at `/login`
@@ -10,6 +11,7 @@
 - **Session Management**: Automatic session handling via Supabase
 
 ### 2. Admin System
+
 - **Role-Based Access**: Database-level admin flag
 - **Admin Routes**: Protected `/admin/*` routes
 - **Admin Dashboard**: Dedicated admin interface
@@ -84,18 +86,21 @@ scripts/
 ## 🔐 Security Features
 
 ### Authentication
+
 - ✅ Supabase authentication (secure, production-ready)
 - ✅ HTTP-only cookies for session management
 - ✅ Automatic session refresh
 - ✅ Server-side auth verification
 
 ### Authorization
+
 - ✅ Middleware protection for routes
 - ✅ Database-level role checking
 - ✅ Server-side admin verification
 - ✅ Client-side UI adaptation based on role
 
 ### Route Protection
+
 - ✅ `/dashboard` - Requires authentication
 - ✅ `/admin/*` - Requires authentication + admin role
 - ✅ Auto-redirect for unauthorized access
@@ -128,11 +133,13 @@ npm run db:studio
 ## 🔄 User Flow
 
 ### Regular User Flow
+
 ```
 / (Landing) → /login → /dashboard
 ```
 
 ### Admin User Flow
+
 ```
 / (Landing) → /login → /dashboard
                     ↓
@@ -140,6 +147,7 @@ npm run db:studio
 ```
 
 ### Unauthorized Access Attempts
+
 ```
 /admin (not logged in) → /login
 /admin (logged in, not admin) → /dashboard
@@ -149,6 +157,7 @@ npm run db:studio
 ## 📊 Database Schema
 
 The User model includes:
+
 ```prisma
 model User {
   id          String   @id @default(cuid())
@@ -163,6 +172,7 @@ model User {
 ## 🎯 Next Steps
 
 ### Recommended Enhancements
+
 1. **API Route Protection**: Add auth checks to API routes
 2. **Role-Based Permissions**: Implement granular permissions
 3. **Audit Logging**: Track admin actions in AdminLog table
@@ -173,6 +183,7 @@ model User {
 8. **Session Management**: Admin panel to view/revoke sessions
 
 ### Testing Checklist
+
 - [ ] Sign up new user
 - [ ] Sign in existing user
 - [ ] Access dashboard as regular user

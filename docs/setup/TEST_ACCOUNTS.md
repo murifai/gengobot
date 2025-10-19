@@ -3,6 +3,7 @@
 ## Database Setup Complete ✅
 
 The database has been populated with:
+
 - ✅ 2 test user accounts (admin + student)
 - ✅ 7 task categories
 - ✅ 5 sample tasks
@@ -41,6 +42,7 @@ Click **"Add User"** button again and fill in:
 ## Test Account Credentials
 
 ### Admin Account
+
 ```
 Email: admin@gengobot.com
 Password: admin123
@@ -49,6 +51,7 @@ Proficiency: N1
 ```
 
 **Admin Features:**
+
 - ✅ Access to `/admin` panel
 - ✅ Task management (create, edit, delete)
 - ✅ User management
@@ -57,6 +60,7 @@ Proficiency: N1
 - ✅ All student features
 
 **Admin Panel Routes:**
+
 - `/admin` - Admin dashboard
 - `/admin/tasks` - Task management
 - `/admin/characters` - Character management
@@ -65,6 +69,7 @@ Proficiency: N1
 ---
 
 ### Student Account
+
 ```
 Email: student@gengobot.com
 Password: student123
@@ -74,6 +79,7 @@ Preferred Categories: Restaurant, Shopping, Travel
 ```
 
 **Student Features:**
+
 - ✅ Task-based learning
 - ✅ Free chat mode
 - ✅ Progress tracking
@@ -83,6 +89,7 @@ Preferred Categories: Restaurant, Shopping, Travel
 - ❌ NO access to `/admin` panel
 
 **Student Dashboard Routes:**
+
 - `/dashboard` - Main dashboard
 - `/dashboard/tasks` - Available tasks
 - `/dashboard/chat` - Free chat with characters
@@ -94,12 +101,14 @@ Preferred Categories: Restaurant, Shopping, Travel
 ## Testing the Differences
 
 ### As Admin:
+
 1. Login with admin credentials
 2. Navigate to `/admin` - Should have full access
 3. See "Admin Panel" link in navigation
 4. Can manage all tasks and users
 
 ### As Student:
+
 1. Login with student credentials
 2. Navigate to `/admin` - Should redirect to `/dashboard`
 3. No "Admin Panel" link in navigation
@@ -108,6 +117,7 @@ Preferred Categories: Restaurant, Shopping, Travel
 ## Sample Data Included
 
 ### Task Categories (7):
+
 1. 🍜 Restaurant - Dining and food ordering scenarios
 2. 🛍️ Shopping - Retail and shopping scenarios
 3. ✈️ Travel - Transportation and travel scenarios
@@ -117,6 +127,7 @@ Preferred Categories: Restaurant, Shopping, Travel
 7. 📚 Education - Academic and school scenarios
 
 ### Sample Tasks (5):
+
 1. **Ordering Ramen at a Restaurant** (N5 - Restaurant)
 2. **Buying Clothes at a Department Store** (N4 - Shopping)
 3. **Asking for Directions to the Station** (N5 - Travel)
@@ -138,14 +149,17 @@ After creating the Supabase auth users:
 ## Troubleshooting
 
 ### "User not found" error after login
+
 - Make sure you created the Supabase auth users
 - Check that emails match exactly: `admin@gengobot.com` and `student@gengobot.com`
 
 ### "Access denied" when accessing admin
+
 - This is expected for student account
 - Only admin account can access `/admin` routes
 
 ### No tasks showing up
+
 - Run `npm run db:seed` again to populate sample tasks
 - Check database connection in `.env.local`
 

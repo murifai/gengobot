@@ -18,11 +18,13 @@ npx ts-node scripts/make-admin.ts <email@example.com>
 ```
 
 **Example:**
+
 ```bash
 npx ts-node scripts/make-admin.ts admin@example.com
 ```
 
 This will:
+
 - Create a new user with admin privileges if the email doesn't exist
 - Update an existing user to grant admin privileges
 
@@ -42,6 +44,7 @@ VALUES (gen_random_uuid(), 'admin@example.com', true, 'N5', NOW(), NOW());
 ### Method 3: Prisma Studio
 
 1. Open Prisma Studio:
+
    ```bash
    npm run db:studio
    ```
@@ -64,10 +67,12 @@ VALUES (gen_random_uuid(), 'admin@example.com', true, 'N5', NOW(), NOW());
 ## Admin Routes
 
 All admin routes are protected and require:
+
 1. Valid authentication (Supabase session)
 2. `isAdmin = true` in the database
 
 Protected admin routes:
+
 - `/admin` - Admin homepage
 - `/admin/analytics` - System analytics
 - `/admin/users` - User management
@@ -86,11 +91,13 @@ Protected admin routes:
 ### "Access Denied" when accessing `/admin`
 
 **Causes:**
+
 1. User is not authenticated
 2. User's `isAdmin` field is `false` in the database
 3. Email mismatch between Supabase and database
 
 **Solutions:**
+
 1. Verify you're logged in
 2. Run the make-admin script with your email
 3. Check database for user with your email address

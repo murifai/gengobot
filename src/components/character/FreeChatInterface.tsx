@@ -8,7 +8,7 @@ interface FreeChatInterfaceProps {
   character: Character;
   messages: FreeChatMessage[];
   onSendMessage: (content: string) => void;
-  onVoiceRecording?: (audioBlob: Blob) => void;
+  onVoiceRecording?: (audioBlob: Blob, duration: number) => void;
   onBack: () => void;
   isLoading?: boolean;
 }

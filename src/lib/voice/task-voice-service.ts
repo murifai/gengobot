@@ -4,10 +4,9 @@
 import { whisperService } from './whisper-service';
 import { ttsService } from './tts-service';
 import type { TaskConversationContext, GuidanceResponse } from '../tasks/conversation-guidance';
-import {
-  evaluateConversationProgress,
-  generateTaskSystemPrompt,
-} from '../tasks/conversation-guidance';
+import { writeFile, mkdir } from 'fs/promises';
+import { join } from 'path';
+import { existsSync } from 'fs';
 
 /**
  * Voice interaction metadata for task conversations
@@ -165,6 +164,8 @@ export class TaskVoiceService {
       const taskConfig = { ...this.defaultConfig, ...config };
 
       // Use character personality if available
+      let result;
+
       if (context.characterPersonality) {
         const personality = context.characterPersonality as {
           gender?: 'male' | 'female' | 'neutral';
@@ -172,35 +173,42 @@ export class TaskVoiceService {
           formality?: 'casual' | 'formal';
         };
 
-        const result = await ttsService.synthesizeWithPersonality(text, personality);
-
-        // Convert Buffer to Blob using Uint8Array
-        const audioBlob = new Blob([new Uint8Array(result.audio)], { type: 'audio/mpeg' });
-
-        return {
-          success: true,
-          audioBlob,
-          audioUrl: URL.createObjectURL(audioBlob),
-        };
+        result = await ttsService.synthesizeWithPersonality(text, personality);
+      } else {
+        // Use learning-optimized synthesis
+        result = await ttsService.synthesizeForLearning(
+          text,
+          (context.userProficiency || taskConfig.userLevel) as 'N5' | 'N4' | 'N3' | 'N2' | 'N1',
+          {
+            ...(taskConfig.voicePersonality?.voice && { voice: taskConfig.voicePersonality.voice }),
+            ...(taskConfig.voicePersonality?.speed && { speed: taskConfig.voicePersonality.speed }),
+          }
+        );
       }
 
-      // Use learning-optimized synthesis
-      const result = await ttsService.synthesizeForLearning(
-        text,
-        (context.userProficiency || taskConfig.userLevel) as 'N5' | 'N4' | 'N3' | 'N2' | 'N1',
-        {
-          ...(taskConfig.voicePersonality?.voice && { voice: taskConfig.voicePersonality.voice }),
-          ...(taskConfig.voicePersonality?.speed && { speed: taskConfig.voicePersonality.speed }),
-        }
-      );
+      // Save audio file to public directory
+      const filename = `response-${context.attemptId}-${Date.now()}.mp3`;
+      const publicDir = join(process.cwd(), 'public', 'audio');
+      const filepath = join(publicDir, filename);
 
-      // Convert Buffer to Blob using Uint8Array
+      // Ensure directory exists
+      if (!existsSync(publicDir)) {
+        await mkdir(publicDir, { recursive: true });
+      }
+
+      await writeFile(filepath, result.audio);
+
+      // Return public URL
+      const audioUrl = `/audio/${filename}`;
+
+      // Also create blob for compatibility
       const audioBlob = new Blob([new Uint8Array(result.audio)], { type: 'audio/mpeg' });
 
       return {
         success: true,
         audioBlob,
-        audioUrl: URL.createObjectURL(audioBlob),
+        audioUrl,
+        duration: (result as { duration?: number }).duration,
       };
     } catch (error) {
       console.error('Task voice synthesis error:', error);
@@ -343,15 +351,17 @@ export class TaskVoiceService {
     const warnings: string[] = [];
     let isValid = true;
 
-    // Check minimum duration (at least 0.5 seconds)
-    if (metadata.audioDuration < 500) {
-      warnings.push('Recording too short - please speak for at least 0.5 seconds');
+    console.log('Validating recording with metadata:', metadata);
+
+    // Check minimum duration (at least 0.3 seconds - reduced from 0.5 for better UX)
+    if (metadata.audioDuration < 300) {
+      warnings.push('Recording too short - please speak for at least 0.3 seconds');
       isValid = false;
     }
 
     // Check if voice was detected
     if (!metadata.voiceActivityDetected) {
-      warnings.push('No voice detected - please check your microphone');
+      warnings.push('No voice detected - please check your microphone and try speaking louder');
       isValid = false;
     }
 
@@ -361,10 +371,12 @@ export class TaskVoiceService {
       isValid = false;
     }
 
-    // Check retry count
+    // Check retry count (warning only, not blocking)
     if (metadata.retryCount && metadata.retryCount > 3) {
       warnings.push('Multiple recording attempts - consider checking audio settings');
     }
+
+    console.log('Validation result:', { isValid, warnings });
 
     return { isValid, warnings };
   }

@@ -1,0 +1,12 @@
+# Audio Files Directory
+
+This directory stores temporary audio files for voice chat responses.
+
+Audio files are automatically generated during task-based voice conversations and are served to the client for playback.
+
+## Cleanup
+
+Audio files should be periodically cleaned up to prevent disk space issues. Consider implementing:
+- Automatic cleanup after conversation completion
+- Scheduled cleanup of files older than 24 hours
+- Size-based cleanup if directory exceeds certain size

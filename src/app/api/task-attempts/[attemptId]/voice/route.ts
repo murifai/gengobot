@@ -104,8 +104,28 @@ export async function POST(
       type: audioFile.type,
     });
 
+    console.log('Attempting transcription with blob:', {
+      size: audioBlob.size,
+      type: audioBlob.type,
+    });
+
     // Transcribe audio with task context
-    const transcription = await taskVoiceService.transcribeTaskInput(audioBlob, context, config);
+    let transcription;
+    try {
+      transcription = await taskVoiceService.transcribeTaskInput(audioBlob, context, config);
+    } catch (transcriptionError) {
+      console.error('Transcription error:', transcriptionError);
+      return NextResponse.json(
+        {
+          error: 'Transcription service error',
+          message:
+            transcriptionError instanceof Error
+              ? transcriptionError.message
+              : 'Unknown transcription error',
+        },
+        { status: 500 }
+      );
+    }
 
     if (!transcription.success) {
       return NextResponse.json(
@@ -118,18 +138,21 @@ export async function POST(
     }
 
     // Validate transcription quality
+    // Note: transcription.duration is in seconds, convert to milliseconds
     const validation = taskVoiceService.validateRecording({
-      audioDuration: transcription.duration,
+      audioDuration: transcription.duration * 1000,
       voiceActivityDetected: transcription.transcript.length > 0,
       transcriptionConfidence: transcription.confidence,
     });
 
     if (!validation.isValid) {
+      console.error('Recording validation failed:', validation);
       return NextResponse.json(
         {
           error: 'Recording validation failed',
           warnings: validation.warnings,
           transcript: transcription.transcript,
+          validation: validation,
         },
         { status: 400 }
       );
@@ -261,10 +284,17 @@ export async function POST(
     });
   } catch (error) {
     console.error('Voice conversation error:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return NextResponse.json(
       {
         error: 'Voice conversation processing failed',
         message: error instanceof Error ? error.message : 'Unknown error',
+        details:
+          process.env.NODE_ENV === 'development'
+            ? error instanceof Error
+              ? error.stack
+              : String(error)
+            : undefined,
       },
       { status: 500 }
     );

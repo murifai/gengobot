@@ -22,6 +22,7 @@
 
 5. **Update Your .env.local File**:
    Replace this line:
+
    ```
    DATABASE_URL=postgresql://postgres:[YOUR-SUPABASE-DB-PASSWORD]@db.ynwhzzpeeaouejimjmwo.supabase.co:5432/postgres
    ```
@@ -54,11 +55,13 @@ npx prisma db pull
 ```
 
 If it works, you'll see:
+
 ```
 ✔ Introspected 7 models and wrote them into prisma/schema.prisma
 ```
 
 If it fails, double-check:
+
 - The password in your DATABASE_URL is correct
 - There are no extra spaces or line breaks
 - The URL format is exactly: `postgresql://postgres:YOUR_PASSWORD@db.ynwhzzpeeaouejimjmwo.supabase.co:5432/postgres`
@@ -66,7 +69,9 @@ If it fails, double-check:
 ## Common Issues:
 
 ### Special Characters in Password
+
 If your password contains special characters like `@`, `#`, `$`, `%`, you need to URL-encode them:
+
 - `@` becomes `%40`
 - `#` becomes `%23`
 - `$` becomes `%24`
@@ -76,6 +81,7 @@ If your password contains special characters like `@`, `#`, `$`, `%`, you need t
 - `&` becomes `%26`
 
 ### Example:
+
 If password is `my@pass#word`, use: `my%40pass%23word` in the URL
 
 ## Once Connected:
