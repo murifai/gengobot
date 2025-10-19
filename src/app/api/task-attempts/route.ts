@@ -90,10 +90,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'userId and taskId are required' }, { status: 400 });
     }
 
-    // Verify user exists
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    // Verify user exists - support both authId (UUID) and id (CUID) formats
+    let user = await prisma.user.findUnique({
+      where: { authId: userId },
     });
+
+    // Fallback to id lookup if authId lookup fails
+    if (!user) {
+      user = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+    }
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -115,7 +122,7 @@ export async function POST(request: NextRequest) {
     // Check if user has an incomplete attempt for this task
     const existingAttempt = await prisma.taskAttempt.findFirst({
       where: {
-        userId,
+        userId: user.id,
         taskId,
         isCompleted: false,
       },
@@ -133,7 +140,7 @@ export async function POST(request: NextRequest) {
     // Create new task attempt
     const attempt = await prisma.taskAttempt.create({
       data: {
-        userId,
+        userId: user.id,
         taskId,
         conversationHistory: {
           messages: [],
@@ -177,7 +184,7 @@ export async function POST(request: NextRequest) {
 
     // Update user's current task
     await prisma.user.update({
-      where: { id: userId },
+      where: { id: user.id },
       data: {
         currentTaskId: taskId,
       },

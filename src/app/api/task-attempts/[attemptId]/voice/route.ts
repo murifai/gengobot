@@ -46,7 +46,15 @@ export async function POST(
     const audioFile = formData.get('audio') as File;
     const configJson = formData.get('config') as string;
 
+    console.log('Voice endpoint - received formData:', {
+      hasAudio: !!audioFile,
+      audioType: audioFile?.type,
+      audioSize: audioFile?.size,
+      formDataKeys: Array.from(formData.keys()),
+    });
+
     if (!audioFile) {
+      console.error('Voice endpoint - No audio file in formData');
       return NextResponse.json({ error: 'Audio file is required' }, { status: 400 });
     }
 

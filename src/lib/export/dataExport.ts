@@ -3,10 +3,7 @@
  * Export task performance data in various formats (CSV, JSON, Excel)
  */
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
-
+import { prisma } from '@/lib/prisma';
 export type ExportFormat = 'csv' | 'json' | 'excel';
 
 export interface ExportOptions {
@@ -151,9 +148,10 @@ async function fetchTaskAttemptData(options: ExportOptions) {
   if (options.userId) where.userId = options.userId;
   if (options.taskId) where.taskId = options.taskId;
   if (options.startDate || options.endDate) {
-    where.startTime = {};
-    if (options.startDate) where.startTime.gte = options.startDate;
-    if (options.endDate) where.startTime.lte = options.endDate;
+    const startTime: Record<string, Date> = {};
+    if (options.startDate) startTime.gte = options.startDate;
+    if (options.endDate) startTime.lte = options.endDate;
+    where.startTime = startTime;
   }
 
   const attempts = await prisma.taskAttempt.findMany({
@@ -343,8 +341,11 @@ async function fetchSystemAnalyticsData() {
 
 // ===== Export Format Functions =====
 
-function exportToCSV(data: Record<string, unknown>[], filename: string): ExportResult {
-  if (data.length === 0) {
+function exportToCSV(data: Record<string, unknown> | Record<string, unknown>[], filename: string): ExportResult {
+  // Convert single object to array for consistent handling
+  const dataArray = Array.isArray(data) ? data : [data];
+
+  if (dataArray.length === 0) {
     return {
       format: 'csv',
       filename: `${filename}.csv`,
@@ -354,10 +355,10 @@ function exportToCSV(data: Record<string, unknown>[], filename: string): ExportR
   }
 
   // Get headers from first object
-  const headers = Object.keys(flattenObject(data[0]));
+  const headers = Object.keys(flattenObject(dataArray[0]));
 
   // Create CSV content
-  const rows = data.map(item => {
+  const rows = dataArray.map(item => {
     const flattened = flattenObject(item);
     return headers.map(header => {
       const value = flattened[header];
@@ -379,7 +380,7 @@ function exportToCSV(data: Record<string, unknown>[], filename: string): ExportR
   };
 }
 
-function exportToJSON(data: Record<string, unknown>, filename: string): ExportResult {
+function exportToJSON(data: Record<string, unknown> | Record<string, unknown>[], filename: string): ExportResult {
   return {
     format: 'json',
     filename: `${filename}.json`,
@@ -388,7 +389,10 @@ function exportToJSON(data: Record<string, unknown>, filename: string): ExportRe
   };
 }
 
-function exportToExcel(data: Record<string, unknown>[], filename: string): ExportResult {
+function exportToExcel(data: Record<string, unknown> | Record<string, unknown>[], filename: string): ExportResult {
+  // Convert single object to array for consistent handling
+  const dataArray = Array.isArray(data) ? data : [data];
+
   // For Excel export, we'll return JSON format with instructions
   // In a real implementation, you would use a library like xlsx
   return {
@@ -396,7 +400,7 @@ function exportToExcel(data: Record<string, unknown>[], filename: string): Expor
     filename: `${filename}.xlsx`,
     data: JSON.stringify({
       message: 'Excel export requires additional library (xlsx)',
-      data: data,
+      data: dataArray,
     }),
     mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   };
@@ -416,7 +420,7 @@ function flattenObject(obj: Record<string, unknown>, prefix = ''): Record<string
     } else if (value instanceof Date) {
       flattened[newKey] = value.toISOString();
     } else if (typeof value === 'object' && !Array.isArray(value)) {
-      Object.assign(flattened, flattenObject(value, newKey));
+      Object.assign(flattened, flattenObject(value as Record<string, unknown>, newKey));
     } else if (Array.isArray(value)) {
       flattened[newKey] = JSON.stringify(value);
     } else {
@@ -439,13 +443,13 @@ function calculateAverageScores(attempts: Record<string, unknown>[]) {
   }
 
   return {
-    overall: attempts.reduce((sum, a) => sum + (a.overallScore || 0), 0) / attempts.length,
+    overall: attempts.reduce((sum, a) => sum + (Number(a.overallScore) || 0), 0) / attempts.length,
     taskAchievement:
-      attempts.reduce((sum, a) => sum + (a.taskAchievement || 0), 0) / attempts.length,
-    fluency: attempts.reduce((sum, a) => sum + (a.fluency || 0), 0) / attempts.length,
+      attempts.reduce((sum, a) => sum + (Number(a.taskAchievement) || 0), 0) / attempts.length,
+    fluency: attempts.reduce((sum, a) => sum + (Number(a.fluency) || 0), 0) / attempts.length,
     vocabularyGrammar:
-      attempts.reduce((sum, a) => sum + (a.vocabularyGrammarAccuracy || 0), 0) / attempts.length,
-    politeness: attempts.reduce((sum, a) => sum + (a.politeness || 0), 0) / attempts.length,
+      attempts.reduce((sum, a) => sum + (Number(a.vocabularyGrammarAccuracy) || 0), 0) / attempts.length,
+    politeness: attempts.reduce((sum, a) => sum + (Number(a.politeness) || 0), 0) / attempts.length,
   };
 }
 

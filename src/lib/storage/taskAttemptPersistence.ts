@@ -3,10 +3,7 @@
  * Manages storage and retrieval of task attempts and performance data
  */
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
-
+import { prisma } from '@/lib/prisma';
 export interface TaskAttemptData {
   id: string;
   userId: string;

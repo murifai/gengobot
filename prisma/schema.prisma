@@ -80,6 +80,7 @@ model TaskCategory {
 // User model - Student and admin accounts
 model User {
   id                    String    @id @default(cuid())
+  authId                String?   @unique // Supabase auth user ID
   email                 String    @unique
   name                  String?
   proficiency           String    @default("N5") // N1-N5 JLPT levels
@@ -97,6 +98,7 @@ model User {
 
   @@index([email])
   @@index([isAdmin])
+  @@index([authId])
 }
 
 // Character model - For task-based and free-chat scenarios

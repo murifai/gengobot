@@ -21,11 +21,15 @@
     "db:reset": "npx prisma migrate reset",
     "db:studio": "npx prisma studio",
     "db:generate": "npx prisma generate",
+    "admin:make": "ts-node scripts/make-admin.ts",
+    "users:create": "ts-node scripts/create-test-users.ts",
+    "users:create-db": "tsx scripts/create-db-users.ts",
     "prepare": "husky"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
-    "@prisma/client": "^5.0.0",
+    "@prisma/client": "^5.22.0",
+    "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.0.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.544.0",

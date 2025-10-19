@@ -3,10 +3,7 @@
  * Comprehensive analytics for task performance and user learning insights
  */
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
-
+import { prisma } from '@/lib/prisma';
 export interface TaskAnalytics {
   taskId: string;
   taskTitle: string;
@@ -351,13 +348,13 @@ function calculateAverageScores(attempts: Record<string, unknown>[]) {
   }
 
   return {
-    overall: attempts.reduce((sum, a) => sum + (a.overallScore || 0), 0) / attempts.length,
+    overall: attempts.reduce((sum, a) => sum + ((a.overallScore as number) || 0), 0) / attempts.length,
     taskAchievement:
-      attempts.reduce((sum, a) => sum + (a.taskAchievement || 0), 0) / attempts.length,
-    fluency: attempts.reduce((sum, a) => sum + (a.fluency || 0), 0) / attempts.length,
+      attempts.reduce((sum, a) => sum + ((a.taskAchievement as number) || 0), 0) / attempts.length,
+    fluency: attempts.reduce((sum, a) => sum + ((a.fluency as number) || 0), 0) / attempts.length,
     vocabularyGrammar:
-      attempts.reduce((sum, a) => sum + (a.vocabularyGrammarAccuracy || 0), 0) / attempts.length,
-    politeness: attempts.reduce((sum, a) => sum + (a.politeness || 0), 0) / attempts.length,
+      attempts.reduce((sum, a) => sum + ((a.vocabularyGrammarAccuracy as number) || 0), 0) / attempts.length,
+    politeness: attempts.reduce((sum, a) => sum + ((a.politeness as number) || 0), 0) / attempts.length,
   };
 }
 
@@ -366,7 +363,7 @@ function calculateAverageDuration(attempts: Record<string, unknown>[]): number {
   if (withDuration.length === 0) return 0;
 
   const totalMinutes = withDuration.reduce((sum, a) => {
-    const duration = (a.endTime.getTime() - a.startTime.getTime()) / 60000;
+    const duration = ((a.endTime as Date).getTime() - (a.startTime as Date).getTime()) / 60000;
     return sum + duration;
   }, 0);
 
@@ -374,7 +371,7 @@ function calculateAverageDuration(attempts: Record<string, unknown>[]): number {
 }
 
 function calculateRetryRate(attempts: Record<string, unknown>[]): number {
-  const totalRetries = attempts.reduce((sum, a) => sum + a.retryCount, 0);
+  const totalRetries = attempts.reduce((sum, a) => sum + ((a.retryCount as number) || 0), 0);
   return attempts.length > 0 ? (totalRetries / attempts.length) * 100 : 0;
 }
 
@@ -401,7 +398,13 @@ async function getTaskTrendData(
   });
 
   // Group by date
-  const dailyData = new Map<string, Record<string, unknown>>();
+  const dailyData = new Map<string, {
+    date: Date;
+    attempts: number;
+    completions: number;
+    totalScore: number;
+    scoreCount: number;
+  }>();
 
   for (const attempt of attempts) {
     const dateKey = attempt.startTime.toISOString().split('T')[0];
@@ -415,7 +418,7 @@ async function getTaskTrendData(
       });
     }
 
-    const data = dailyData.get(dateKey);
+    const data = dailyData.get(dateKey)!;
     data.attempts++;
     if (attempt.isCompleted) {
       data.completions++;
@@ -443,11 +446,11 @@ function identifyStrengthsWeaknesses(attempts: Record<string, unknown>[]): {
   for (const attempt of attempts) {
     if (!attempt.task || !attempt.overallScore) continue;
 
-    const category = attempt.task.category;
+    const category = (attempt.task as { category: string }).category;
     if (!categoryScores.has(category)) {
       categoryScores.set(category, []);
     }
-    categoryScores.get(category)!.push(attempt.overallScore);
+    categoryScores.get(category)!.push(attempt.overallScore as number);
   }
 
   const categoryAverages = Array.from(categoryScores.entries()).map(([category, scores]) => ({
@@ -466,9 +469,9 @@ function identifyStrengthsWeaknesses(attempts: Record<string, unknown>[]): {
 function calculateLearningVelocity(attempts: Record<string, unknown>[]): number {
   if (attempts.length === 0) return 0;
 
-  const sorted = attempts.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
-  const firstDate = sorted[0].startTime;
-  const lastDate = sorted[sorted.length - 1].startTime;
+  const sorted = attempts.sort((a, b) => (a.startTime as Date).getTime() - (b.startTime as Date).getTime());
+  const firstDate = sorted[0].startTime as Date;
+  const lastDate = sorted[sorted.length - 1].startTime as Date;
 
   const weeks = (lastDate.getTime() - firstDate.getTime()) / (7 * 24 * 60 * 60 * 1000);
   return weeks > 0 ? attempts.length / weeks : 0;
@@ -502,7 +505,12 @@ async function getDifficultyDistribution() {
     },
   });
 
-  const difficultyMap = new Map<string, Record<string, unknown>>();
+  const difficultyMap = new Map<string, {
+    level: string;
+    count: number;
+    totalScore: number;
+    scoreCount: number;
+  }>();
 
   for (const task of tasks) {
     if (!difficultyMap.has(task.difficulty)) {
@@ -514,10 +522,10 @@ async function getDifficultyDistribution() {
       });
     }
 
-    const diff = difficultyMap.get(task.difficulty);
+    const diff = difficultyMap.get(task.difficulty)!;
     diff.count++;
     diff.totalScore += task.taskAttempts.reduce(
-      (sum: number, a: Record<string, unknown>) => sum + (a.overallScore || 0),
+      (sum: number, a) => sum + ((a.overallScore as number) || 0),
       0
     );
     diff.scoreCount += task.taskAttempts.length;

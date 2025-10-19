@@ -3,10 +3,7 @@
  * Comprehensive tracking of user learning progress and achievements
  */
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
-
+import { prisma } from '@/lib/prisma';
 export interface UserProgress {
   userId: string;
   proficiency: string;

@@ -102,18 +102,30 @@ export default function TaskAttemptClient({ user, taskId, attemptId }: TaskAttem
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
 
+      console.log('Sending voice recording:', {
+        size: audioBlob.size,
+        type: audioBlob.type,
+        attemptId,
+      });
+
       const response = await fetch(`/api/task-attempts/${attemptId}/voice`, {
         method: 'POST',
         body: formData,
       });
 
-      if (!response.ok) throw new Error('Failed to process voice input');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Voice API error:', errorData);
+        throw new Error(errorData.error || 'Failed to process voice input');
+      }
 
       const data = await response.json();
+      console.log('Voice response:', data);
 
       // Refresh the attempt to get updated conversation
       await fetchAttempt();
     } catch (err) {
+      console.error('Voice recording error:', err);
       setError(err instanceof Error ? err.message : 'Failed to process voice input');
     } finally {
       setSending(false);

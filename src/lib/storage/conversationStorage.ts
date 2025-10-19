@@ -3,10 +3,7 @@
  * Handles task-based conversation history persistence and retrieval
  */
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
-
+import { PrismaClient, Prisma } from '@prisma/client';
 export interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -53,7 +50,7 @@ export async function createConversation(data: {
       type: data.type,
       taskId: data.taskId,
       characterId: data.characterId,
-      messages: data.initialMessage ? [data.initialMessage] : [],
+      messages: (data.initialMessage ? [data.initialMessage] : []) as unknown as Prisma.InputJsonValue,
     },
   });
 
@@ -63,8 +60,8 @@ export async function createConversation(data: {
     userId: conversation.userId,
     taskId: conversation.taskId || undefined,
     characterId: conversation.characterId || undefined,
-    messages: conversation.messages as Message[],
-    assessment: conversation.assessment,
+    messages: conversation.messages as unknown as Message[],
+    assessment: conversation.assessment as Record<string, unknown> | undefined,
     createdAt: conversation.createdAt,
     updatedAt: conversation.updatedAt,
   };
@@ -87,14 +84,14 @@ export async function addMessage(
   }
 
   // Append new message
-  const messages = current.messages as Message[];
+  const messages = current.messages as unknown as Message[];
   messages.push(message);
 
   // Update conversation
   const updated = await prisma.conversation.update({
     where: { id: conversationId },
     data: {
-      messages: messages,
+      messages: messages as unknown as Prisma.InputJsonValue,
       updatedAt: new Date(),
     },
   });
@@ -105,8 +102,8 @@ export async function addMessage(
     userId: updated.userId,
     taskId: updated.taskId || undefined,
     characterId: updated.characterId || undefined,
-    messages: updated.messages as Message[],
-    assessment: updated.assessment,
+    messages: updated.messages as unknown as Message[],
+    assessment: updated.assessment as Record<string, unknown> | undefined,
     createdAt: updated.createdAt,
     updatedAt: updated.updatedAt,
   };
@@ -135,8 +132,8 @@ export async function getConversation(conversationId: string): Promise<Conversat
     userId: conversation.userId,
     taskId: conversation.taskId || undefined,
     characterId: conversation.characterId || undefined,
-    messages: conversation.messages as Message[],
-    assessment: conversation.assessment,
+    messages: conversation.messages as unknown as Message[],
+    assessment: conversation.assessment as Record<string, unknown> | undefined,
     createdAt: conversation.createdAt,
     updatedAt: conversation.updatedAt,
   };
@@ -152,9 +149,10 @@ export async function getConversations(filter: ConversationFilter): Promise<Conv
   if (filter.taskId) where.taskId = filter.taskId;
   if (filter.type) where.type = filter.type;
   if (filter.startDate || filter.endDate) {
-    where.createdAt = {};
-    if (filter.startDate) where.createdAt.gte = filter.startDate;
-    if (filter.endDate) where.createdAt.lte = filter.endDate;
+    const createdAt: Record<string, Date> = {};
+    if (filter.startDate) createdAt.gte = filter.startDate;
+    if (filter.endDate) createdAt.lte = filter.endDate;
+    where.createdAt = createdAt;
   }
 
   const conversations = await prisma.conversation.findMany({
@@ -170,8 +168,8 @@ export async function getConversations(filter: ConversationFilter): Promise<Conv
     userId: conv.userId,
     taskId: conv.taskId || undefined,
     characterId: conv.characterId || undefined,
-    messages: conv.messages as Message[],
-    assessment: conv.assessment,
+    messages: conv.messages as unknown as Message[],
+    assessment: conv.assessment as Record<string, unknown> | undefined,
     createdAt: conv.createdAt,
     updatedAt: conv.updatedAt,
   }));
@@ -187,7 +185,7 @@ export async function updateAssessment(
   const updated = await prisma.conversation.update({
     where: { id: conversationId },
     data: {
-      assessment,
+      assessment: assessment as unknown as Prisma.InputJsonValue,
       updatedAt: new Date(),
     },
   });
@@ -198,8 +196,8 @@ export async function updateAssessment(
     userId: updated.userId,
     taskId: updated.taskId || undefined,
     characterId: updated.characterId || undefined,
-    messages: updated.messages as Message[],
-    assessment: updated.assessment,
+    messages: updated.messages as unknown as Message[],
+    assessment: updated.assessment as Record<string, unknown> | undefined,
     createdAt: updated.createdAt,
     updatedAt: updated.updatedAt,
   };

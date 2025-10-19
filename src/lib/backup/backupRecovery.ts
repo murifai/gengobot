@@ -3,12 +3,9 @@
  * Comprehensive backup and recovery system for task management data
  */
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-
-const prisma = new PrismaClient();
-
 export interface BackupOptions {
   includeTasks?: boolean;
   includeAttempts?: boolean;
@@ -56,64 +53,67 @@ export async function createFullBackup(options: BackupOptions = {}): Promise<Bac
     await ensureDirectory(backupPath);
 
     // Collect data from all tables
+    const metadata: BackupMetadata = {
+      timestamp: new Date(),
+      version: '1.0.0',
+      tables: [],
+      recordCounts: {},
+    };
+
     const backupData: Record<string, unknown> = {
-      metadata: {
-        timestamp: new Date(),
-        version: '1.0.0',
-        tables: [],
-        recordCounts: {},
-      },
+      metadata,
     };
 
     // Backup tasks
     if (options.includeTasks !== false) {
       const tasks = await prisma.task.findMany();
       backupData.tasks = tasks;
-      backupData.metadata.tables.push('tasks');
-      backupData.metadata.recordCounts.tasks = tasks.length;
+      metadata.tables.push('tasks');
+      metadata.recordCounts.tasks = tasks.length;
     }
 
     // Backup task attempts
     if (options.includeAttempts !== false) {
       const attempts = await prisma.taskAttempt.findMany();
       backupData.taskAttempts = attempts;
-      backupData.metadata.tables.push('taskAttempts');
-      backupData.metadata.recordCounts.taskAttempts = attempts.length;
+      metadata.tables.push('taskAttempts');
+      metadata.recordCounts.taskAttempts = attempts.length;
     }
 
     // Backup users
     if (options.includeUsers !== false) {
       const users = await prisma.user.findMany();
       backupData.users = users;
-      backupData.metadata.tables.push('users');
-      backupData.metadata.recordCounts.users = users.length;
+      metadata.tables.push('users');
+      metadata.recordCounts.users = users.length;
     }
 
     // Backup conversations
     if (options.includeConversations !== false) {
       const conversations = await prisma.conversation.findMany();
       backupData.conversations = conversations;
-      backupData.metadata.tables.push('conversations');
-      backupData.metadata.recordCounts.conversations = conversations.length;
+      metadata.tables.push('conversations');
+      metadata.recordCounts.conversations = conversations.length;
     }
 
     // Backup characters
     if (options.includeCharacters !== false) {
       const characters = await prisma.character.findMany();
       backupData.characters = characters;
-      backupData.metadata.tables.push('characters');
-      backupData.metadata.recordCounts.characters = characters.length;
+      metadata.tables.push('characters');
+      metadata.recordCounts.characters = characters.length;
     }
 
     // Backup task categories
     const categories = await prisma.taskCategory.findMany();
     backupData.taskCategories = categories;
-    backupData.metadata.tables.push('taskCategories');
-    backupData.metadata.recordCounts.taskCategories = categories.length;
+    metadata.tables.push('taskCategories');
+    metadata.recordCounts.taskCategories = categories.length;
 
     // Calculate checksum
     const dataString = JSON.stringify(backupData);
-    backupData.metadata.checksum = calculateChecksum(dataString);
+    metadata.checksum = calculateChecksum(dataString);
+    backupData.metadata = metadata;
 
     // Write backup file
     const filename = `backup_${backupId}.json`;
@@ -125,7 +125,7 @@ export async function createFullBackup(options: BackupOptions = {}): Promise<Bac
       success: true,
       backupId,
       filepath,
-      metadata: backupData.metadata,
+      metadata,
     };
   } catch (error) {
     return {
@@ -156,15 +156,17 @@ export async function createIncrementalBackup(
 
     await ensureDirectory(backupPath);
 
+    const metadata: BackupMetadata = {
+      timestamp: new Date(),
+      version: '1.0.0',
+      tables: [],
+      recordCounts: {},
+    };
+
     const backupData: Record<string, unknown> = {
-      metadata: {
-        timestamp: new Date(),
-        version: '1.0.0',
-        type: 'incremental',
-        sincDate: lastBackupDate,
-        tables: [],
-        recordCounts: {},
-      },
+      metadata,
+      type: 'incremental',
+      sinceDate: lastBackupDate,
     };
 
     // Backup changed tasks
@@ -175,8 +177,8 @@ export async function createIncrementalBackup(
         },
       });
       backupData.tasks = tasks;
-      backupData.metadata.tables.push('tasks');
-      backupData.metadata.recordCounts.tasks = tasks.length;
+      metadata.tables.push('tasks');
+      metadata.recordCounts.tasks = tasks.length;
     }
 
     // Backup changed attempts
@@ -185,8 +187,8 @@ export async function createIncrementalBackup(
         where: { startTime: { gte: lastBackupDate } },
       });
       backupData.taskAttempts = attempts;
-      backupData.metadata.tables.push('taskAttempts');
-      backupData.metadata.recordCounts.taskAttempts = attempts.length;
+      metadata.tables.push('taskAttempts');
+      metadata.recordCounts.taskAttempts = attempts.length;
     }
 
     // Backup changed users
@@ -197,8 +199,8 @@ export async function createIncrementalBackup(
         },
       });
       backupData.users = users;
-      backupData.metadata.tables.push('users');
-      backupData.metadata.recordCounts.users = users.length;
+      metadata.tables.push('users');
+      metadata.recordCounts.users = users.length;
     }
 
     // Backup changed conversations
@@ -209,12 +211,13 @@ export async function createIncrementalBackup(
         },
       });
       backupData.conversations = conversations;
-      backupData.metadata.tables.push('conversations');
-      backupData.metadata.recordCounts.conversations = conversations.length;
+      metadata.tables.push('conversations');
+      metadata.recordCounts.conversations = conversations.length;
     }
 
     const dataString = JSON.stringify(backupData);
-    backupData.metadata.checksum = calculateChecksum(dataString);
+    metadata.checksum = calculateChecksum(dataString);
+    backupData.metadata = metadata;
 
     const filename = `backup_incremental_${backupId}.json`;
     const filepath = path.join(backupPath, filename);
@@ -225,7 +228,7 @@ export async function createIncrementalBackup(
       success: true,
       backupId,
       filepath,
-      metadata: backupData.metadata,
+      metadata,
     };
   } catch (error) {
     return {
