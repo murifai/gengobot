@@ -1,0 +1,423 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+
+interface TaskFormData {
+  title: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  scenario: string;
+  learningObjectives: string[];
+  successCriteria: string[];
+  estimatedDuration: number;
+  prerequisites: string;
+  characterId: string | null;
+  isActive: boolean;
+}
+
+interface Character {
+  id: string;
+  name: string;
+}
+
+interface TaskEditorFormProps {
+  taskId?: string;
+  initialData?: Partial<TaskFormData>;
+}
+
+export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormProps) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [formData, setFormData] = useState<TaskFormData>({
+    title: initialData?.title || '',
+    description: initialData?.description || '',
+    category: initialData?.category || '',
+    difficulty: initialData?.difficulty || 'N5',
+    scenario: initialData?.scenario || '',
+    learningObjectives: initialData?.learningObjectives || [''],
+    successCriteria: initialData?.successCriteria || [''],
+    estimatedDuration: initialData?.estimatedDuration || 10,
+    prerequisites: initialData?.prerequisites || '',
+    characterId: initialData?.characterId || null,
+    isActive: initialData?.isActive ?? true,
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    fetchCharacters();
+  }, []);
+
+  const fetchCharacters = async () => {
+    try {
+      const response = await fetch('/api/characters');
+      if (response.ok) {
+        const data = await response.json();
+        setCharacters(data);
+      }
+    } catch (error) {
+      console.error('Error fetching characters:', error);
+    }
+  };
+
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.title.trim()) {
+      newErrors.title = 'Title is required';
+    }
+
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description is required';
+    }
+
+    if (!formData.category.trim()) {
+      newErrors.category = 'Category is required';
+    }
+
+    if (!formData.scenario.trim()) {
+      newErrors.scenario = 'Scenario is required';
+    }
+
+    const validObjectives = formData.learningObjectives.filter(obj => obj.trim());
+    if (validObjectives.length === 0) {
+      newErrors.learningObjectives = 'At least one learning objective is required';
+    }
+
+    const validCriteria = formData.successCriteria.filter(crit => crit.trim());
+    if (validCriteria.length === 0) {
+      newErrors.successCriteria = 'At least one success criterion is required';
+    }
+
+    if (formData.estimatedDuration < 1) {
+      newErrors.estimatedDuration = 'Duration must be at least 1 minute';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validate()) {
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Clean up arrays
+      const cleanedData = {
+        ...formData,
+        learningObjectives: formData.learningObjectives.filter(obj => obj.trim()),
+        successCriteria: formData.successCriteria.filter(crit => crit.trim()),
+        // Note: updatedBy is omitted - admin logging will be handled server-side
+      };
+
+      const url = taskId ? `/api/tasks/${taskId}` : '/api/tasks';
+      const method = taskId ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cleanedData),
+      });
+
+      if (response.ok) {
+        router.push('/admin/tasks');
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error || 'Failed to save task'}`);
+      }
+    } catch (error) {
+      console.error('Error saving task:', error);
+      alert('Failed to save task');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addArrayItem = (field: 'learningObjectives' | 'successCriteria') => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: [...prev[field], ''],
+    }));
+  };
+
+  const removeArrayItem = (field: 'learningObjectives' | 'successCriteria', index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateArrayItem = (
+    field: 'learningObjectives' | 'successCriteria',
+    index: number,
+    value: string
+  ) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].map((item, i) => (i === index ? value : item)),
+    }));
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Title */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Task Title *
+        </label>
+        <Input
+          type="text"
+          value={formData.title}
+          onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
+          placeholder="e.g., Ordering at a Restaurant"
+          className={errors.title ? 'border-red-500' : ''}
+        />
+        {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+      </div>
+
+      {/* Description */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Description *
+        </label>
+        <textarea
+          value={formData.description}
+          onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          placeholder="Brief description of the task"
+          rows={3}
+          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+            errors.description ? 'border-red-500' : 'border-gray-300'
+          }`}
+        />
+        {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
+      </div>
+
+      {/* Category & Difficulty */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Category *
+          </label>
+          <select
+            value={formData.category}
+            onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+              errors.category ? 'border-red-500' : 'border-gray-300'
+            }`}
+          >
+            <option value="">Select Category</option>
+            <option value="Restaurant">Restaurant</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Travel">Travel</option>
+            <option value="Workplace">Workplace</option>
+            <option value="Daily Life">Daily Life</option>
+            <option value="Social">Social</option>
+          </select>
+          {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Difficulty Level *
+          </label>
+          <select
+            value={formData.difficulty}
+            onChange={e => setFormData(prev => ({ ...prev, difficulty: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          >
+            <option value="N5">N5 (Beginner)</option>
+            <option value="N4">N4 (Elementary)</option>
+            <option value="N3">N3 (Intermediate)</option>
+            <option value="N2">N2 (Upper-Intermediate)</option>
+            <option value="N1">N1 (Advanced)</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Scenario */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Scenario *
+        </label>
+        <textarea
+          value={formData.scenario}
+          onChange={e => setFormData(prev => ({ ...prev, scenario: e.target.value }))}
+          placeholder="Detailed scenario description for the conversation"
+          rows={4}
+          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+            errors.scenario ? 'border-red-500' : 'border-gray-300'
+          }`}
+        />
+        {errors.scenario && <p className="text-red-500 text-sm mt-1">{errors.scenario}</p>}
+      </div>
+
+      {/* Learning Objectives */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Learning Objectives *
+        </label>
+        {formData.learningObjectives.map((objective, index) => (
+          <div key={index} className="flex gap-2 mb-2">
+            <Input
+              type="text"
+              value={objective}
+              onChange={e => updateArrayItem('learningObjectives', index, e.target.value)}
+              placeholder={`Objective ${index + 1}`}
+              className="flex-1"
+            />
+            {formData.learningObjectives.length > 1 && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => removeArrayItem('learningObjectives', index)}
+              >
+                Remove
+              </Button>
+            )}
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => addArrayItem('learningObjectives')}
+          className="mt-2"
+        >
+          + Add Objective
+        </Button>
+        {errors.learningObjectives && (
+          <p className="text-red-500 text-sm mt-1">{errors.learningObjectives}</p>
+        )}
+      </div>
+
+      {/* Success Criteria */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Success Criteria *
+        </label>
+        {formData.successCriteria.map((criterion, index) => (
+          <div key={index} className="flex gap-2 mb-2">
+            <Input
+              type="text"
+              value={criterion}
+              onChange={e => updateArrayItem('successCriteria', index, e.target.value)}
+              placeholder={`Criterion ${index + 1}`}
+              className="flex-1"
+            />
+            {formData.successCriteria.length > 1 && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => removeArrayItem('successCriteria', index)}
+              >
+                Remove
+              </Button>
+            )}
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => addArrayItem('successCriteria')}
+          className="mt-2"
+        >
+          + Add Criterion
+        </Button>
+        {errors.successCriteria && (
+          <p className="text-red-500 text-sm mt-1">{errors.successCriteria}</p>
+        )}
+      </div>
+
+      {/* Estimated Duration & Character */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Estimated Duration (minutes) *
+          </label>
+          <Input
+            type="number"
+            value={formData.estimatedDuration}
+            onChange={e =>
+              setFormData(prev => ({ ...prev, estimatedDuration: parseInt(e.target.value) || 0 }))
+            }
+            min="1"
+            className={errors.estimatedDuration ? 'border-red-500' : ''}
+          />
+          {errors.estimatedDuration && (
+            <p className="text-red-500 text-sm mt-1">{errors.estimatedDuration}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Character
+          </label>
+          <select
+            value={formData.characterId || ''}
+            onChange={e => setFormData(prev => ({ ...prev, characterId: e.target.value || null }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          >
+            <option value="">None</option>
+            {characters.map(char => (
+              <option key={char.id} value={char.id}>
+                {char.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Prerequisites */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Prerequisites (Optional)
+        </label>
+        <textarea
+          value={formData.prerequisites}
+          onChange={e => setFormData(prev => ({ ...prev, prerequisites: e.target.value }))}
+          placeholder="Required knowledge or skills"
+          rows={2}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+        />
+      </div>
+
+      {/* Is Active */}
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          id="isActive"
+          checked={formData.isActive}
+          onChange={e => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+          className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+        />
+        <label
+          htmlFor="isActive"
+          className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
+          Active (visible to users)
+        </label>
+      </div>
+
+      {/* Actions */}
+      <div className="flex justify-end gap-4 pt-4 border-t">
+        <Button type="button" variant="secondary" onClick={() => router.back()} disabled={loading}>
+          Cancel
+        </Button>
+        <Button type="submit" variant="primary" disabled={loading}>
+          {loading ? 'Saving...' : taskId ? 'Update Task' : 'Create Task'}
+        </Button>
+      </div>
+    </form>
+  );
+}

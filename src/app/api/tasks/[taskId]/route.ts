@@ -125,20 +125,33 @@ export async function PUT(
       },
     });
 
-    // Log admin action if updatedBy is provided
+    // Log admin action if updatedBy is provided and user exists
     if (body.updatedBy) {
-      await prisma.adminLog.create({
-        data: {
-          adminId: body.updatedBy,
-          actionType: 'edit_task',
-          entityType: 'task',
-          entityId: taskId,
-          details: {
-            updatedFields: Object.keys(updateData),
-            title: updatedTask.title,
-          },
-        },
-      });
+      try {
+        // Verify admin user exists before logging
+        const adminUser = await prisma.user.findUnique({
+          where: { id: body.updatedBy },
+          select: { id: true },
+        });
+
+        if (adminUser) {
+          await prisma.adminLog.create({
+            data: {
+              adminId: body.updatedBy,
+              actionType: 'edit_task',
+              entityType: 'task',
+              entityId: taskId,
+              details: {
+                updatedFields: Object.keys(updateData),
+                title: updatedTask.title,
+              },
+            },
+          });
+        }
+      } catch (error) {
+        // Log error but don't fail the task update
+        console.error('Failed to create admin log:', error);
+      }
     }
 
     return NextResponse.json(updatedTask);
@@ -183,20 +196,33 @@ export async function DELETE(
       });
     }
 
-    // Log admin action
+    // Log admin action if deletedBy is provided and user exists
     if (deletedBy) {
-      await prisma.adminLog.create({
-        data: {
-          adminId: deletedBy,
-          actionType: hardDelete ? 'hard_delete_task' : 'soft_delete_task',
-          entityType: 'task',
-          entityId: taskId,
-          details: {
-            title: existingTask.title,
-            category: existingTask.category,
-          },
-        },
-      });
+      try {
+        // Verify admin user exists before logging
+        const adminUser = await prisma.user.findUnique({
+          where: { id: deletedBy },
+          select: { id: true },
+        });
+
+        if (adminUser) {
+          await prisma.adminLog.create({
+            data: {
+              adminId: deletedBy,
+              actionType: hardDelete ? 'hard_delete_task' : 'soft_delete_task',
+              entityType: 'task',
+              entityId: taskId,
+              details: {
+                title: existingTask.title,
+                category: existingTask.category,
+              },
+            },
+          });
+        }
+      } catch (error) {
+        // Log error but don't fail the task deletion
+        console.error('Failed to create admin log:', error);
+      }
     }
 
     return NextResponse.json({

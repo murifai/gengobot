@@ -1,6 +1,8 @@
-import { Card } from '@/components/ui/Card'
-import Link from 'next/link'
-import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card';
+import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
+
+export const runtime = 'nodejs';
 
 export default function AdminHomePage() {
   return (
@@ -18,61 +20,72 @@ export default function AdminHomePage() {
         <Link href="/admin/analytics">
           <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
             <div className="text-4xl mb-4">📊</div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Analytics
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Analytics</h3>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
               View system-wide analytics and user statistics
             </p>
-            <Button className="w-full" size="sm">View Analytics</Button>
+            <Button className="w-full" size="sm">
+              View Analytics
+            </Button>
           </Card>
         </Link>
 
         <Link href="/admin/users">
           <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
             <div className="text-4xl mb-4">👥</div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Users
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Users</h3>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
               Manage user accounts and permissions
             </p>
-            <Button className="w-full" size="sm">Manage Users</Button>
+            <Button className="w-full" size="sm">
+              Manage Users
+            </Button>
+          </Card>
+        </Link>
+
+        <Link href="/admin/tasks">
+          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="text-4xl mb-4">📝</div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Tasks</h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+              Manage conversation tasks and scenarios
+            </p>
+            <Button className="w-full" size="sm">
+              Manage Tasks
+            </Button>
           </Card>
         </Link>
 
         <Link href="/admin/characters">
           <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
             <div className="text-4xl mb-4">🤖</div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Characters
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Characters</h3>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
               Create and manage AI characters
             </p>
-            <Button className="w-full" size="sm">Manage Characters</Button>
+            <Button className="w-full" size="sm">
+              Manage Characters
+            </Button>
           </Card>
         </Link>
 
         <Link href="/admin/settings">
           <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
             <div className="text-4xl mb-4">⚙️</div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Settings
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Settings</h3>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
               Configure application settings
             </p>
-            <Button className="w-full" size="sm">View Settings</Button>
+            <Button className="w-full" size="sm">
+              View Settings
+            </Button>
           </Card>
         </Link>
       </div>
 
       <div className="mt-8">
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Quick Stats
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Stats</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center">
               <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">0</div>
@@ -94,5 +107,5 @@ export default function AdminHomePage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

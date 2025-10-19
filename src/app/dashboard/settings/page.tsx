@@ -1,17 +1,19 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { prisma } from '@/lib/prisma'
-import SettingsClient from './SettingsClient'
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
+import { prisma } from '@/lib/prisma';
+import SettingsClient from './SettingsClient';
+
+export const runtime = 'nodejs';
 
 export default async function SettingsPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login')
+    redirect('/login');
   }
 
   // Get user data from database
@@ -24,7 +26,7 @@ export default async function SettingsPage() {
       proficiency: true,
       preferredTaskCategories: true,
     },
-  })
+  });
 
-  return <SettingsClient user={user} dbUser={dbUser} />
+  return <SettingsClient user={user} dbUser={dbUser} />;
 }

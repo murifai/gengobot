@@ -152,21 +152,34 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Log admin action if createdBy is provided
+    // Log admin action if createdBy is provided and user exists
     if (body.createdBy) {
-      await prisma.adminLog.create({
-        data: {
-          adminId: body.createdBy,
-          actionType: 'create_task',
-          entityType: 'task',
-          entityId: task.id,
-          details: {
-            title: task.title,
-            category: task.category,
-            difficulty: task.difficulty,
-          },
-        },
-      });
+      try {
+        // Verify admin user exists before logging
+        const adminUser = await prisma.user.findUnique({
+          where: { id: body.createdBy },
+          select: { id: true },
+        });
+
+        if (adminUser) {
+          await prisma.adminLog.create({
+            data: {
+              adminId: body.createdBy,
+              actionType: 'create_task',
+              entityType: 'task',
+              entityId: task.id,
+              details: {
+                title: task.title,
+                category: task.category,
+                difficulty: task.difficulty,
+              },
+            },
+          });
+        }
+      } catch (error) {
+        // Log error but don't fail the task creation
+        console.error('Failed to create admin log:', error);
+      }
     }
 
     return NextResponse.json(task, { status: 201 });
