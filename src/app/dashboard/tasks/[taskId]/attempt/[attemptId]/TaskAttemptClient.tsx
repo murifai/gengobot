@@ -93,6 +93,33 @@ export default function TaskAttemptClient({ user, taskId, attemptId }: TaskAttem
     }
   };
 
+  const handleVoiceRecording = async (audioBlob: Blob) => {
+    if (sending) return;
+
+    setSending(true);
+    try {
+      // Create FormData for audio upload
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.webm');
+
+      const response = await fetch(`/api/task-attempts/${attemptId}/voice`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error('Failed to process voice input');
+
+      const data = await response.json();
+
+      // Refresh the attempt to get updated conversation
+      await fetchAttempt();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to process voice input');
+    } finally {
+      setSending(false);
+    }
+  };
+
   const completeAttempt = async () => {
     try {
       const response = await fetch(`/api/task-attempts/${attemptId}/complete`, {
@@ -266,8 +293,10 @@ export default function TaskAttemptClient({ user, taskId, attemptId }: TaskAttem
       messages={messages}
       loading={sending}
       onSendMessage={sendMessage}
+      onVoiceRecording={handleVoiceRecording}
       placeholder="Type your message in Japanese..."
       disabled={attempt.isCompleted || sending}
+      enableVoice={!attempt.isCompleted}
       sidebar={sidebarContent}
       emptyStateMessage="No messages yet. Start the conversation!"
     />
