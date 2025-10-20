@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, Download, Upload } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 
@@ -33,6 +33,14 @@ export default function AdminTasksPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [importing, setImporting] = useState(false);
+  const [importResults, setImportResults] = useState<{
+    total: number;
+    success: number;
+    failed: number;
+    errors: Array<{ row: number; error: string }>;
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchTasks();
@@ -53,19 +61,100 @@ export default function AdminTasksPage() {
     }
   };
 
-  const handleDelete = async (taskId: string) => {
-    if (!confirm('Are you sure you want to deactivate this task?')) return;
+  const handleDelete = async (taskId: string, taskTitle: string) => {
+    const choice = window.confirm(
+      `Do you want to permanently delete "${taskTitle}"?\n\nOK = Permanently Delete (cannot be undone)\nCancel = Keep task`
+    );
+
+    if (!choice) return;
+
+    // Show second confirmation for permanent deletion
+    const confirmHardDelete = window.confirm(
+      '⚠️ WARNING: This will PERMANENTLY delete:\n\n' +
+        '• The task\n' +
+        '• All task attempts by users\n' +
+        '• All related conversations\n\n' +
+        'This action CANNOT be undone!\n\n' +
+        'Click OK to confirm permanent deletion.'
+    );
+
+    if (!confirmHardDelete) return;
 
     try {
-      const response = await fetch(`/api/tasks/${taskId}?deletedBy=admin`, {
+      const response = await fetch(`/api/tasks/${taskId}?deletedBy=admin&hard=true`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
+        alert('Task permanently deleted successfully');
         fetchTasks();
+      } else {
+        const data = await response.json();
+        alert(`Failed to delete task: ${data.error}`);
       }
     } catch (error) {
       console.error('Error deleting task:', error);
+      alert('Failed to delete task. Please try again.');
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const response = await fetch('/api/tasks/template');
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'task_import_template.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('Error downloading template:', error);
+      alert('Failed to download template');
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+    setImportResults(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('importedBy', 'admin');
+
+      const response = await fetch('/api/tasks/import', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setImportResults(data.results);
+        fetchTasks();
+      } else {
+        alert(`Import failed: ${data.error}\n${data.details || ''}`);
+      }
+    } catch (error) {
+      console.error('Error importing tasks:', error);
+      alert('Failed to import tasks');
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -146,15 +235,71 @@ export default function AdminTasksPage() {
                 className="pl-10"
               />
             </div>
-            <Button
-              variant="primary"
-              className="gap-2"
-              onClick={() => router.push('/admin/tasks/new')}
-            >
-              <Plus size={20} />
-              Create Task
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="secondary" className="gap-2" onClick={handleDownloadTemplate}>
+                <Download size={20} />
+                Download Template
+              </Button>
+              <Button
+                variant="secondary"
+                className="gap-2"
+                onClick={handleImportClick}
+                disabled={importing}
+              >
+                <Upload size={20} />
+                {importing ? 'Importing...' : 'Import Excel'}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <Button
+                variant="primary"
+                className="gap-2"
+                onClick={() => router.push('/admin/tasks/new')}
+              >
+                <Plus size={20} />
+                Create Task
+              </Button>
+            </div>
           </div>
+
+          {/* Import Results */}
+          {importResults && (
+            <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                Import Results
+              </h3>
+              <div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                <p>Total rows: {importResults.total}</p>
+                <p className="text-green-600 dark:text-green-400">
+                  Successfully imported: {importResults.success}
+                </p>
+                {importResults.failed > 0 && (
+                  <>
+                    <p className="text-red-600 dark:text-red-400">Failed: {importResults.failed}</p>
+                    <div className="mt-2 max-h-40 overflow-y-auto">
+                      <p className="font-semibold mb-1">Errors:</p>
+                      {importResults.errors.map((err, idx) => (
+                        <p key={idx} className="text-xs">
+                          Row {err.row}: {err.error}
+                        </p>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+              <button
+                onClick={() => setImportResults(null)}
+                className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-2">
             <div className="flex gap-2">
@@ -307,7 +452,11 @@ export default function AdminTasksPage() {
                           >
                             <Edit size={16} />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDelete(task.id)}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(task.id, task.title)}
+                          >
                             <Trash2 size={16} className="text-red-500" />
                           </Button>
                         </div>

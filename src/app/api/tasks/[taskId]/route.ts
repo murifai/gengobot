@@ -185,7 +185,20 @@ export async function DELETE(
     let result;
 
     if (hardDelete) {
-      // Hard delete - remove from database
+      // Hard delete - remove from database with cascade
+      // First, delete all related data to avoid foreign key constraint violations
+
+      // Delete TaskAttempts related to this task
+      await prisma.taskAttempt.deleteMany({
+        where: { taskId },
+      });
+
+      // Delete Conversations related to this task
+      await prisma.conversation.deleteMany({
+        where: { taskId },
+      });
+
+      // Now delete the task itself
       result = await prisma.task.delete({
         where: { id: taskId },
       });
@@ -232,6 +245,16 @@ export async function DELETE(
     });
   } catch (error) {
     console.error('Error deleting task:', error);
-    return NextResponse.json({ error: 'Failed to delete task' }, { status: 500 });
+
+    // Provide more detailed error message
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+
+    return NextResponse.json(
+      {
+        error: 'Failed to delete task',
+        details: errorMessage,
+      },
+      { status: 500 }
+    );
   }
 }
