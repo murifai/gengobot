@@ -10,29 +10,29 @@ datasource db {
 
 // Task model - Primary feature for structured learning
 model Task {
-  id                String   @id @default(cuid())
-  title             String
-  description       String   @db.Text
-  category          String   // Restaurant, Shopping, Travel, etc.
-  subcategoryId     String?  // Reference to TaskSubcategory
-  difficulty        String   // N1-N5 JLPT levels
-  scenario          String   @db.Text
-  learningObjectives Json    // Array of learning goals
-  successCriteria   Json     // Completion requirements
-  estimatedDuration Int      // Minutes
-  prerequisites     Json?    // Required prior knowledge
-  isActive          Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  createdBy         String?  // Admin who created the task
-  usageCount        Int      @default(0)
-  averageScore      Float?   // Average completion score
+  id                 String   @id @default(cuid())
+  title              String
+  description        String   @db.Text
+  category           String // Restaurant, Shopping, Travel, etc.
+  subcategoryId      String? // Reference to TaskSubcategory
+  difficulty         String // N1-N5 JLPT levels
+  scenario           String   @db.Text
+  learningObjectives Json // Array of learning goals
+  successCriteria    Json // Completion requirements
+  estimatedDuration  Int // Minutes
+  prerequisites      Json? // Required prior knowledge
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  createdBy          String? // Admin who created the task
+  usageCount         Int      @default(0)
+  averageScore       Float? // Average completion score
 
-  characterId       String?
-  character         Character? @relation(fields: [characterId], references: [id])
-  subcategory       TaskSubcategory? @relation(fields: [subcategoryId], references: [id])
-  conversations     Conversation[]
-  taskAttempts      TaskAttempt[]
+  characterId   String?
+  character     Character?       @relation(fields: [characterId], references: [id])
+  subcategory   TaskSubcategory? @relation(fields: [subcategoryId], references: [id])
+  conversations Conversation[]
+  taskAttempts  TaskAttempt[]
 
   @@index([category])
   @@index([subcategoryId])
@@ -42,26 +42,26 @@ model Task {
 
 // TaskAttempt model - Tracks user progress on tasks
 model TaskAttempt {
-  id                String   @id @default(cuid())
-  userId            String
-  taskId            String
-  startTime         DateTime @default(now())
-  endTime           DateTime?
+  id        String    @id @default(cuid())
+  userId    String
+  taskId    String
+  startTime DateTime  @default(now())
+  endTime   DateTime?
 
   // Japanese Learning Assessment Criteria
-  taskAchievement   Float?   // タスク達成度 (0-100)
-  fluency           Float?   // 流暢さ (0-100)
+  taskAchievement           Float? // タスク達成度 (0-100)
+  fluency                   Float? // 流暢さ (0-100)
   vocabularyGrammarAccuracy Float? // 語彙・文法的正確さ (0-100)
-  politeness        Float?   // 丁寧さ (0-100)
-  overallScore      Float?   // Combined weighted score
+  politeness                Float? // 丁寧さ (0-100)
+  overallScore              Float? // Combined weighted score
 
-  feedback          String?  @db.Text
+  feedback            String? @db.Text
   conversationHistory Json
-  isCompleted       Boolean  @default(false)
-  retryCount        Int      @default(0)
+  isCompleted         Boolean @default(false)
+  retryCount          Int     @default(0)
 
-  user              User     @relation(fields: [userId], references: [id])
-  task              Task     @relation(fields: [taskId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  task Task @relation(fields: [taskId], references: [id])
 
   @@index([userId])
   @@index([taskId])
@@ -70,24 +70,24 @@ model TaskAttempt {
 
 // TaskCategory model - Main categories for tasks
 model TaskCategory {
-  id            String            @id @default(cuid())
-  name          String            @unique
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @default(now()) @updatedAt
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   subcategories TaskSubcategory[]
 }
 
 // TaskSubcategory model - Subcategories for tasks (Jalan-jalan, Keseharian, Pekerjaan)
 model TaskSubcategory {
-  id         String       @id @default(cuid())
+  id         String   @id @default(cuid())
   name       String
   categoryId String
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  category   TaskCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  tasks      Task[]
+  category TaskCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tasks    Task[]
 
   @@unique([name, categoryId])
   @@index([categoryId])
@@ -95,22 +95,24 @@ model TaskSubcategory {
 
 // User model - Student and admin accounts
 model User {
-  id                    String    @id @default(cuid())
-  authId                String?   @unique // Supabase auth user ID
-  email                 String    @unique
-  name                  String?
-  proficiency           String    @default("N5") // N1-N5 JLPT levels
-  isAdmin               Boolean   @default(false)
-  preferredTaskCategories Json?   // Array of preferred task types
-  completedTasks        Json?     // Array of completed task IDs
-  currentTaskId         String?   // Currently active task
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  id                      String   @id @default(cuid())
+  authId                  String?  @unique // Supabase auth user ID
+  email                   String   @unique
+  name                    String?
+  proficiency             String   @default("N5") // N1-N5 JLPT levels
+  isAdmin                 Boolean  @default(false)
+  preferredTaskCategories Json? // Array of preferred task types
+  completedTasks          Json? // Array of completed task IDs
+  currentTaskId           String? // Currently active task
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
-  characters            Character[]
-  conversations         Conversation[]
-  taskAttempts          TaskAttempt[]
-  adminLogs             AdminLog[]
+  characters    Character[]
+  conversations Conversation[]
+  taskAttempts  TaskAttempt[]
+  adminLogs     AdminLog[]
+  decks         Deck[]
+  studySessions StudySession[]
 
   @@index([email])
   @@index([isAdmin])
@@ -119,20 +121,20 @@ model User {
 
 // Character model - For task-based and free-chat scenarios
 model Character {
-  id              String  @id @default(cuid())
-  name            String
-  description     String? @db.Text
-  personality     Json    // Personality traits
-  speakingStyle   String? @db.Text
-  taskSpecific    Boolean @default(false) // Whether designed for specific tasks
-  assignedTasks   Json?   // Array of task IDs where this character is used
+  id               String  @id @default(cuid())
+  name             String
+  description      String? @db.Text
+  personality      Json // Personality traits
+  speakingStyle    String? @db.Text
+  taskSpecific     Boolean @default(false) // Whether designed for specific tasks
+  assignedTasks    Json? // Array of task IDs where this character is used
   relationshipType String? // For free chat (secondary feature)
-  isUserCreated   Boolean @default(true)
+  isUserCreated    Boolean @default(true)
 
-  userId          String?
-  user            User?   @relation(fields: [userId], references: [id])
-  conversations   Conversation[]
-  tasks           Task[]
+  userId        String?
+  user          User?          @relation(fields: [userId], references: [id])
+  conversations Conversation[]
+  tasks         Task[]
 
   @@index([userId])
   @@index([taskSpecific])
@@ -140,19 +142,19 @@ model Character {
 
 // Conversation model - Stores chat histories
 model Conversation {
-  id              String   @id @default(cuid())
-  type            String   // "task-based" or "free-chat"
-  messages        Json
-  assessment      Json?
-  taskId          String?  // Associated task (if task-based)
-  characterId     String?  // Character involved
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id          String   @id @default(cuid())
+  type        String // "task-based" or "free-chat"
+  messages    Json
+  assessment  Json?
+  taskId      String? // Associated task (if task-based)
+  characterId String? // Character involved
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  userId          String
-  user            User     @relation(fields: [userId], references: [id])
-  character       Character? @relation(fields: [characterId], references: [id])
-  task            Task?    @relation(fields: [taskId], references: [id])
+  userId    String
+  user      User       @relation(fields: [userId], references: [id])
+  character Character? @relation(fields: [characterId], references: [id])
+  task      Task?      @relation(fields: [taskId], references: [id])
 
   @@index([userId])
   @@index([type])
@@ -161,17 +163,156 @@ model Conversation {
 
 // AdminLog model - Track admin actions for auditing
 model AdminLog {
-  id          String   @id @default(cuid())
-  adminId     String
-  actionType  String   // create_task, edit_task, delete_task, etc.
-  entityType  String   // task, character, user, etc.
-  entityId    String?
-  details     Json?
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  adminId    String
+  actionType String // create_task, edit_task, delete_task, etc.
+  entityType String // task, character, user, etc.
+  entityId   String?
+  details    Json?
+  createdAt  DateTime @default(now())
 
-  admin       User     @relation(fields: [adminId], references: [id])
+  admin User @relation(fields: [adminId], references: [id])
 
   @@index([adminId])
   @@index([actionType])
   @@index([createdAt])
+}
+
+// Deck model - Collections of flashcards for study
+model Deck {
+  id          String  @id @default(cuid())
+  name        String
+  description String? @db.Text
+  isPublic    Boolean @default(false)
+  category    String? // Kanji, Vocabulary, Grammar, Mixed, etc.
+  difficulty  String? // N1-N5 JLPT levels
+
+  // Analytics
+  totalCards   Int    @default(0)
+  studyCount   Int    @default(0) // Number of times studied
+  averageScore Float? // Average performance across all studies
+
+  // Ownership
+  createdBy String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  creator       User           @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  flashcards    Flashcard[]
+  studySessions StudySession[]
+
+  @@index([createdBy])
+  @@index([category])
+  @@index([difficulty])
+  @@index([isActive])
+  @@index([isPublic])
+}
+
+// Flashcard model - Individual study cards with spaced repetition
+model Flashcard {
+  id     String @id @default(cuid())
+  deckId String
+
+  // Card type determines which fields are used
+  cardType String // "kanji", "vocabulary", "grammar"
+
+  // Kanji Card Fields
+  kanji        String?
+  kanjiMeaning String? @db.Text
+  onyomi       String?
+  kunyomi      String?
+
+  // Vocabulary Card Fields
+  word         String?
+  wordMeaning  String? @db.Text
+  reading      String? // Furigana/pronunciation
+  partOfSpeech String? // Noun, Verb, Adjective, etc.
+
+  // Grammar Card Fields
+  grammarPoint   String? @db.Text
+  grammarMeaning String? @db.Text
+  usageNote      String? @db.Text
+
+  // Common Fields (all card types)
+  exampleSentence    String? @db.Text
+  exampleTranslation String? @db.Text
+  notes              String? @db.Text
+  tags               Json? // Array of tags for filtering
+
+  // Spaced Repetition Algorithm (SM-2)
+  easeFactor     Float     @default(2.5) // Difficulty rating
+  interval       Int       @default(0) // Days until next review
+  repetitions    Int       @default(0) // Number of successful reviews
+  nextReviewDate DateTime? // When to review next
+  lastReviewedAt DateTime? // Last review timestamp
+
+  // Order and status
+  position  Int      @default(0) // Order within deck
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deck          Deck              @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  reviewHistory FlashcardReview[]
+
+  @@index([deckId])
+  @@index([cardType])
+  @@index([nextReviewDate])
+  @@index([isActive])
+}
+
+// FlashcardReview model - Track individual card review history
+model FlashcardReview {
+  id          String @id @default(cuid())
+  flashcardId String
+  sessionId   String
+
+  // Review outcome
+  rating       String // "again", "hard", "good", "easy"
+  responseTime Int? // Milliseconds
+
+  // Spaced repetition data at time of review
+  easeFactor Float
+  interval   Int
+
+  reviewedAt DateTime @default(now())
+
+  flashcard Flashcard    @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+  session   StudySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([flashcardId])
+  @@index([sessionId])
+  @@index([reviewedAt])
+}
+
+// StudySession model - Track study session performance
+model StudySession {
+  id     String @id @default(cuid())
+  userId String
+  deckId String
+
+  // Session metrics
+  cardsReviewed       Int    @default(0)
+  cardsCorrect        Int    @default(0)
+  averageResponseTime Float? // Milliseconds
+
+  // Session breakdown by rating
+  againCount Int @default(0)
+  hardCount  Int @default(0)
+  goodCount  Int @default(0)
+  easyCount  Int @default(0)
+
+  startTime   DateTime  @default(now())
+  endTime     DateTime?
+  isCompleted Boolean   @default(false)
+
+  user    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deck    Deck              @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  reviews FlashcardReview[]
+
+  @@index([userId])
+  @@index([deckId])
+  @@index([startTime])
+  @@index([isCompleted])
 }

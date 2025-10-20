@@ -27,6 +27,7 @@ export default function AdminLayoutClient({ user, children }: AdminLayoutClientP
     { name: 'Analytics', href: '/admin/analytics' },
     { name: 'Users', href: '/admin/users' },
     { name: 'Tasks', href: '/admin/tasks' },
+    { name: 'Decks', href: '/admin/decks' },
     { name: 'Categories', href: '/admin/categories' },
     { name: 'Characters', href: '/admin/characters' },
     { name: 'Settings', href: '/admin/settings' },
