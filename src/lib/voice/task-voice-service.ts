@@ -3,7 +3,6 @@
 
 import { whisperService } from './whisper-service';
 import { ttsService } from './tts-service';
-import type { TaskConversationContext, GuidanceResponse } from '../tasks/conversation-guidance';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
@@ -93,53 +92,18 @@ export class TaskVoiceService {
   };
 
   /**
-   * Transcribe user voice input with task context
+   * Transcribe user voice input
    */
-  async transcribeTaskInput(
-    audioBlob: Blob,
-    context: TaskConversationContext,
-    config?: Partial<TaskVoiceConfig>
-  ): Promise<TaskVoiceTranscription> {
+  async transcribeAudio(audioFile: File): Promise<TaskVoiceTranscription> {
     try {
-      const taskConfig = { ...this.defaultConfig, ...config };
-
-      // Build context for better transcription accuracy
-      const taskScenario = context.scenario;
-      const learningObjectives = context.learningObjectives;
-      const currentObjective = learningObjectives[context.currentObjective];
-
-      // Extract expected phrases from objectives and scenario
-      const expectedPhrases = this.extractExpectedPhrases(
-        context.scenario,
-        context.learningObjectives,
-        context.category
-      );
-
-      // Convert Blob to File for Whisper service
-      const audioFile = new File([audioBlob], 'recording.webm', {
-        type: audioBlob.type || 'audio/webm',
-      });
-
       // Transcribe with Japanese optimization
-      const result = await whisperService.transcribeJapanese(audioFile, {
-        taskScenario,
-        expectedPhrases,
-        userLevel: taskConfig.userLevel,
-      });
-
-      // Generate language hints based on task context
-      const suggestions = this.generateLanguageHints(
-        result.text,
-        currentObjective,
-        context.difficulty
-      );
+      const result = await whisperService.transcribeJapanese(audioFile, {});
 
       return {
         success: true,
         transcript: result.text,
         confidence: undefined, // Whisper doesn't provide confidence scores
         duration: result.duration || 0,
-        suggestions,
       };
     } catch (error) {
       console.error('Task voice transcription error:', error);
@@ -155,19 +119,17 @@ export class TaskVoiceService {
   /**
    * Synthesize AI response with task-appropriate voice
    */
-  async synthesizeTaskResponse(
+  async synthesizeResponse(
     text: string,
-    context: TaskConversationContext,
-    config?: Partial<TaskVoiceConfig>
+    character: { personality?: unknown } | null,
+    userProficiency: string
   ): Promise<TaskVoiceSynthesis> {
     try {
-      const taskConfig = { ...this.defaultConfig, ...config };
-
       // Use character personality if available
       let result;
 
-      if (context.characterPersonality) {
-        const personality = context.characterPersonality as {
+      if (character?.personality) {
+        const personality = character.personality as {
           gender?: 'male' | 'female' | 'neutral';
           tone?: 'warm' | 'professional' | 'friendly' | 'energetic';
           formality?: 'casual' | 'formal';
@@ -178,16 +140,12 @@ export class TaskVoiceService {
         // Use learning-optimized synthesis
         result = await ttsService.synthesizeForLearning(
           text,
-          (context.userProficiency || taskConfig.userLevel) as 'N5' | 'N4' | 'N3' | 'N2' | 'N1',
-          {
-            ...(taskConfig.voicePersonality?.voice && { voice: taskConfig.voicePersonality.voice }),
-            ...(taskConfig.voicePersonality?.speed && { speed: taskConfig.voicePersonality.speed }),
-          }
+          userProficiency as 'N5' | 'N4' | 'N3' | 'N2' | 'N1'
         );
       }
 
       // Save audio file to public directory
-      const filename = `response-${context.attemptId}-${Date.now()}.mp3`;
+      const filename = `response-${Date.now()}.mp3`;
       const publicDir = join(process.cwd(), 'public', 'audio');
       const filepath = join(publicDir, filename);
 
@@ -217,128 +175,6 @@ export class TaskVoiceService {
         error: error instanceof Error ? error.message : 'Synthesis failed',
       };
     }
-  }
-
-  /**
-   * Generate audio feedback for task progress
-   */
-  async generateProgressFeedback(
-    guidance: GuidanceResponse,
-    context: TaskConversationContext,
-    config?: Partial<TaskVoiceConfig>
-  ): Promise<TaskVoiceSynthesis> {
-    const taskConfig = { ...this.defaultConfig, ...config };
-
-    if (!taskConfig.audioFeedback) {
-      return { success: false, error: 'Audio feedback disabled' };
-    }
-
-    let feedbackText = '';
-
-    switch (guidance.guidanceType) {
-      case 'encouragement':
-        feedbackText = guidance.message || 'よくできました！ Keep going!';
-        break;
-      case 'hint':
-        feedbackText = guidance.message || 'ヒント: Try to focus on the current objective.';
-        break;
-      case 'progression':
-        feedbackText = guidance.message || '次の目標に進みましょう！';
-        break;
-      default:
-        return { success: false, error: 'No feedback needed' };
-    }
-
-    return this.synthesizeTaskResponse(feedbackText, context, config);
-  }
-
-  /**
-   * Generate audio guidance for task objectives
-   */
-  async generateObjectiveGuidance(
-    objective: string,
-    context: TaskConversationContext,
-    config?: Partial<TaskVoiceConfig>
-  ): Promise<TaskVoiceSynthesis> {
-    const taskConfig = { ...this.defaultConfig, ...config };
-
-    if (!taskConfig.voiceGuidance) {
-      return { success: false, error: 'Voice guidance disabled' };
-    }
-
-    const guidanceText = `目標: ${objective}`;
-    return this.synthesizeTaskResponse(guidanceText, context, config);
-  }
-
-  /**
-   * Extract expected phrases from task context
-   */
-  private extractExpectedPhrases(
-    scenario: string,
-    objectives: string[],
-    category: string
-  ): string[] {
-    const phrases: string[] = [];
-
-    // Category-specific common phrases
-    const categoryPhrases: Record<string, string[]> = {
-      'Restaurant & Food Service': ['いらっしゃいませ', 'ご注文は', 'お願いします', 'ください'],
-      'Shopping & Commerce': ['いくらですか', 'これください', '見せてください'],
-      'Travel & Transportation': ['どこですか', '行きたい', 'ください'],
-      'Business & Professional': ['よろしくお願いします', '申し訳ございません'],
-      'Healthcare & Medical': ['具合が悪い', '痛いです', 'お願いします'],
-    };
-
-    if (categoryPhrases[category]) {
-      phrases.push(...categoryPhrases[category]);
-    }
-
-    // Extract key phrases from objectives (simplified)
-    objectives.forEach(objective => {
-      // Extract Japanese text from objectives
-      const japaneseMatches = objective.match(/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]+/g);
-      if (japaneseMatches) {
-        phrases.push(...japaneseMatches);
-      }
-    });
-
-    return [...new Set(phrases)]; // Remove duplicates
-  }
-
-  /**
-   * Generate language hints based on transcription
-   */
-  private generateLanguageHints(
-    transcript: string,
-    objective: string,
-    difficulty: string
-  ): string[] {
-    const hints: string[] = [];
-
-    // Check if transcript is empty or very short
-    if (!transcript || transcript.length < 3) {
-      hints.push('Try speaking more clearly or closer to the microphone');
-      return hints;
-    }
-
-    // Check Japanese usage
-    const japaneseChars = transcript.match(/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g);
-    const japaneseRatio = japaneseChars ? japaneseChars.length / transcript.length : 0;
-
-    if (japaneseRatio < 0.5) {
-      hints.push('Try using more Japanese in your response');
-    }
-
-    // Difficulty-specific hints
-    if (difficulty === 'N5' && transcript.length > 100) {
-      hints.push('For N5 level, simpler and shorter responses are better');
-    }
-
-    if (difficulty === 'N1' && transcript.length < 30) {
-      hints.push('Try to provide more detailed responses at N1 level');
-    }
-
-    return hints;
   }
 
   /**

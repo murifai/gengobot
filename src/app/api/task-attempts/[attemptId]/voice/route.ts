@@ -4,8 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { taskVoiceService } from '@/lib/voice/task-voice-service';
-import { evaluateConversationProgress } from '@/lib/tasks/conversation-guidance';
-import type { TaskConversationContext } from '@/lib/tasks/conversation-guidance';
+import { generateTaskResponse } from '@/lib/ai/task-response-generator';
 
 /**
  * POST /api/task-attempts/[attemptId]/voice
@@ -71,33 +70,6 @@ export async function POST(
     const messages = conversationHistory?.messages || [];
     const completedObjectives = conversationHistory?.completedObjectives || [];
     const learningObjectives = (attempt.task.learningObjectives as string[]) || [];
-    const successCriteria = (attempt.task.successCriteria as string[]) || [];
-
-    const context: TaskConversationContext = {
-      taskId: attempt.taskId,
-      userId: attempt.userId,
-      attemptId: attempt.id,
-      difficulty: attempt.task.difficulty,
-      category: attempt.task.category,
-      scenario: attempt.task.scenario,
-      learningObjectives,
-      successCriteria,
-      currentObjective: completedObjectives.length,
-      completedObjectives,
-      conversationHistory: messages as {
-        role: 'user' | 'assistant' | 'system';
-        content: string;
-        timestamp: string;
-      }[],
-      userProficiency: attempt.user.proficiency,
-      characterPersonality: attempt.task.character?.personality as
-        | Record<string, unknown>
-        | undefined,
-      estimatedDuration: attempt.task.estimatedDuration,
-      elapsedMinutes: Math.round(
-        (new Date().getTime() - new Date(attempt.startTime).getTime()) / 60000
-      ),
-    };
 
     // Convert File to Blob
     const audioBlob = new Blob([await audioFile.arrayBuffer()], {
@@ -109,10 +81,15 @@ export async function POST(
       type: audioBlob.type,
     });
 
-    // Transcribe audio with task context
+    // Transcribe audio
     let transcription;
     try {
-      transcription = await taskVoiceService.transcribeTaskInput(audioBlob, context, config);
+      // Convert Blob to File for Whisper service
+      const audioFile = new File([await audioBlob.arrayBuffer()], 'recording.webm', {
+        type: audioBlob.type || 'audio/webm',
+      });
+
+      transcription = await taskVoiceService.transcribeAudio(audioFile);
     } catch (transcriptionError) {
       console.error('Transcription error:', transcriptionError);
       return NextResponse.json(
@@ -170,22 +147,31 @@ export async function POST(
       },
     };
 
-    // Evaluate conversation progress
-    const guidance = evaluateConversationProgress(context);
-
-    // Generate AI response (simplified - in production, call OpenAI)
-    let aiResponseText = `${transcription.transcript}に対する応答です。`; // Placeholder
-
-    // Add guidance if needed
-    if (guidance.message) {
-      aiResponseText += `\n\n${guidance.message}`;
-    }
+    // Generate AI response using the task response generator
+    const aiResponseText = await generateTaskResponse(
+      {
+        scenario: attempt.task.scenario,
+        category: attempt.task.category,
+        learningObjectives,
+        difficulty: attempt.task.difficulty,
+        userProficiency: attempt.user.proficiency,
+      },
+      {
+        messages: messages as Array<{
+          role: 'user' | 'assistant' | 'system';
+          content: string;
+          timestamp: string;
+        }>,
+        completedObjectives,
+      },
+      transcription.transcript
+    );
 
     // Synthesize AI response
-    const synthesis = await taskVoiceService.synthesizeTaskResponse(
+    const synthesis = await taskVoiceService.synthesizeResponse(
       aiResponseText,
-      context,
-      config
+      attempt.task.character,
+      attempt.user.proficiency
     );
 
     if (!synthesis.success) {
@@ -207,24 +193,15 @@ export async function POST(
         audioUrl: synthesis.audioUrl,
         audioDuration: synthesis.duration || 0,
       },
-      metadata: {
-        hintProvided: guidance.shouldProvideHint,
-        objectiveCompleted: guidance.objectiveStatus?.completed
-          ? guidance.objectiveStatus.current
-          : undefined,
-      },
     };
 
     // Update conversation history
     const updatedMessages = [...messages, userMessage, assistantMessage];
-    const updatedCompletedObjectives = guidance.objectiveStatus?.completed
-      ? [...completedObjectives, guidance.objectiveStatus.current]
-      : completedObjectives;
 
     // Build the update object with proper typing
     const updatedHistory = {
       messages: updatedMessages,
-      completedObjectives: updatedCompletedObjectives,
+      completedObjectives: completedObjectives,
       startedAt: conversationHistory?.startedAt || new Date().toISOString(),
     };
 
@@ -235,19 +212,6 @@ export async function POST(
       },
     });
 
-    // Generate progress feedback audio if enabled
-    let feedbackAudio = null;
-    if (config?.audioFeedback && guidance.guidanceType !== 'none') {
-      const feedback = await taskVoiceService.generateProgressFeedback(guidance, context, config);
-      if (feedback.success) {
-        feedbackAudio = {
-          url: feedback.audioUrl,
-          duration: feedback.duration,
-          type: guidance.guidanceType,
-        };
-      }
-    }
-
     // Return response with audio
     return NextResponse.json({
       success: true,
@@ -255,25 +219,17 @@ export async function POST(
         text: transcription.transcript,
         confidence: transcription.confidence,
         duration: transcription.duration,
-        suggestions: transcription.suggestions,
       },
       response: {
         text: aiResponseText,
         audioUrl: synthesis.audioUrl,
         duration: synthesis.duration,
       },
-      guidance: {
-        type: guidance.guidanceType,
-        message: guidance.message,
-        shouldProvideHint: guidance.shouldProvideHint,
-        objectiveStatus: guidance.objectiveStatus,
-      },
-      feedbackAudio,
       progress: {
-        completedObjectives: updatedCompletedObjectives.length,
+        completedObjectives: completedObjectives.length,
         totalObjectives: learningObjectives.length,
         percentage: Math.round(
-          (updatedCompletedObjectives.length / learningObjectives.length) * 100
+          (completedObjectives.length / learningObjectives.length) * 100
         ),
         messageCount: updatedMessages.length,
       },

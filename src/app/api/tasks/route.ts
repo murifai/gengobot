@@ -138,7 +138,6 @@ export async function POST(request: NextRequest) {
         learningObjectives: body.learningObjectives,
         successCriteria: body.successCriteria,
         estimatedDuration: body.estimatedDuration,
-        prerequisites: body.prerequisites || [],
         characterId: body.characterId || null,
         createdBy: body.createdBy || null,
         isActive: body.isActive !== undefined ? body.isActive : true,
@@ -152,6 +151,17 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    // Create task-deck associations if studyDeckIds provided
+    if (body.studyDeckIds && Array.isArray(body.studyDeckIds) && body.studyDeckIds.length > 0) {
+      await prisma.taskDeck.createMany({
+        data: body.studyDeckIds.map((deckId: string, index: number) => ({
+          taskId: task.id,
+          deckId,
+          order: index,
+        })),
+      });
+    }
 
     // Log admin action if createdBy is provided and user exists
     if (body.createdBy) {

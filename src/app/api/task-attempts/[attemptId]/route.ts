@@ -14,6 +14,7 @@ export async function GET(
 ) {
   try {
     const { attemptId } = await params;
+    console.log('[Task Attempt GET] Fetching attempt:', attemptId);
 
     const attempt = await prisma.taskAttempt.findUnique({
       where: { id: attemptId },
@@ -43,7 +44,10 @@ export async function GET(
       },
     });
 
+    console.log('[Task Attempt GET] Attempt lookup result:', attempt ? 'found' : 'not found');
+
     if (!attempt) {
+      console.error('[Task Attempt GET] Attempt not found:', attemptId);
       return NextResponse.json({ error: 'Task attempt not found' }, { status: 404 });
     }
 
@@ -68,6 +72,8 @@ export async function GET(
     const endTime = attempt.endTime ? new Date(attempt.endTime) : new Date();
     const elapsedMinutes = Math.round((endTime.getTime() - startTime.getTime()) / 60000);
 
+    console.log('[Task Attempt GET] Returning attempt with', messages.length, 'messages');
+
     return NextResponse.json({
       attempt,
       progress: {
@@ -80,8 +86,11 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Error fetching task attempt:', error);
-    return NextResponse.json({ error: 'Failed to fetch task attempt' }, { status: 500 });
+    console.error('[Task Attempt GET] Error fetching task attempt:', error);
+    return NextResponse.json({
+      error: 'Failed to fetch task attempt',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
 

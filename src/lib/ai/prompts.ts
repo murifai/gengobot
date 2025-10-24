@@ -87,14 +87,7 @@ Stay in character while helping the student complete the task objectives.
 6. Track progress toward completing all success criteria
 7. Keep responses concise (2-4 sentences) unless explanation is needed
 8. Use appropriate Japanese politeness levels (敬語/keigo) for the context
-
-# Evaluation Focus (for later assessment)
-- Task Achievement (タスク達成度): How well objectives are met
-- Fluency (流暢さ): Natural flow and appropriateness
-- Vocabulary & Grammar Accuracy (語彙・文法的正確さ): Correct usage
-- Politeness (丁寧さ): Appropriate formality level
-
-Begin the conversation in a natural way appropriate to the scenario.`;
+`;
 
   return prompt;
 }

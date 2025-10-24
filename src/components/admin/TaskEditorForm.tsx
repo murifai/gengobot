@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import DeckSelector from '@/components/admin/DeckSelector';
 
 interface TaskFormData {
   title: string;
@@ -15,7 +16,7 @@ interface TaskFormData {
   learningObjectives: string[];
   successCriteria: string[];
   estimatedDuration: number;
-  prerequisites: string;
+  studyDeckIds: string[];
   characterId: string | null;
   isActive: boolean;
 }
@@ -57,7 +58,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
     learningObjectives: initialData?.learningObjectives || [''],
     successCriteria: initialData?.successCriteria || [''],
     estimatedDuration: initialData?.estimatedDuration || 10,
-    prerequisites: initialData?.prerequisites || '',
+    studyDeckIds: initialData?.studyDeckIds || [],
     characterId: initialData?.characterId || null,
     isActive: initialData?.isActive ?? true,
   });
@@ -446,19 +447,11 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
         </div>
       </div>
 
-      {/* Prerequisites */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Prerequisites (Optional)
-        </label>
-        <textarea
-          value={formData.prerequisites}
-          onChange={e => setFormData(prev => ({ ...prev, prerequisites: e.target.value }))}
-          placeholder="Required knowledge or skills"
-          rows={2}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-        />
-      </div>
+      {/* Study Decks */}
+      <DeckSelector
+        selectedDeckIds={formData.studyDeckIds}
+        onChange={deckIds => setFormData(prev => ({ ...prev, studyDeckIds: deckIds }))}
+      />
 
       {/* Is Active */}
       <div className="flex items-center">

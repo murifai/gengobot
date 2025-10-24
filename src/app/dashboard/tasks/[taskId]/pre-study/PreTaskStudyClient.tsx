@@ -16,11 +16,37 @@ interface Task {
   successCriteria: string[];
 }
 
-interface VocabularyCard {
+interface Flashcard {
   id: string;
-  front: string;
-  back: string;
+  cardType: string;
+  // Kanji fields
+  kanji?: string;
+  kanjiMeaning?: string;
+  onyomi?: string;
+  kunyomi?: string;
+  // Vocabulary fields
+  word?: string;
+  wordMeaning?: string;
   reading?: string;
+  partOfSpeech?: string;
+  // Grammar fields
+  grammarPoint?: string;
+  grammarMeaning?: string;
+  usageNote?: string;
+  // Common fields
+  exampleSentence?: string;
+  exampleTranslation?: string;
+  notes?: string;
+}
+
+interface Deck {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  difficulty: string | null;
+  flashcards: Flashcard[];
+  order: number;
 }
 
 interface PreTaskStudyClientProps {
@@ -31,50 +57,28 @@ interface PreTaskStudyClientProps {
 export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientProps) {
   const router = useRouter();
   const [task, setTask] = useState<Task | null>(null);
-  const [vocabularyCards, setVocabularyCards] = useState<VocabularyCard[]>([]);
-  const [grammarCards, setGrammarCards] = useState<VocabularyCard[]>([]);
+  const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchTaskAndCards();
+    fetchTaskAndDecks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taskId]);
 
-  const fetchTaskAndCards = async () => {
+  const fetchTaskAndDecks = async () => {
     try {
       // Fetch task details
       const taskResponse = await fetch(`/api/tasks/${taskId}`);
       if (!taskResponse.ok) throw new Error('Failed to fetch task');
       const taskData = await taskResponse.json();
-      setTask(taskData); // API returns task directly, not wrapped in { task: ... }
+      setTask(taskData);
 
-      // TODO: Fetch associated vocabulary and grammar cards
-      // For now, using mock data
-      // In the future, this should fetch from the deck system based on task.vocabDeckId and task.grammarDeckId
-      setVocabularyCards([
-        {
-          id: '1',
-          front: 'こんにちは',
-          back: 'Hello, Good afternoon',
-          reading: 'konnichiwa',
-        },
-        {
-          id: '2',
-          front: 'ありがとう',
-          back: 'Thank you',
-          reading: 'arigatou',
-        },
-      ]);
-
-      setGrammarCards([
-        {
-          id: '1',
-          front: '〜ています',
-          back: 'Present continuous tense (currently doing)',
-          reading: '〜teimasu',
-        },
-      ]);
+      // Fetch associated decks with flashcards
+      const decksResponse = await fetch(`/api/tasks/${taskId}/decks`);
+      if (!decksResponse.ok) throw new Error('Failed to fetch decks');
+      const decksData = await decksResponse.json();
+      setDecks(decksData.decks || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -92,17 +96,35 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
 
   const startTaskAttempt = async () => {
     try {
+      console.log('[PreTaskStudy] Starting task attempt:', { taskId, userId: user.id });
+
       const response = await fetch('/api/task-attempts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ taskId, userId: user.id }),
       });
 
-      if (!response.ok) throw new Error('Failed to start task');
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('[PreTaskStudy] Failed to start task:', errorData);
+        throw new Error(errorData.error || errorData.details || 'Failed to start task');
+      }
 
       const data = await response.json();
+      console.log('[PreTaskStudy] Task attempt response:', {
+        isExisting: data.isExisting,
+        attemptId: data.attempt.id,
+        messageCount: data.attempt.conversationHistory?.messages?.length || 0,
+        message: data.message
+      });
+
+      if (data.isExisting) {
+        console.log('[PreTaskStudy] Resuming existing attempt with', data.attempt.conversationHistory?.messages?.length || 0, 'messages');
+      }
+
       router.push(`/dashboard/tasks/${taskId}/attempt/${data.attempt.id}`);
     } catch (err) {
+      console.error('[PreTaskStudy] Error:', err);
       setError(err instanceof Error ? err.message : 'Failed to start task');
     }
   };
@@ -141,8 +163,7 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
       taskScenario={task.scenario}
       learningObjectives={task.learningObjectives}
       successCriteria={task.successCriteria}
-      vocabularyCards={vocabularyCards}
-      grammarCards={grammarCards}
+      decks={decks}
       onSkip={handleSkip}
       onComplete={handleComplete}
     />

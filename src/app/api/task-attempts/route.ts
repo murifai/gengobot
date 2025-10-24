@@ -85,8 +85,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { userId, taskId } = body;
 
+    console.log('[Task Attempt POST] Request:', { userId, taskId });
+
     // Validate required fields
     if (!userId || !taskId) {
+      console.error('[Task Attempt POST] Missing required fields:', { userId, taskId });
       return NextResponse.json({ error: 'userId and taskId are required' }, { status: 400 });
     }
 
@@ -95,27 +98,37 @@ export async function POST(request: NextRequest) {
       where: { authId: userId },
     });
 
+    console.log('[Task Attempt POST] User lookup by authId:', user ? 'found' : 'not found');
+
     // Fallback to id lookup if authId lookup fails
     if (!user) {
       user = await prisma.user.findUnique({
         where: { id: userId },
       });
+      console.log('[Task Attempt POST] User lookup by id:', user ? 'found' : 'not found');
     }
 
     if (!user) {
+      console.error('[Task Attempt POST] User not found:', userId);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+
+    console.log('[Task Attempt POST] Found user:', { id: user.id, authId: user.authId });
 
     // Verify task exists and is active
     const task = await prisma.task.findUnique({
       where: { id: taskId },
     });
 
+    console.log('[Task Attempt POST] Task lookup:', task ? `found (active: ${task.isActive})` : 'not found');
+
     if (!task) {
+      console.error('[Task Attempt POST] Task not found:', taskId);
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
     if (!task.isActive) {
+      console.error('[Task Attempt POST] Task is not active:', taskId);
       return NextResponse.json({ error: 'Task is not active' }, { status: 400 });
     }
 
@@ -128,7 +141,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    console.log('[Task Attempt POST] Existing attempt:', existingAttempt ? `found (${existingAttempt.id})` : 'not found');
+
     if (existingAttempt) {
+      console.log('[Task Attempt POST] Resuming existing attempt:', existingAttempt.id);
       // Return existing attempt instead of creating new one
       return NextResponse.json({
         attempt: existingAttempt,
@@ -136,6 +152,8 @@ export async function POST(request: NextRequest) {
         message: 'Resuming existing attempt',
       });
     }
+
+    console.log('[Task Attempt POST] Creating new attempt...');
 
     // Create new task attempt
     const attempt = await prisma.taskAttempt.create({
@@ -190,13 +208,18 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    console.log('[Task Attempt POST] Success - created attempt:', attempt.id);
+
     return NextResponse.json({
       attempt,
       isExisting: false,
       message: 'Task attempt started successfully',
     });
   } catch (error) {
-    console.error('Error creating task attempt:', error);
-    return NextResponse.json({ error: 'Failed to create task attempt' }, { status: 500 });
+    console.error('[Task Attempt POST] Error creating task attempt:', error);
+    return NextResponse.json({
+      error: 'Failed to create task attempt',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

@@ -3,13 +3,39 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import FlashcardSession, { FlashcardSessionStats } from '@/components/flashcard/FlashcardSession';
+import DeckLearning from '@/components/deck/DeckLearning';
 
-interface VocabularyCard {
+interface Flashcard {
   id: string;
-  front: string; // Japanese
-  back: string; // English translation
-  reading?: string; // Furigana
+  cardType: string;
+  // Kanji fields
+  kanji?: string;
+  kanjiMeaning?: string;
+  onyomi?: string;
+  kunyomi?: string;
+  // Vocabulary fields
+  word?: string;
+  wordMeaning?: string;
+  reading?: string;
+  partOfSpeech?: string;
+  // Grammar fields
+  grammarPoint?: string;
+  grammarMeaning?: string;
+  usageNote?: string;
+  // Common fields
+  exampleSentence?: string;
+  exampleTranslation?: string;
+  notes?: string;
+}
+
+interface Deck {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  difficulty: string | null;
+  flashcards: Flashcard[];
+  order: number;
 }
 
 interface PreTaskStudyProps {
@@ -18,8 +44,7 @@ interface PreTaskStudyProps {
   taskScenario?: string;
   learningObjectives?: string[];
   successCriteria?: string[];
-  vocabularyCards?: VocabularyCard[];
-  grammarCards?: VocabularyCard[];
+  decks?: Deck[];
   onSkip: () => void;
   onComplete: () => void;
 }
@@ -36,32 +61,28 @@ export default function PreTaskStudy({
   taskScenario,
   learningObjectives = [],
   successCriteria = [],
-  vocabularyCards = [],
-  grammarCards = [],
+  decks = [],
   onComplete,
 }: PreTaskStudyProps) {
   const [currentStep, setCurrentStep] = useState<FlowStep>('scenario');
-  const [studyType, setStudyType] = useState<'vocabulary' | 'grammar' | null>(null);
+  const [currentDeckIndex, setCurrentDeckIndex] = useState<number | null>(null);
 
-  const handleSessionComplete = (stats: FlashcardSessionStats) => {
-    // TODO: Save session stats to user's study history
-    console.log('Session completed:', stats);
-
+  const handleDeckComplete = () => {
     // Check if there's another deck to study
-    if (studyType === 'vocabulary' && grammarCards.length > 0) {
-      // Switch to grammar deck
-      setStudyType('grammar');
+    if (currentDeckIndex !== null && currentDeckIndex < decks.length - 1) {
+      // Move to next deck
+      setCurrentDeckIndex(currentDeckIndex + 1);
     } else {
-      // All study done, move to success criteria
+      // All decks completed, move to success criteria
       setCurrentStep('success-criteria');
-      setStudyType(null);
+      setCurrentDeckIndex(null);
     }
   };
 
-  const handleSessionExit = () => {
+  const handleDeckExit = () => {
     // User exited study early, move to success criteria
     setCurrentStep('success-criteria');
-    setStudyType(null);
+    setCurrentDeckIndex(null);
   };
 
   // Step 1: Scenario Display
@@ -160,32 +181,47 @@ export default function PreTaskStudy({
           </div>
 
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Would you like to review the vocabulary and grammar associated with this task? You can
-            choose to study now or skip directly to the task instructions.
+            Would you like to review the study materials associated with this task? You can choose
+            to study now or skip directly to the task instructions.
           </p>
 
           <div className="space-y-4 mb-8">
-            {vocabularyCards.length > 0 && (
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                  Vocabulary Deck
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {vocabularyCards.length} cards available for review
-                </p>
-              </div>
-            )}
+            {decks.length > 0 ? (
+              decks.map((deck, index) => {
+                const categoryColors = {
+                  Kanji: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800',
+                  Vocabulary:
+                    'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
+                  Grammar:
+                    'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800',
+                  Mixed: 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800',
+                };
+                const colorClass =
+                  categoryColors[deck.category as keyof typeof categoryColors] ||
+                  'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700';
 
-            {grammarCards.length > 0 && (
-              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Grammar Deck</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {grammarCards.length} cards available for review
-                </p>
-              </div>
-            )}
-
-            {vocabularyCards.length === 0 && grammarCards.length === 0 && (
+                return (
+                  <div key={deck.id} className={`p-4 rounded-lg border ${colorClass}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-semibold text-gray-900 dark:text-white">{deck.name}</h3>
+                      <span className="text-xs px-2 py-1 bg-white dark:bg-gray-900 rounded-full border border-gray-200 dark:border-gray-700">
+                        {index + 1} of {decks.length}
+                      </span>
+                    </div>
+                    {deck.description && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                        {deck.description}
+                      </p>
+                    )}
+                    <div className="flex gap-3 text-xs text-gray-500 dark:text-gray-500">
+                      <span>{deck.flashcards.length} cards</span>
+                      {deck.category && <span>• {deck.category}</span>}
+                      {deck.difficulty && <span>• {deck.difficulty}</span>}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
               <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p className="text-gray-600 dark:text-gray-400">
                   No study materials available for this task yet.
@@ -201,26 +237,15 @@ export default function PreTaskStudy({
             <Button onClick={() => setCurrentStep('success-criteria')} variant="secondary">
               Skip to Instructions
             </Button>
-            {vocabularyCards.length > 0 && (
+            {decks.length > 0 && (
               <Button
                 onClick={() => {
-                  setStudyType('vocabulary');
+                  setCurrentDeckIndex(0);
                   setCurrentStep('study-session');
                 }}
                 className="flex-1"
               >
-                Start Vocabulary Review
-              </Button>
-            )}
-            {grammarCards.length > 0 && vocabularyCards.length === 0 && (
-              <Button
-                onClick={() => {
-                  setStudyType('grammar');
-                  setCurrentStep('study-session');
-                }}
-                className="flex-1"
-              >
-                Start Grammar Review
+                Start Study Review
               </Button>
             )}
           </div>
@@ -229,19 +254,16 @@ export default function PreTaskStudy({
     );
   }
 
-  // Step 4: Flashcard Study Session
-  if (currentStep === 'study-session' && studyType) {
-    const currentCards = studyType === 'vocabulary' ? vocabularyCards : grammarCards;
-    const deckName = studyType === 'vocabulary' ? 'Vocabulary Review' : 'Grammar Review';
+  // Step 4: Deck Learning Session
+  if (currentStep === 'study-session' && currentDeckIndex !== null) {
+    const currentDeck = decks[currentDeckIndex];
+
+    if (!currentDeck) {
+      return null;
+    }
 
     return (
-      <FlashcardSession
-        cards={currentCards}
-        deckName={deckName}
-        onComplete={handleSessionComplete}
-        onExit={handleSessionExit}
-        showRatingButtons={false} // For pre-task study, we just show next/previous
-      />
+      <DeckLearning deck={currentDeck} onComplete={handleDeckComplete} onExit={handleDeckExit} />
     );
   }
 

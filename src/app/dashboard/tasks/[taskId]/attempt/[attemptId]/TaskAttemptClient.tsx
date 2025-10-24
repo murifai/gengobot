@@ -90,11 +90,29 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
 
   const fetchAttempt = async () => {
     try {
+      console.log('[TaskAttemptClient] Fetching attempt:', attemptId);
       const response = await fetch(`/api/task-attempts/${attemptId}`);
-      if (!response.ok) throw new Error('Failed to fetch task attempt');
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('[TaskAttemptClient] Failed to fetch attempt:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        });
+        throw new Error(errorData.error || errorData.details || `Failed to fetch task attempt (${response.status})`);
+      }
+
       const data = await response.json();
+      console.log('[TaskAttemptClient] Loaded attempt:', {
+        attemptId: data.attempt.id,
+        messageCount: data.attempt.conversationHistory?.messages?.length || 0,
+        isCompleted: data.attempt.isCompleted,
+        progress: data.progress
+      });
       setAttempt(data.attempt);
     } catch (err) {
+      console.error('[TaskAttemptClient] Error loading attempt:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);

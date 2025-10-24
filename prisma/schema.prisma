@@ -20,7 +20,6 @@ model Task {
   learningObjectives Json // Array of learning goals
   successCriteria    Json // Completion requirements
   estimatedDuration  Int // Minutes
-  prerequisites      Json? // Required prior knowledge
   isActive           Boolean  @default(true)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -33,11 +32,28 @@ model Task {
   subcategory   TaskSubcategory? @relation(fields: [subcategoryId], references: [id])
   conversations Conversation[]
   taskAttempts  TaskAttempt[]
+  studyDecks    TaskDeck[]
 
   @@index([category])
   @@index([subcategoryId])
   @@index([difficulty])
   @@index([isActive])
+}
+
+// TaskDeck model - Join table for Task-Deck many-to-many relationship
+model TaskDeck {
+  id        String   @id @default(cuid())
+  taskId    String
+  deckId    String
+  order     Int      @default(0) // Display order for multiple decks
+  createdAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  deck Deck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, deckId])
+  @@index([taskId])
+  @@index([deckId])
 }
 
 // TaskAttempt model - Tracks user progress on tasks
@@ -201,6 +217,7 @@ model Deck {
   creator       User           @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   flashcards    Flashcard[]
   studySessions StudySession[]
+  taskDecks     TaskDeck[]
 
   @@index([createdBy])
   @@index([category])

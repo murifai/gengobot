@@ -1,9 +1,7 @@
 // Text message API for task conversations
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { evaluateConversationProgress } from '@/lib/tasks/conversation-guidance';
-import type { TaskConversationContext } from '@/lib/tasks/conversation-guidance';
-import getOpenAIClient from '@/lib/ai/openai-client';
+import { generateTaskResponse } from '@/lib/ai/task-response-generator';
 
 /**
  * POST /api/task-attempts/[attemptId]/message
@@ -57,33 +55,6 @@ export async function POST(
     const messages = conversationHistory?.messages || [];
     const completedObjectives = conversationHistory?.completedObjectives || [];
     const learningObjectives = (attempt.task.learningObjectives as string[]) || [];
-    const successCriteria = (attempt.task.successCriteria as string[]) || [];
-
-    const context: TaskConversationContext = {
-      taskId: attempt.taskId,
-      userId: attempt.userId,
-      attemptId: attempt.id,
-      difficulty: attempt.task.difficulty,
-      category: attempt.task.category,
-      scenario: attempt.task.scenario,
-      learningObjectives,
-      successCriteria,
-      currentObjective: completedObjectives.length,
-      completedObjectives,
-      conversationHistory: messages as {
-        role: 'user' | 'assistant' | 'system';
-        content: string;
-        timestamp: string;
-      }[],
-      userProficiency: attempt.user.proficiency,
-      characterPersonality: attempt.task.character?.personality as
-        | Record<string, unknown>
-        | undefined,
-      estimatedDuration: attempt.task.estimatedDuration,
-      elapsedMinutes: Math.round(
-        (new Date().getTime() - new Date(attempt.startTime).getTime()) / 60000
-      ),
-    };
 
     // Add user message
     const userMessage = {
@@ -92,65 +63,39 @@ export async function POST(
       timestamp: new Date().toISOString(),
     };
 
-    // Evaluate conversation progress
-    const guidance = evaluateConversationProgress(context);
-
-    // Generate AI response using OpenAI
-    const conversationMessages = [...messages, userMessage];
-
-    const systemPrompt = `You are a Japanese language teacher conducting a task-based conversation.
-Scenario: ${attempt.task.scenario}
-Learning Objectives: ${learningObjectives.join(', ')}
-Student Level: ${attempt.user.proficiency}
-Difficulty: ${attempt.task.difficulty}
-
-Help the student practice Japanese conversation naturally while working towards the learning objectives.
-Respond in Japanese, keeping the conversation engaging and educational.`;
-
-    const openai = getOpenAIClient();
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...conversationMessages.map(msg => ({
-          role: msg.role as 'user' | 'assistant',
-          content: msg.content,
-        })),
-      ],
-      temperature: 0.7,
-      max_tokens: 500,
-    });
-
-    let aiResponseText =
-      completion.choices[0]?.message?.content || 'すみません、もう一度お願いします。';
-
-    // Add guidance if needed
-    if (guidance.message && guidance.guidanceType !== 'none') {
-      aiResponseText += `\n\n${guidance.message}`;
-    }
+    // Generate AI response using the task response generator
+    const aiResponseText = await generateTaskResponse(
+      {
+        scenario: attempt.task.scenario,
+        category: attempt.task.category,
+        learningObjectives,
+        difficulty: attempt.task.difficulty,
+        userProficiency: attempt.user.proficiency,
+      },
+      {
+        messages: messages as Array<{
+          role: 'user' | 'assistant' | 'system';
+          content: string;
+          timestamp: string;
+        }>,
+        completedObjectives,
+      },
+      message.trim()
+    );
 
     // Add assistant message
     const assistantMessage = {
       role: 'assistant' as const,
       content: aiResponseText,
       timestamp: new Date().toISOString(),
-      metadata: {
-        hintProvided: guidance.shouldProvideHint,
-        objectiveCompleted: guidance.objectiveStatus?.completed
-          ? guidance.objectiveStatus.current
-          : undefined,
-      },
     };
 
     // Update conversation history
     const updatedMessages = [...messages, userMessage, assistantMessage];
-    const updatedCompletedObjectives = guidance.objectiveStatus?.completed
-      ? [...completedObjectives, guidance.objectiveStatus.current]
-      : completedObjectives;
 
     const updatedHistory = {
       messages: updatedMessages,
-      completedObjectives: updatedCompletedObjectives,
+      completedObjectives: completedObjectives,
       startedAt: conversationHistory?.startedAt || new Date().toISOString(),
     };
 
@@ -169,17 +114,11 @@ Respond in Japanese, keeping the conversation engaging and educational.`;
     return NextResponse.json({
       success: true,
       attempt: updatedAttempt,
-      guidance: {
-        type: guidance.guidanceType,
-        message: guidance.message,
-        shouldProvideHint: guidance.shouldProvideHint,
-        objectiveStatus: guidance.objectiveStatus,
-      },
       progress: {
-        completedObjectives: updatedCompletedObjectives.length,
+        completedObjectives: completedObjectives.length,
         totalObjectives: learningObjectives.length,
         percentage: Math.round(
-          (updatedCompletedObjectives.length / learningObjectives.length) * 100
+          (completedObjectives.length / learningObjectives.length) * 100
         ),
         messageCount: updatedMessages.length,
       },

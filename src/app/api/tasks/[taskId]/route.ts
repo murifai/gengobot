@@ -21,6 +21,23 @@ export async function GET(
             speakingStyle: true,
           },
         },
+        studyDecks: {
+          include: {
+            deck: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                category: true,
+                difficulty: true,
+                totalCards: true,
+              },
+            },
+          },
+          orderBy: {
+            order: 'asc',
+          },
+        },
         _count: {
           select: {
             taskAttempts: true,
@@ -34,7 +51,13 @@ export async function GET(
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
-    return NextResponse.json(task);
+    // Transform studyDecks to include deck IDs array for easier form handling
+    const taskWithDeckIds = {
+      ...task,
+      studyDeckIds: task.studyDecks.map(td => td.deckId),
+    };
+
+    return NextResponse.json(taskWithDeckIds);
   } catch (error) {
     console.error('Error fetching task:', error);
     return NextResponse.json({ error: 'Failed to fetch task' }, { status: 500 });
@@ -125,6 +148,25 @@ export async function PUT(
         },
       },
     });
+
+    // Handle study deck associations if studyDeckIds provided
+    if (body.studyDeckIds !== undefined && Array.isArray(body.studyDeckIds)) {
+      // Delete existing associations
+      await prisma.taskDeck.deleteMany({
+        where: { taskId },
+      });
+
+      // Create new associations
+      if (body.studyDeckIds.length > 0) {
+        await prisma.taskDeck.createMany({
+          data: body.studyDeckIds.map((deckId: string, index: number) => ({
+            taskId,
+            deckId,
+            order: index,
+          })),
+        });
+      }
+    }
 
     // Log admin action if updatedBy is provided and user exists
     if (body.updatedBy) {
