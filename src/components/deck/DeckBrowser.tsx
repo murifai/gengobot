@@ -13,6 +13,8 @@ interface Deck {
   category: string | null;
   difficulty: string | null;
   totalCards: number;
+  dueCards: number;
+  newCards: number;
   studyCount: number;
   isPublic: boolean;
 }
@@ -207,10 +209,31 @@ export default function DeckBrowser() {
                 )}
               </div>
 
-              <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
-                <div className="flex items-center gap-4">
-                  <span>{deck.totalCards} cards</span>
-                  <span>{deck.studyCount} studies</span>
+              {/* Statistics Grid */}
+              <div className="grid grid-cols-4 gap-2 mb-4">
+                <div className="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="text-xs text-blue-600 dark:text-blue-400 mb-1">Due</div>
+                  <div className="text-lg font-semibold text-blue-700 dark:text-blue-300">
+                    {deck.dueCards}
+                  </div>
+                </div>
+                <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <div className="text-xs text-green-600 dark:text-green-400 mb-1">New</div>
+                  <div className="text-lg font-semibold text-green-700 dark:text-green-300">
+                    {deck.newCards}
+                  </div>
+                </div>
+                <div className="text-center p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <div className="text-xs text-purple-600 dark:text-purple-400 mb-1">Total</div>
+                  <div className="text-lg font-semibold text-purple-700 dark:text-purple-300">
+                    {deck.totalCards}
+                  </div>
+                </div>
+                <div className="text-center p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Studies</div>
+                  <div className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                    {deck.studyCount}
+                  </div>
                 </div>
               </div>
 

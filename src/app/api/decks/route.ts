@@ -74,9 +74,15 @@ export async function GET(request: NextRequest) {
               email: true,
             },
           },
-          _count: {
+          flashcards: {
             select: {
-              flashcards: true,
+              id: true,
+              nextReviewDate: true,
+              repetitions: true,
+              isActive: true,
+            },
+            where: {
+              isActive: true,
             },
           },
         },
@@ -87,8 +93,35 @@ export async function GET(request: NextRequest) {
       prisma.deck.count({ where }),
     ]);
 
+    // Calculate statistics for each deck
+    const now = new Date();
+    const decksWithStats = decks.map(deck => {
+      const dueCards = deck.flashcards.filter(
+        card => card.nextReviewDate && card.nextReviewDate <= now
+      ).length;
+      const newCards = deck.flashcards.filter(
+        card => !card.nextReviewDate && card.repetitions === 0
+      ).length;
+      const totalCards = deck.flashcards.length;
+
+      return {
+        id: deck.id,
+        name: deck.name,
+        description: deck.description,
+        category: deck.category,
+        difficulty: deck.difficulty,
+        isPublic: deck.isPublic,
+        studyCount: deck.studyCount,
+        totalCards,
+        dueCards,
+        newCards,
+        createdAt: deck.createdAt,
+        updatedAt: deck.updatedAt,
+      };
+    });
+
     return NextResponse.json({
-      decks,
+      decks: decksWithStats,
       pagination: {
         page,
         limit,

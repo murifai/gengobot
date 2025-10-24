@@ -39,15 +39,18 @@ interface Deck {
   flashcards: Flashcard[];
 }
 
-export default function StudyDeckPage({
-  params,
-}: {
-  params: Promise<{ deckId: string }>;
-}) {
+interface ReviewStats {
+  totalCards: number;
+  dueToday: number;
+  newCards: number;
+}
+
+export default function StudyDeckPage({ params }: { params: Promise<{ deckId: string }> }) {
   const { deckId } = use(params);
   const router = useRouter();
   const [deck, setDeck] = useState<Deck | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,6 +78,7 @@ export default function StudyDeckPage({
       const data = await response.json();
       setSessionId(data.sessionId);
       setDeck(data.deck);
+      setReviewStats(data.reviewStats);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -144,6 +148,7 @@ export default function StudyDeckPage({
     <DeckLearningWithSRS
       deck={deck}
       sessionId={sessionId}
+      reviewStats={reviewStats}
       onComplete={handleComplete}
       onExit={handleExit}
     />

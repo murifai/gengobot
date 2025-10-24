@@ -36,9 +36,16 @@ interface Deck {
   flashcards: Flashcard[];
 }
 
+interface ReviewStats {
+  totalCards: number;
+  dueToday: number;
+  newCards: number;
+}
+
 interface DeckLearningWithSRSProps {
   deck: Deck;
   sessionId: string;
+  reviewStats: ReviewStats | null;
   onComplete: () => void;
   onExit: () => void;
 }
@@ -48,6 +55,7 @@ type Rating = 'again' | 'hard' | 'good' | 'easy';
 export default function DeckLearningWithSRS({
   deck,
   sessionId,
+  reviewStats,
   onComplete,
   onExit,
 }: DeckLearningWithSRSProps) {
@@ -56,6 +64,12 @@ export default function DeckLearningWithSRS({
   const [reviewedCards, setReviewedCards] = useState<Set<number>>(new Set());
   const [reviewStartTime, setReviewStartTime] = useState<number>(Date.now());
   const [submittingRating, setSubmittingRating] = useState(false);
+  const [sessionStats, setSessionStats] = useState({
+    againCount: 0,
+    hardCount: 0,
+    goodCount: 0,
+    easyCount: 0,
+  });
 
   const currentCard = deck.flashcards[currentIndex];
   const totalCards = deck.flashcards.length;
@@ -99,6 +113,12 @@ export default function DeckLearningWithSRS({
       if (!response.ok) {
         throw new Error('Failed to submit rating');
       }
+
+      // Update session stats
+      setSessionStats(prev => ({
+        ...prev,
+        [`${rating}Count`]: prev[`${rating}Count` as keyof typeof prev] + 1,
+      }));
 
       // Move to next card or complete
       if (currentIndex < totalCards - 1) {
@@ -315,6 +335,58 @@ export default function DeckLearningWithSRS({
           >
             Exit
           </button>
+        </div>
+
+        {/* Statistics Bar */}
+        {reviewStats && (
+          <div className="mb-4 grid grid-cols-3 gap-3">
+            <Card className="p-3 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+              <div className="text-xs text-blue-600 dark:text-blue-400 mb-1">Due Today</div>
+              <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                {reviewStats.dueToday}
+              </div>
+            </Card>
+            <Card className="p-3 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+              <div className="text-xs text-green-600 dark:text-green-400 mb-1">New Cards</div>
+              <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                {reviewStats.newCards}
+              </div>
+            </Card>
+            <Card className="p-3 bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800">
+              <div className="text-xs text-purple-600 dark:text-purple-400 mb-1">Total Cards</div>
+              <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                {reviewStats.totalCards}
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Session Stats */}
+        <div className="mb-4 grid grid-cols-4 gap-2">
+          <div className="text-center p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
+            <div className="text-xs text-red-600 dark:text-red-400">Again</div>
+            <div className="text-lg font-semibold text-red-700 dark:text-red-300">
+              {sessionStats.againCount}
+            </div>
+          </div>
+          <div className="text-center p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+            <div className="text-xs text-orange-600 dark:text-orange-400">Hard</div>
+            <div className="text-lg font-semibold text-orange-700 dark:text-orange-300">
+              {sessionStats.hardCount}
+            </div>
+          </div>
+          <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <div className="text-xs text-green-600 dark:text-green-400">Good</div>
+            <div className="text-lg font-semibold text-green-700 dark:text-green-300">
+              {sessionStats.goodCount}
+            </div>
+          </div>
+          <div className="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <div className="text-xs text-blue-600 dark:text-blue-400">Easy</div>
+            <div className="text-lg font-semibold text-blue-700 dark:text-blue-300">
+              {sessionStats.easyCount}
+            </div>
+          </div>
         </div>
 
         {/* Progress Bar */}

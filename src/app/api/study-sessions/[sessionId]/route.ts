@@ -17,14 +17,23 @@ export async function GET(
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user?.email) {
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const dbUser = await prisma.user.findUnique({
-      where: { email: user.email },
-      select: { id: true },
+    // Get user from database - support both authId (UUID) and id (CUID) formats
+    let dbUser = await prisma.user.findUnique({
+      where: { authId: user.id },
+      select: { id: true, email: true, name: true },
     });
+
+    // Fallback to email lookup if authId lookup fails
+    if (!dbUser && user.email) {
+      dbUser = await prisma.user.findUnique({
+        where: { email: user.email },
+        select: { id: true, email: true, name: true },
+      });
+    }
 
     if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -77,14 +86,23 @@ export async function PUT(
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user?.email) {
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const dbUser = await prisma.user.findUnique({
-      where: { email: user.email },
-      select: { id: true },
+    // Get user from database - support both authId (UUID) and id (CUID) formats
+    let dbUser = await prisma.user.findUnique({
+      where: { authId: user.id },
+      select: { id: true, email: true, name: true },
     });
+
+    // Fallback to email lookup if authId lookup fails
+    if (!dbUser && user.email) {
+      dbUser = await prisma.user.findUnique({
+        where: { email: user.email },
+        select: { id: true, email: true, name: true },
+      });
+    }
 
     if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
