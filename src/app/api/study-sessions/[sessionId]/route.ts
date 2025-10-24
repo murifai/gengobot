@@ -6,8 +6,12 @@ import { prisma } from '@/lib/prisma';
  * GET /api/study-sessions/[sessionId]
  * Get study session details
  */
-export async function GET(request: Request, { params }: { params: { sessionId: string } }) {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ sessionId: string }> }
+) {
   try {
+    const { sessionId } = await params;
     const supabase = await createClient();
     const {
       data: { user },
@@ -27,7 +31,7 @@ export async function GET(request: Request, { params }: { params: { sessionId: s
     }
 
     const studySession = await prisma.studySession.findUnique({
-      where: { id: params.sessionId },
+      where: { id: sessionId },
       include: {
         deck: {
           include: {
@@ -62,8 +66,12 @@ export async function GET(request: Request, { params }: { params: { sessionId: s
  * PUT /api/study-sessions/[sessionId]
  * Complete study session
  */
-export async function PUT(request: Request, { params }: { params: { sessionId: string } }) {
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ sessionId: string }> }
+) {
   try {
+    const { sessionId } = await params;
     const supabase = await createClient();
     const {
       data: { user },
@@ -83,7 +91,7 @@ export async function PUT(request: Request, { params }: { params: { sessionId: s
     }
 
     const studySession = await prisma.studySession.findUnique({
-      where: { id: params.sessionId },
+      where: { id: sessionId },
     });
 
     if (!studySession) {
@@ -97,7 +105,7 @@ export async function PUT(request: Request, { params }: { params: { sessionId: s
 
     // Mark session as completed
     const updatedSession = await prisma.studySession.update({
-      where: { id: params.sessionId },
+      where: { id: sessionId },
       data: {
         endTime: new Date(),
         isCompleted: true,

@@ -68,9 +68,10 @@ function calculateNextReview(
  */
 export async function POST(
   request: Request,
-  { params }: { params: { flashcardId: string } }
+  { params }: { params: Promise<{ flashcardId: string }> }
 ) {
   try {
+    const { flashcardId } = await params;
     const supabase = await createClient();
     const {
       data: { user },
@@ -99,7 +100,7 @@ export async function POST(
 
     // Get flashcard
     const flashcard = await prisma.flashcard.findUnique({
-      where: { id: params.flashcardId },
+      where: { id: flashcardId },
       include: {
         deck: true,
       },
@@ -127,7 +128,7 @@ export async function POST(
 
     // Update flashcard with new spaced repetition data
     const updatedFlashcard = await prisma.flashcard.update({
-      where: { id: params.flashcardId },
+      where: { id: flashcardId },
       data: {
         easeFactor: newEaseFactor,
         interval: newInterval,
@@ -140,7 +141,9 @@ export async function POST(
     // Create review record
     const review = await prisma.flashcardReview.create({
       data: {
-        flashcardId: params.flashcardId,
+        flashcard: {
+          connect: { id: flashcardId },
+        },
         userId: dbUser.id,
         studySessionId: sessionId,
         rating: rating as Rating,
