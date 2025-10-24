@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DeckLearningWithSRS from '@/components/deck/DeckLearningWithSRS';
 import { LoadingState } from '@/components/ui/LoadingState';
@@ -39,7 +39,12 @@ interface Deck {
   flashcards: Flashcard[];
 }
 
-export default function StudyDeckPage({ params }: { params: { deckId: string } }) {
+export default function StudyDeckPage({
+  params,
+}: {
+  params: Promise<{ deckId: string }>;
+}) {
+  const { deckId } = use(params);
   const router = useRouter();
   const [deck, setDeck] = useState<Deck | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -48,7 +53,8 @@ export default function StudyDeckPage({ params }: { params: { deckId: string } }
 
   useEffect(() => {
     startStudySession();
-  }, [params.deckId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deckId]);
 
   const startStudySession = async () => {
     try {
@@ -59,7 +65,7 @@ export default function StudyDeckPage({ params }: { params: { deckId: string } }
       const response = await fetch('/api/study-sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deckId: params.deckId }),
+        body: JSON.stringify({ deckId }),
       });
 
       if (!response.ok) {

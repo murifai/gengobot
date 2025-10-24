@@ -54,6 +54,21 @@ export default function DashboardClient({ user }: DashboardClientProps) {
           <Card className="p-6">
             <div className="flex items-start justify-between mb-2">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Study Decks
+              </h3>
+              <span className="text-2xl">📚</span>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Review flashcards with spaced repetition for vocabulary, kanji, and grammar
+            </p>
+            <Button className="w-full" onClick={() => router.push('/study')}>
+              Study Now
+            </Button>
+          </Card>
+
+          <Card className="p-6">
+            <div className="flex items-start justify-between mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Free Chat Mode
               </h3>
               <div className="flex gap-1">

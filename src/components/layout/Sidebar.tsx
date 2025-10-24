@@ -14,7 +14,8 @@ export default function Sidebar({ className }: SidebarProps) {
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: '📊' },
     { href: '/task-chat', label: 'Task Chat', icon: '💬' },
-    { href: '/task-history', label: 'History', icon: '📚' },
+    { href: '/study', label: 'Study Decks', icon: '📚' },
+    { href: '/task-history', label: 'History', icon: '📖' },
     { href: '/progress', label: 'Progress', icon: '📈' },
     { href: '/settings', label: 'Settings', icon: '⚙️' },
   ];
