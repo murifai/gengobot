@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import DeckLearning from '@/components/deck/DeckLearning';
 
 interface Flashcard {
@@ -189,12 +189,13 @@ export default function PreTaskStudy({
             {decks.length > 0 ? (
               decks.map((deck, index) => {
                 const categoryColors = {
-                  Kanji: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800',
-                  Vocabulary:
-                    'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
+                  Kanji:
+                    'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800',
+                  Vocabulary: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
                   Grammar:
                     'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800',
-                  Mixed: 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800',
+                  Mixed:
+                    'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800',
                 };
                 const colorClass =
                   categoryColors[deck.category as keyof typeof categoryColors] ||

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { TrendingUp, Users, Target, Award, Calendar, Download } from 'lucide-react';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface AnalyticsData {
   overview: {
@@ -91,7 +91,7 @@ export default function AdminAnalyticsPage() {
               <option value="90d">Last 90 Days</option>
               <option value="all">All Time</option>
             </select>
-            <Button variant="primary" onClick={exportData} className="gap-2">
+            <Button variant="default" onClick={exportData} className="gap-2">
               <Download size={20} />
               Export
             </Button>

@@ -1,111 +1,117 @@
-import { Card } from '@/components/ui/Card';
-import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
+'use client';
 
-export const runtime = 'nodejs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { BarChart3, Users, FolderKanban, Bot, Settings, BookOpen, Layers } from 'lucide-react';
+
+const adminCards = [
+  {
+    title: 'Analytics',
+    description: 'View system-wide analytics and user statistics',
+    icon: BarChart3,
+    href: '/admin/analytics',
+    buttonText: 'View Analytics',
+  },
+  {
+    title: 'Users',
+    description: 'Manage user accounts and permissions',
+    icon: Users,
+    href: '/admin/users',
+    buttonText: 'Manage Users',
+  },
+  {
+    title: 'Tasks',
+    description: 'Manage conversation tasks and scenarios',
+    icon: FolderKanban,
+    href: '/admin/tasks',
+    buttonText: 'Manage Tasks',
+  },
+  {
+    title: 'Decks',
+    description: 'Manage flashcard decks and study materials',
+    icon: BookOpen,
+    href: '/admin/decks',
+    buttonText: 'Manage Decks',
+  },
+  {
+    title: 'Categories',
+    description: 'Organize tasks and decks by category',
+    icon: Layers,
+    href: '/admin/categories',
+    buttonText: 'Manage Categories',
+  },
+  {
+    title: 'Characters',
+    description: 'Create and manage AI characters',
+    icon: Bot,
+    href: '/admin/characters',
+    buttonText: 'Manage Characters',
+  },
+  {
+    title: 'Settings',
+    description: 'Configure application settings',
+    icon: Settings,
+    href: '/admin/settings',
+    buttonText: 'View Settings',
+  },
+];
 
 export default function AdminHomePage() {
   return (
-    <div>
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Welcome to Admin Dashboard
-        </h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          Manage your GengoBot application from here
-        </p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+        <p className="text-muted-foreground">Manage your GengoBot application from here</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Link href="/admin/analytics">
-          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="text-4xl mb-4">📊</div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Analytics</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              View system-wide analytics and user statistics
-            </p>
-            <Button className="w-full" size="sm">
-              View Analytics
-            </Button>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {adminCards.map(card => (
+          <Card key={card.title} className="flex flex-col hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <card.icon className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <CardTitle>{card.title}</CardTitle>
+              <CardDescription>{card.description}</CardDescription>
+            </CardHeader>
+            <CardContent className="mt-auto">
+              <Link href={card.href}>
+                <Button className="w-full" size="sm">
+                  {card.buttonText}
+                </Button>
+              </Link>
+            </CardContent>
           </Card>
-        </Link>
-
-        <Link href="/admin/users">
-          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="text-4xl mb-4">👥</div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Users</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              Manage user accounts and permissions
-            </p>
-            <Button className="w-full" size="sm">
-              Manage Users
-            </Button>
-          </Card>
-        </Link>
-
-        <Link href="/admin/tasks">
-          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="text-4xl mb-4">📝</div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Tasks</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              Manage conversation tasks and scenarios
-            </p>
-            <Button className="w-full" size="sm">
-              Manage Tasks
-            </Button>
-          </Card>
-        </Link>
-
-        <Link href="/admin/characters">
-          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="text-4xl mb-4">🤖</div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Characters</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              Create and manage AI characters
-            </p>
-            <Button className="w-full" size="sm">
-              Manage Characters
-            </Button>
-          </Card>
-        </Link>
-
-        <Link href="/admin/settings">
-          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="text-4xl mb-4">⚙️</div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Settings</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              Configure application settings
-            </p>
-            <Button className="w-full" size="sm">
-              View Settings
-            </Button>
-          </Card>
-        </Link>
+        ))}
       </div>
 
-      <div className="mt-8">
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Stats</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center">
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Stats</CardTitle>
+          <CardDescription>Overview of your system metrics</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="flex flex-col items-center justify-center p-4 text-center">
               <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">0</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Total Users</div>
+              <div className="text-sm text-muted-foreground">Total Users</div>
             </div>
-            <div className="text-center">
+            <div className="flex flex-col items-center justify-center p-4 text-center">
               <div className="text-3xl font-bold text-green-600 dark:text-green-400">0</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Active Users</div>
+              <div className="text-sm text-muted-foreground">Active Users</div>
             </div>
-            <div className="text-center">
+            <div className="flex flex-col items-center justify-center p-4 text-center">
               <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">0</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Total Tasks</div>
+              <div className="text-sm text-muted-foreground">Total Tasks</div>
             </div>
-            <div className="text-center">
+            <div className="flex flex-col items-center justify-center p-4 text-center">
               <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">0</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Characters</div>
+              <div className="text-sm text-muted-foreground">Characters</div>
             </div>
           </div>
-        </Card>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

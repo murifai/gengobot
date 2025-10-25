@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Edit, ArrowLeft } from 'lucide-react';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface Task {
   id: string;
@@ -119,7 +119,7 @@ export default function ViewTaskPage({ params }: { params: Promise<{ taskId: str
                 </span>
               </div>
             </div>
-            <Button variant="primary" onClick={() => router.push(`/admin/tasks/${task.id}/edit`)}>
+            <Button variant="default" onClick={() => router.push(`/admin/tasks/${task.id}/edit`)}>
               <Edit size={16} className="mr-2" />
               Edit Task
             </Button>

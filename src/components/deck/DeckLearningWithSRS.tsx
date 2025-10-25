@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 interface Flashcard {
   id: string;
@@ -445,7 +445,7 @@ export default function DeckLearningWithSRS({
               </svg>
             </button>
 
-            <Button onClick={handleShowAnswer} className="flex-1" variant="primary">
+            <Button onClick={handleShowAnswer} className="flex-1" variant="default">
               Show Answer
             </Button>
           </div>

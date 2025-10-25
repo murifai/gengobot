@@ -3,8 +3,8 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Trash2 } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface DeckEditPageProps {
   params: Promise<{ deckId: string }>;
@@ -252,7 +252,7 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
 
             {/* Submit Buttons */}
             <div className="flex gap-4 pt-4">
-              <Button type="submit" variant="primary" disabled={saving} className="flex-1">
+              <Button type="submit" variant="default" disabled={saving} className="flex-1">
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
               <Button

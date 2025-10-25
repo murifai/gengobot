@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { useAuth } from '@/contexts/AuthContext'
-import { Button } from '@/components/ui/Button'
+import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
-  const { user, loading } = useAuth()
+  const { user, loading } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -13,9 +13,7 @@ export default function Home() {
       <nav className="border-b border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              GengoBot
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">GengoBot</h1>
             <div className="flex gap-4">
               {loading ? (
                 <div className="h-10 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
@@ -82,8 +80,8 @@ export default function Home() {
               Task-Based Learning
             </h3>
             <p className="text-gray-600 dark:text-gray-300">
-              Practice Japanese through real-world scenarios and interactive tasks
-              designed to improve your practical language skills.
+              Practice Japanese through real-world scenarios and interactive tasks designed to
+              improve your practical language skills.
             </p>
           </div>
 
@@ -93,8 +91,8 @@ export default function Home() {
               AI Characters
             </h3>
             <p className="text-gray-600 dark:text-gray-300">
-              Engage in natural conversations with AI-powered characters that adapt
-              to your learning level and interests.
+              Engage in natural conversations with AI-powered characters that adapt to your learning
+              level and interests.
             </p>
           </div>
 
@@ -104,12 +102,12 @@ export default function Home() {
               Voice Recognition
             </h3>
             <p className="text-gray-600 dark:text-gray-300">
-              Improve your pronunciation with advanced voice recognition technology
-              and get instant feedback on your speaking.
+              Improve your pronunciation with advanced voice recognition technology and get instant
+              feedback on your speaking.
             </p>
           </div>
         </div>
       </main>
     </div>
-  )
+  );
 }

@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface Character {
   id: string;
@@ -124,25 +124,25 @@ export default function AdminCharactersPage() {
             </div>
             <div className="flex gap-2">
               <Button
-                variant={filterType === 'all' ? 'primary' : 'secondary'}
+                variant={filterType === 'all' ? 'default' : 'secondary'}
                 onClick={() => setFilterType('all')}
               >
                 All
               </Button>
               <Button
-                variant={filterType === 'task' ? 'primary' : 'secondary'}
+                variant={filterType === 'task' ? 'default' : 'secondary'}
                 onClick={() => setFilterType('task')}
               >
                 Task-Based
               </Button>
               <Button
-                variant={filterType === 'free' ? 'primary' : 'secondary'}
+                variant={filterType === 'free' ? 'default' : 'secondary'}
                 onClick={() => setFilterType('free')}
               >
                 Free Chat
               </Button>
             </div>
-            <Button variant="primary" className="gap-2">
+            <Button variant="default" className="gap-2">
               <Plus size={20} />
               Create Character
             </Button>

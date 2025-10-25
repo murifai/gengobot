@@ -2,7 +2,7 @@
 
 import { useState, KeyboardEvent } from 'react';
 import { cn } from '@/lib/utils';
-import Button from '../ui/Button';
+import { Button } from '../ui/button';
 import VoiceRecorder from '../voice/VoiceRecorder';
 
 export type InputMode = 'text' | 'voice';

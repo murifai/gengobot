@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Edit, Download, Plus, Trash2, Edit2 } from 'lucide-react';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import FlashcardEditor from '@/components/deck/FlashcardEditor';
 
 interface DeckViewPageProps {
@@ -248,7 +248,7 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
                 Export
               </Button>
               <Button
-                variant="primary"
+                variant="default"
                 className="gap-2"
                 onClick={() => router.push(`/admin/decks/${deck.id}/edit`)}
               >
@@ -293,7 +293,7 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
                 Card Type:
               </span>
               <Button
-                variant={filterCardType === 'all' ? 'primary' : 'secondary'}
+                variant={filterCardType === 'all' ? 'default' : 'secondary'}
                 size="sm"
                 onClick={() => setFilterCardType('all')}
               >
@@ -302,7 +302,7 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
               {cardTypes.map(type => (
                 <Button
                   key={type}
-                  variant={filterCardType === type ? 'primary' : 'secondary'}
+                  variant={filterCardType === type ? 'default' : 'secondary'}
                   size="sm"
                   onClick={() => setFilterCardType(type)}
                 >
@@ -312,7 +312,7 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
               ))}
             </div>
 
-            <Button variant="primary" className="gap-2" onClick={handleCreateCard}>
+            <Button variant="default" className="gap-2" onClick={handleCreateCard}>
               <Plus size={20} />
               Add Card
             </Button>

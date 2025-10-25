@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { Save, Key, ToggleLeft, ToggleRight, Mail, Shield, Globe } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface SystemSettings {
   apiKeys: {
@@ -101,7 +101,7 @@ export default function AdminSettingsPage() {
             </p>
           </div>
           {hasChanges && (
-            <Button variant="primary" onClick={handleSave} className="gap-2">
+            <Button variant="default" onClick={handleSave} className="gap-2">
               <Save size={20} />
               Save Changes
             </Button>

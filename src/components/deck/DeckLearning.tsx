@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 interface Flashcard {
   id: string;
@@ -107,7 +107,9 @@ export default function DeckLearning({ deck, onComplete, onExit }: DeckLearningP
                   <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
                     Meaning
                   </h3>
-                  <p className="text-lg text-gray-900 dark:text-white">{currentCard.kanjiMeaning}</p>
+                  <p className="text-lg text-gray-900 dark:text-white">
+                    {currentCard.kanjiMeaning}
+                  </p>
                 </div>
                 {currentCard.onyomi && (
                   <div>
@@ -259,9 +261,7 @@ export default function DeckLearning({ deck, onComplete, onExit }: DeckLearningP
         );
 
       default:
-        return (
-          <p className="text-center text-gray-600 dark:text-gray-400">Unknown card type</p>
-        );
+        return <p className="text-center text-gray-600 dark:text-gray-400">Unknown card type</p>;
     }
   };
 
@@ -343,11 +343,11 @@ export default function DeckLearning({ deck, onComplete, onExit }: DeckLearningP
           {/* Show Answer / Next Button - Center */}
           <div className="flex-1">
             {!showAnswer ? (
-              <Button onClick={handleShowAnswer} className="w-full" variant="primary">
+              <Button onClick={handleShowAnswer} className="w-full" variant="default">
                 Show Answer
               </Button>
             ) : (
-              <Button onClick={handleNext} className="w-full" variant="primary">
+              <Button onClick={handleNext} className="w-full" variant="default">
                 {currentIndex < totalCards - 1 ? 'Next Card' : 'Complete'}
               </Button>
             )}

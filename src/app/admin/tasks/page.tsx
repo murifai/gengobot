@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Search, Edit, Trash2, Eye, Download, Upload } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface Task {
   id: string;
@@ -257,7 +257,7 @@ export default function AdminTasksPage() {
                 className="hidden"
               />
               <Button
-                variant="primary"
+                variant="default"
                 className="gap-2"
                 onClick={() => router.push('/admin/tasks/new')}
               >
@@ -307,7 +307,7 @@ export default function AdminTasksPage() {
                 Difficulty:
               </span>
               <Button
-                variant={filterDifficulty === 'all' ? 'primary' : 'secondary'}
+                variant={filterDifficulty === 'all' ? 'default' : 'secondary'}
                 size="sm"
                 onClick={() => setFilterDifficulty('all')}
               >
@@ -316,7 +316,7 @@ export default function AdminTasksPage() {
               {difficulties.map(diff => (
                 <Button
                   key={diff}
-                  variant={filterDifficulty === diff ? 'primary' : 'secondary'}
+                  variant={filterDifficulty === diff ? 'default' : 'secondary'}
                   size="sm"
                   onClick={() => setFilterDifficulty(diff)}
                 >
@@ -331,7 +331,7 @@ export default function AdminTasksPage() {
                   Category:
                 </span>
                 <Button
-                  variant={filterCategory === 'all' ? 'primary' : 'secondary'}
+                  variant={filterCategory === 'all' ? 'default' : 'secondary'}
                   size="sm"
                   onClick={() => setFilterCategory('all')}
                 >
@@ -340,7 +340,7 @@ export default function AdminTasksPage() {
                 {categories.map(cat => (
                   <Button
                     key={cat}
-                    variant={filterCategory === cat ? 'primary' : 'secondary'}
+                    variant={filterCategory === cat ? 'default' : 'secondary'}
                     size="sm"
                     onClick={() => setFilterCategory(cat)}
                   >

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import DeckSelector from '@/components/admin/DeckSelector';
 
 interface TaskFormData {
@@ -475,7 +475,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
         <Button type="button" variant="secondary" onClick={() => router.back()} disabled={loading}>
           Cancel
         </Button>
-        <Button type="submit" variant="primary" disabled={loading}>
+        <Button type="submit" variant="default" disabled={loading}>
           {loading ? 'Saving...' : taskId ? 'Update Task' : 'Create Task'}
         </Button>
       </div>

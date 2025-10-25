@@ -3,7 +3,7 @@
 import { User } from '@supabase/supabase-js';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import UnifiedChatInterface from '@/components/chat/UnifiedChatInterface';
 import VocabularyHints from '@/components/task/VocabularyHints';
 import PostTaskReview from '@/components/task/PostTaskReview';
@@ -98,9 +98,13 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
         console.error('[TaskAttemptClient] Failed to fetch attempt:', {
           status: response.status,
           statusText: response.statusText,
-          error: errorData
+          error: errorData,
         });
-        throw new Error(errorData.error || errorData.details || `Failed to fetch task attempt (${response.status})`);
+        throw new Error(
+          errorData.error ||
+            errorData.details ||
+            `Failed to fetch task attempt (${response.status})`
+        );
       }
 
       const data = await response.json();
@@ -108,7 +112,7 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
         attemptId: data.attempt.id,
         messageCount: data.attempt.conversationHistory?.messages?.length || 0,
         isCompleted: data.attempt.isCompleted,
-        progress: data.progress
+        progress: data.progress,
       });
       setAttempt(data.attempt);
     } catch (err) {

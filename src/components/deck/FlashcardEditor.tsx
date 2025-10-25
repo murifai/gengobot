@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { CardType } from '@/types/deck';
 import { X } from 'lucide-react';
 
@@ -241,7 +241,7 @@ export default function FlashcardEditor({
             <div className="flex gap-2">
               <Button
                 type="button"
-                variant={cardType === 'kanji' ? 'primary' : 'secondary'}
+                variant={cardType === 'kanji' ? 'default' : 'secondary'}
                 size="sm"
                 onClick={() => setCardType('kanji')}
               >
@@ -249,7 +249,7 @@ export default function FlashcardEditor({
               </Button>
               <Button
                 type="button"
-                variant={cardType === 'vocabulary' ? 'primary' : 'secondary'}
+                variant={cardType === 'vocabulary' ? 'default' : 'secondary'}
                 size="sm"
                 onClick={() => setCardType('vocabulary')}
               >
@@ -257,7 +257,7 @@ export default function FlashcardEditor({
               </Button>
               <Button
                 type="button"
-                variant={cardType === 'grammar' ? 'primary' : 'secondary'}
+                variant={cardType === 'grammar' ? 'default' : 'secondary'}
                 size="sm"
                 onClick={() => setCardType('grammar')}
               >
@@ -505,7 +505,7 @@ export default function FlashcardEditor({
 
           {/* Action Buttons */}
           <div className="flex gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <Button type="submit" variant="primary" disabled={saving} className="flex-1">
+            <Button type="submit" variant="default" disabled={saving} className="flex-1">
               {saving ? 'Saving...' : flashcard ? 'Update Card' : 'Create Card'}
             </Button>
             <Button type="button" variant="secondary" onClick={onCancel} disabled={saving}>

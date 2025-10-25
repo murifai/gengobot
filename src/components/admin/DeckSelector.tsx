@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface Deck {
   id: string;
@@ -212,9 +212,7 @@ export default function DeckSelector({ selectedDeckIds, onChange }: DeckSelector
               {loading ? (
                 <p className="text-gray-500 dark:text-gray-400 text-center py-4">Loading...</p>
               ) : filteredDecks.length === 0 ? (
-                <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                  No decks found
-                </p>
+                <p className="text-gray-500 dark:text-gray-400 text-center py-4">No decks found</p>
               ) : (
                 filteredDecks.map(deck => {
                   const isSelected = selectedDecks.some(d => d.id === deck.id);

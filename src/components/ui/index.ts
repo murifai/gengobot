@@ -1,14 +1,12 @@
-export { default as Button } from './Button';
-export type { ButtonProps } from './Button';
+export { Button } from './button';
+export { buttonVariants } from './button';
 
-export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card';
-export type { CardProps } from './Card';
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './card';
+export type { CardProps } from './card';
 
-export { Dialog, DialogTitle, DialogDescription } from './Dialog';
-export type { DialogProps } from './Dialog';
+export { Dialog, DialogTitle, DialogDescription } from './dialog';
+export type { DialogProps } from './dialog';
 
-export { default as Input } from './Input';
-export type { InputProps } from './Input';
+export { Input } from './input';
 
-export { default as Badge } from './Badge';
-export type { BadgeProps } from './Badge';
+export { Badge } from './badge';

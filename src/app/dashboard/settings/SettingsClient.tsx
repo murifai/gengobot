@@ -1,57 +1,57 @@
-'use client'
+'use client';
 
-import { User } from '@supabase/supabase-js'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-import { Input } from '@/components/ui/Input'
+import { User } from '@supabase/supabase-js';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 interface DbUser {
-  id: string
-  name: string | null
-  email: string
-  proficiency: string
-  preferredTaskCategories: unknown
+  id: string;
+  name: string | null;
+  email: string;
+  proficiency: string;
+  preferredTaskCategories: unknown;
 }
 
 interface SettingsClientProps {
-  user: User
-  dbUser: DbUser | null
+  user: User;
+  dbUser: DbUser | null;
 }
 
 export default function SettingsClient({ user, dbUser }: SettingsClientProps) {
-  const router = useRouter()
-  const [name, setName] = useState(dbUser?.name || '')
-  const [proficiency, setProficiency] = useState(dbUser?.proficiency || 'N5')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const router = useRouter();
+  const [name, setName] = useState(dbUser?.name || '');
+  const [proficiency, setProficiency] = useState(dbUser?.proficiency || 'N5');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const handleSave = async () => {
-    setLoading(true)
-    setError(null)
-    setSuccess(false)
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
 
     try {
       const response = await fetch(`/api/users/${dbUser?.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, proficiency }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to update settings')
+        throw new Error('Failed to update settings');
       }
 
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -107,7 +107,7 @@ export default function SettingsClient({ user, dbUser }: SettingsClientProps) {
               <Input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={e => setName(e.target.value)}
                 placeholder="Enter your name"
               />
             </div>
@@ -118,7 +118,7 @@ export default function SettingsClient({ user, dbUser }: SettingsClientProps) {
               </label>
               <select
                 value={proficiency}
-                onChange={(e) => setProficiency(e.target.value)}
+                onChange={e => setProficiency(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
               >
                 <option value="N5">N5 - Beginner</option>
@@ -147,5 +147,5 @@ export default function SettingsClient({ user, dbUser }: SettingsClientProps) {
         </Card>
       </main>
     </div>
-  )
+  );
 }

@@ -1,62 +1,62 @@
-'use client'
+'use client';
 
-import { User } from '@supabase/supabase-js'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
+import { User } from '@supabase/supabase-js';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 interface Character {
-  id: string
-  name: string
-  description: string
-  personality: Record<string, unknown>
-  speakingStyle: string
-  isUserCreated: boolean
+  id: string;
+  name: string;
+  description: string;
+  personality: Record<string, unknown>;
+  speakingStyle: string;
+  isUserCreated: boolean;
 }
 
 interface CharactersClientProps {
-  user: User
+  user: User;
 }
 
 export default function CharactersClient({ user }: CharactersClientProps) {
-  const router = useRouter()
-  const [characters, setCharacters] = useState<Character[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter();
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchCharacters()
-  }, [])
+    fetchCharacters();
+  }, []);
 
   const fetchCharacters = async () => {
     try {
-      const response = await fetch('/api/characters')
-      if (!response.ok) throw new Error('Failed to fetch characters')
-      const data = await response.json()
-      setCharacters(data)
+      const response = await fetch('/api/characters');
+      if (!response.ok) throw new Error('Failed to fetch characters');
+      const data = await response.json();
+      setCharacters(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const deleteCharacter = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this character?')) return
+    if (!confirm('Are you sure you want to delete this character?')) return;
 
     try {
       const response = await fetch(`/api/characters/${id}`, {
         method: 'DELETE',
-      })
+      });
 
-      if (!response.ok) throw new Error('Failed to delete character')
+      if (!response.ok) throw new Error('Failed to delete character');
 
-      setCharacters(characters.filter((c) => c.id !== id))
+      setCharacters(characters.filter(c => c.id !== id));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete character')
+      setError(err instanceof Error ? err.message : 'Failed to delete character');
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -85,18 +85,22 @@ export default function CharactersClient({ user }: CharactersClientProps) {
         ) : error ? (
           <div className="text-center py-12">
             <p className="text-red-600 dark:text-red-400">{error}</p>
-            <Button onClick={fetchCharacters} className="mt-4">Try Again</Button>
+            <Button onClick={fetchCharacters} className="mt-4">
+              Try Again
+            </Button>
           </div>
         ) : characters.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-600 dark:text-gray-400 mb-4">No characters yet. Create your first character!</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              No characters yet. Create your first character!
+            </p>
             <Button onClick={() => router.push('/dashboard/characters/new')}>
               Create Character
             </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {characters.map((character) => (
+            {characters.map(character => (
               <Card key={character.id} className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -140,5 +144,5 @@ export default function CharactersClient({ user }: CharactersClientProps) {
         )}
       </main>
     </div>
-  )
+  );
 }

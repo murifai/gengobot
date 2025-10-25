@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Search, Edit, Trash2, Eye, Download, Upload, Copy } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Deck } from '@/types/deck';
 
 interface DeckWithDetails extends Deck {
@@ -289,7 +289,7 @@ export default function AdminDecksPage() {
                 className="hidden"
               />
               <Button
-                variant="primary"
+                variant="default"
                 className="gap-2"
                 onClick={() => router.push('/admin/decks/new')}
               >
@@ -340,7 +340,7 @@ export default function AdminDecksPage() {
                 Difficulty:
               </span>
               <Button
-                variant={filterDifficulty === 'all' ? 'primary' : 'secondary'}
+                variant={filterDifficulty === 'all' ? 'default' : 'secondary'}
                 size="sm"
                 onClick={() => setFilterDifficulty('all')}
               >
@@ -349,7 +349,7 @@ export default function AdminDecksPage() {
               {difficulties.map(diff => (
                 <Button
                   key={diff}
-                  variant={filterDifficulty === diff ? 'primary' : 'secondary'}
+                  variant={filterDifficulty === diff ? 'default' : 'secondary'}
                   size="sm"
                   onClick={() => setFilterDifficulty(diff)}
                 >
@@ -364,7 +364,7 @@ export default function AdminDecksPage() {
                   Category:
                 </span>
                 <Button
-                  variant={filterCategory === 'all' ? 'primary' : 'secondary'}
+                  variant={filterCategory === 'all' ? 'default' : 'secondary'}
                   size="sm"
                   onClick={() => setFilterCategory('all')}
                 >
@@ -373,7 +373,7 @@ export default function AdminDecksPage() {
                 {categories.map(cat => (
                   <Button
                     key={cat}
-                    variant={filterCategory === cat ? 'primary' : 'secondary'}
+                    variant={filterCategory === cat ? 'default' : 'secondary'}
                     size="sm"
                     onClick={() => setFilterCategory(cat)}
                   >
