@@ -16,6 +16,7 @@ export class CharacterService {
       data: {
         name: data.name,
         description: data.description,
+        voice: data.voice,
         personality: data.personality as object,
         speakingStyle: data.personality.speakingStyle,
         taskSpecific: data.taskSpecific,
@@ -56,6 +57,17 @@ export class CharacterService {
   }
 
   /**
+   * Get all characters (admin/debug use)
+   */
+  static async getAllCharacters(): Promise<Character[]> {
+    const characters = await prisma.character.findMany({
+      orderBy: { id: 'desc' },
+    });
+
+    return characters.map(this.mapToCharacter);
+  }
+
+  /**
    * Get characters by relationship type
    */
   static async getCharactersByRelationship(
@@ -85,6 +97,7 @@ export class CharacterService {
 
     if (data.name) updateData.name = data.name;
     if (data.description) updateData.description = data.description;
+    if (data.voice) updateData.voice = data.voice;
     if (data.personality) {
       updateData.personality = data.personality as object;
       updateData.speakingStyle = data.personality.speakingStyle;
@@ -134,6 +147,7 @@ export class CharacterService {
       data: {
         name: data.name,
         description: data.description,
+        voice: data.voice,
         personality: data.personality as object,
         speakingStyle: data.personality.speakingStyle,
         taskSpecific: false,
@@ -153,6 +167,7 @@ export class CharacterService {
       id: character.id as string,
       name: character.name as string,
       description: (character.description as string) || undefined,
+      voice: (character.voice as string) || undefined,
       personality: character.personality as {
         type: PersonalityType;
         traits: string[];

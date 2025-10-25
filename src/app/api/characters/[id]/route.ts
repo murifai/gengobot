@@ -11,7 +11,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Character not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ character });
+    return NextResponse.json(character);
   } catch (error) {
     console.error('Error fetching character:', error);
     return NextResponse.json({ error: 'Failed to fetch character' }, { status: 500 });
@@ -26,7 +26,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const character = await CharacterService.updateCharacter(id, body);
 
-    return NextResponse.json({ character });
+    return NextResponse.json(character);
   } catch (error) {
     console.error('Error updating character:', error);
     return NextResponse.json({ error: 'Failed to update character' }, { status: 500 });

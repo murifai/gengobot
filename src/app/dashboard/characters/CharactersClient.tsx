@@ -131,7 +131,7 @@ export default function CharactersClient({ user }: CharactersClientProps) {
                   {character.isUserCreated && (
                     <Button
                       onClick={() => deleteCharacter(character.id)}
-                      variant="danger"
+                      variant="destructive"
                       className="flex-1"
                     >
                       Delete

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import { CharacterService } from '@/lib/character/character-service';
 import { CharacterCreationData } from '@/types/character';
 
@@ -12,24 +13,25 @@ export async function GET(request: NextRequest) {
 
     if (preset === 'true') {
       const characters = await CharacterService.getPresetCharacters();
-      return NextResponse.json({ characters });
+      return NextResponse.json(characters);
     }
 
-    if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    if (userId) {
+      let characters;
+      if (relationshipType) {
+        characters = await CharacterService.getCharactersByRelationship(
+          userId,
+          relationshipType as 'friend' | 'colleague' | 'stranger' | 'family'
+        );
+      } else {
+        characters = await CharacterService.getUserCharacters(userId);
+      }
+      return NextResponse.json(characters);
     }
 
-    let characters;
-    if (relationshipType) {
-      characters = await CharacterService.getCharactersByRelationship(
-        userId,
-        relationshipType as 'friend' | 'colleague' | 'stranger' | 'family'
-      );
-    } else {
-      characters = await CharacterService.getUserCharacters(userId);
-    }
-
-    return NextResponse.json({ characters });
+    // Return all characters if no userId is provided
+    const allCharacters = await CharacterService.getAllCharacters();
+    return NextResponse.json(allCharacters);
   } catch (error) {
     console.error('Error fetching characters:', error);
     return NextResponse.json({ error: 'Failed to fetch characters' }, { status: 500 });
@@ -39,19 +41,23 @@ export async function GET(request: NextRequest) {
 // POST /api/characters - Create new character
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { userId, ...characterData } = body;
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const body = await request.json();
+
     const character = await CharacterService.createCharacter(
-      userId,
-      characterData as CharacterCreationData
+      user.id,
+      body as CharacterCreationData
     );
 
-    return NextResponse.json({ character }, { status: 201 });
+    return NextResponse.json(character, { status: 201 });
   } catch (error) {
     console.error('Error creating character:', error);
     return NextResponse.json({ error: 'Failed to create character' }, { status: 500 });
