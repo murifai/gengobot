@@ -8,48 +8,13 @@ async function main() {
   // Buat kategori tugas
   console.log('📁 Membuat kategori tugas...');
   const categories = [
-    {
-      name: 'Restaurant',
-      description: 'Skenario memesan makanan dan makan di restoran',
-      icon: '🍜',
-      sortOrder: 1,
-    },
-    {
-      name: 'Shopping',
-      description: 'Skenario berbelanja dan retail',
-      icon: '🛍️',
-      sortOrder: 2,
-    },
-    {
-      name: 'Travel',
-      description: 'Skenario transportasi dan perjalanan',
-      icon: '✈️',
-      sortOrder: 3,
-    },
-    {
-      name: 'Business',
-      description: 'Skenario profesional dan tempat kerja',
-      icon: '💼',
-      sortOrder: 4,
-    },
-    {
-      name: 'Healthcare',
-      description: 'Skenario medis dan kesehatan',
-      icon: '🏥',
-      sortOrder: 5,
-    },
-    {
-      name: 'Daily Life',
-      description: 'Rutinitas sehari-hari dan interaksi sosial',
-      icon: '🏠',
-      sortOrder: 6,
-    },
-    {
-      name: 'Education',
-      description: 'Skenario akademik dan sekolah',
-      icon: '📚',
-      sortOrder: 7,
-    },
+    { name: 'Restaurant' },
+    { name: 'Shopping' },
+    { name: 'Travel' },
+    { name: 'Business' },
+    { name: 'Healthcare' },
+    { name: 'Daily Life' },
+    { name: 'Education' },
   ];
 
   for (const category of categories) {

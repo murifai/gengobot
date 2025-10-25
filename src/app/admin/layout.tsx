@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { syncUser } from '@/lib/auth/sync-user';
 import { prisma } from '@/lib/prisma';
 import AdminLayoutClient from './AdminLayoutClient';
 
@@ -16,9 +17,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/login');
   }
 
+  // Sync user to database
+  await syncUser(user);
+
   // Check admin status
   const dbUser = await prisma.user.findUnique({
-    where: { email: user.email! },
+    where: { authId: user.id },
     select: { isAdmin: true, name: true, email: true },
   });
 
