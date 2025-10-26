@@ -18,7 +18,7 @@ interface Character {
   taskSpecific: boolean;
   assignedTasks: string[];
   isUserCreated: boolean;
-  createdAt: Date;
+  createdAt?: Date | string;
 }
 
 export default function AdminCharactersPage() {
@@ -246,7 +246,9 @@ export default function AdminCharactersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {character.createdAt.toLocaleDateString()}
+                      {character.createdAt
+                        ? new Date(character.createdAt).toLocaleDateString()
+                        : 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end gap-2">
