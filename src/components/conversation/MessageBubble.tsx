@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { convertToRuby, hasFurigana } from '@/lib/utils/furigana';
+import { convertToRuby, hasFurigana, hasKanji } from '@/lib/utils/furigana';
+import InteractiveJapaneseText from './InteractiveJapaneseText';
 
 export interface MessageBubbleProps {
   content: string;
@@ -21,28 +22,14 @@ export default function MessageBubble({
   avatar,
   audioUrl,
   autoPlay = false,
-  showFurigana: showFuriganaDefault = true,
 }: MessageBubbleProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [showFurigana, setShowFurigana] = useState(showFuriganaDefault);
   const audioRef = useRef<HTMLAudioElement>(null);
   const hasAutoPlayed = useRef(false);
 
-  // Check if content has furigana
+  // Check if content has manual furigana or kanji
   const contentHasFurigana = hasFurigana(content);
-
-  // Debug logging
-  useEffect(() => {
-    if (contentHasFurigana) {
-      console.log('[MessageBubble] Message with furigana detected:', {
-        content: content.substring(0, 50),
-        hasFurigana: contentHasFurigana,
-      });
-    }
-  }, [content, contentHasFurigana]);
-
-  // Process content for furigana display
-  const processedContent = showFurigana && contentHasFurigana ? convertToRuby(content) : content;
+  const contentHasKanji = hasKanji(content);
 
   const toggleAudio = () => {
     if (!audioRef.current) return;
@@ -127,10 +114,13 @@ export default function MessageBubble({
                 : 'bg-card-background border border-border rounded-bl-sm'
             )}
           >
-            {showFurigana && contentHasFurigana ? (
+            {/* Interactive Japanese Text with word lookup - only for AI messages */}
+            {!isUser && contentHasKanji && !contentHasFurigana ? (
+              <InteractiveJapaneseText text={content} className="whitespace-pre-wrap" />
+            ) : contentHasFurigana ? (
               <div
                 className="whitespace-pre-wrap text-sm furigana-text"
-                dangerouslySetInnerHTML={{ __html: processedContent }}
+                dangerouslySetInnerHTML={{ __html: convertToRuby(content) }}
                 style={{
                   lineHeight: '2.5em', // Extra space for furigana
                 }}
@@ -139,23 +129,6 @@ export default function MessageBubble({
               <p className="whitespace-pre-wrap text-sm">{content}</p>
             )}
           </div>
-
-          {/* Furigana Toggle Button */}
-          {contentHasFurigana && (
-            <button
-              onClick={() => setShowFurigana(!showFurigana)}
-              className={cn(
-                'flex items-center justify-center w-8 h-8 rounded-lg transition-colors shrink-0',
-                isUser
-                  ? 'bg-primary/10 hover:bg-primary/20 text-primary'
-                  : 'bg-secondary/10 hover:bg-secondary/20 text-secondary'
-              )}
-              aria-label={showFurigana ? 'Hide furigana' : 'Show furigana'}
-              title={showFurigana ? 'Hide furigana' : 'Show furigana'}
-            >
-              <span className="text-xs font-medium">{showFurigana ? 'あ' : 'ア'}</span>
-            </button>
-          )}
         </div>
 
         {/* Audio Player for AI responses */}

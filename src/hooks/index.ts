@@ -26,3 +26,6 @@ export {
 
 // Task Progress
 export { useTaskProgress, useInterruptedTasks, type TaskProgress } from './useTaskProgress';
+
+// Furigana Conversion
+export { useFurigana } from './useFurigana';

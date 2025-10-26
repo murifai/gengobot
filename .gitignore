@@ -42,3 +42,6 @@ yarn-error.log*
 next-env.d.ts
 # Temporary audio files
 /public/audio/*.mp3
+
+# Kuromoji dictionary files (can be regenerated from node_modules)
+/public/dict/*.dat.gz
