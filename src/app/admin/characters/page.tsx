@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,38 +22,46 @@ interface Character {
 }
 
 export default function AdminCharactersPage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'task' | 'free'>('all');
-  const characters: Character[] = [
-    {
-      id: '1',
-      name: 'Restaurant Server (Tanaka-san)',
-      description: 'Friendly restaurant server who helps customers order food',
-      personality: {
-        type: 'Service Professional',
-        traits: ['polite', 'helpful', 'patient', 'friendly'],
-        speakingStyle: 'Formal Japanese with polite expressions',
-      },
-      taskSpecific: true,
-      assignedTasks: ['restaurant-ordering', 'restaurant-payment'],
-      isUserCreated: false,
-      createdAt: new Date('2024-01-15'),
-    },
-    {
-      id: '2',
-      name: 'Shopping Assistant (Sato-san)',
-      description: 'Department store clerk assisting with clothing purchases',
-      personality: {
-        type: 'Retail Professional',
-        traits: ['attentive', 'knowledgeable', 'courteous'],
-        speakingStyle: 'Polite keigo with professional tone',
-      },
-      taskSpecific: true,
-      assignedTasks: ['shopping-clothes', 'shopping-electronics'],
-      isUserCreated: false,
-      createdAt: new Date('2024-01-20'),
-    },
-  ];
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCharacters();
+  }, []);
+
+  const fetchCharacters = async () => {
+    try {
+      const response = await fetch('/api/characters');
+      if (response.ok) {
+        const data = await response.json();
+        setCharacters(data);
+      }
+    } catch (error) {
+      console.error('Error fetching characters:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this character?')) return;
+
+    try {
+      const response = await fetch(`/api/characters/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setCharacters(characters.filter(c => c.id !== id));
+      }
+    } catch (error) {
+      console.error('Error deleting character:', error);
+      alert('Failed to delete character');
+    }
+  };
 
   const filteredCharacters = characters.filter(character => {
     const matchesSearch =
@@ -64,6 +73,17 @@ export default function AdminCharactersPage() {
       (filterType === 'free' && !character.taskSpecific);
     return matchesSearch && matchesFilter;
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading characters...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -142,7 +162,11 @@ export default function AdminCharactersPage() {
                 Free Chat
               </Button>
             </div>
-            <Button variant="default" className="gap-2">
+            <Button
+              variant="default"
+              className="gap-2"
+              onClick={() => router.push('/dashboard/characters/new')}
+            >
               <Plus size={20} />
               Create Character
             </Button>
@@ -226,13 +250,28 @@ export default function AdminCharactersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => router.push(`/admin/characters/${character.id}`)}
+                          title="View"
+                        >
                           <Eye size={16} />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => router.push(`/dashboard/characters/${character.id}/edit`)}
+                          title="Edit"
+                        >
                           <Edit size={16} />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(character.id)}
+                          title="Delete"
+                        >
                           <Trash2 size={16} className="text-red-500" />
                         </Button>
                       </div>

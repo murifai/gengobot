@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { prisma } from '@/lib/prisma';
 import { CharacterService } from '@/lib/character/character-service';
 import { CharacterCreationData } from '@/types/character';
 
@@ -50,12 +51,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Get the database user ID from authId
+    const dbUser = await prisma.user.findUnique({
+      where: { authId: user.id },
+      select: { id: true },
+    });
+
+    if (!dbUser) {
+      return NextResponse.json({ error: 'User not found in database' }, { status: 404 });
+    }
+
     const body = await request.json();
 
-    const character = await CharacterService.createCharacter(
-      user.id,
-      body as CharacterCreationData
-    );
+    const character = await CharacterService.createCharacter(dbUser.id, body as CharacterCreationData);
 
     return NextResponse.json(character, { status: 201 });
   } catch (error) {
