@@ -10,6 +10,7 @@ export interface UnifiedChatInterfaceProps {
   title: string;
   subtitle?: string;
   onBack?: () => void;
+  headerActions?: React.ReactNode;
 
   // Messages
   messages: Message[];
@@ -40,6 +41,7 @@ export default function UnifiedChatInterface({
   title,
   subtitle,
   onBack,
+  headerActions,
   messages,
   loading = false,
   onSendMessage,
@@ -49,7 +51,7 @@ export default function UnifiedChatInterface({
   enableVoice = false,
   autoPlayVoiceResponses = true,
   sidebar,
-  sidebarDefaultOpen = true,
+  sidebarDefaultOpen = false,
   emptyStateMessage,
   className,
 }: UnifiedChatInterfaceProps) {
@@ -84,38 +86,19 @@ export default function UnifiedChatInterface({
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
           {subtitle && <p className="text-sm text-gray-600 dark:text-gray-400">{subtitle}</p>}
         </div>
+        {/* Custom Header Actions */}
+        {headerActions && <div className="flex items-center gap-2">{headerActions}</div>}
         {/* Sidebar Toggle Button */}
         {sidebar && (
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-            aria-label={isSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
-            title={isSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+            aria-label={isSidebarOpen ? 'Hide hints' : 'Show hints'}
+            title={isSidebarOpen ? 'Hide hints' : 'Show hints'}
           >
-            <svg
-              className="w-6 h-6 text-gray-900 dark:text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              {isSidebarOpen ? (
-                // Icon for "hide sidebar" (panel right close)
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7M15 5v14"
-                />
-              ) : (
-                // Icon for "show sidebar" (panel right open)
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              )}
-            </svg>
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
+              💡 {isSidebarOpen ? 'Hide' : 'Hints'}
+            </span>
           </button>
         )}
       </div>

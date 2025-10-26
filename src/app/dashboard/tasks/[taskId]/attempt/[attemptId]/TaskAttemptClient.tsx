@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import UnifiedChatInterface from '@/components/chat/UnifiedChatInterface';
-import VocabularyHints from '@/components/task/VocabularyHints';
 import PostTaskReview from '@/components/task/PostTaskReview';
 
 interface TaskAttempt {
@@ -58,31 +57,6 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
   const [sending, setSending] = useState(false);
   const [showPostTaskReview, setShowPostTaskReview] = useState(false);
 
-  // Vocabulary hints - TODO: Fetch from deck associated with task
-  const vocabularyHints = [
-    {
-      id: '1',
-      word: 'こんにちは',
-      reading: 'konnichiwa',
-      meaning: 'Hello, Good afternoon',
-      example: 'こんにちは、元気ですか？',
-    },
-    {
-      id: '2',
-      word: 'ありがとう',
-      reading: 'arigatou',
-      meaning: 'Thank you',
-      example: 'ありがとうございます。',
-    },
-    {
-      id: '3',
-      word: 'すみません',
-      reading: 'sumimasen',
-      meaning: 'Excuse me, Sorry',
-      example: 'すみません、これはいくらですか？',
-    },
-  ];
-
   useEffect(() => {
     fetchAttempt();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -124,9 +98,26 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
   };
 
   const sendMessage = async (messageText: string) => {
-    if (!messageText.trim() || sending) return;
+    if (!messageText.trim() || sending || !attempt) return;
 
+    // Optimistic UI update - add user message immediately
+    const userMessage = {
+      role: 'user',
+      content: messageText.trim(),
+      timestamp: new Date().toISOString(),
+    };
+
+    const optimisticAttempt = {
+      ...attempt,
+      conversationHistory: {
+        ...attempt.conversationHistory,
+        messages: [...attempt.conversationHistory.messages, userMessage],
+      },
+    };
+
+    setAttempt(optimisticAttempt as TaskAttempt);
     setSending(true);
+
     try {
       const response = await fetch(`/api/task-attempts/${attemptId}/message`, {
         method: 'POST',
@@ -139,6 +130,8 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
       const data = await response.json();
       setAttempt(data.attempt);
     } catch (err) {
+      // Revert optimistic update on error
+      setAttempt(attempt);
       setError(err instanceof Error ? err.message : 'Failed to send message');
     } finally {
       setSending(false);
@@ -215,19 +208,63 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
 
   const completeAttempt = async () => {
     try {
-      const response = await fetch(`/api/task-attempts/${attemptId}/complete`, {
+      setSending(true);
+
+      // First, generate the assessment using AI
+      console.log('[TaskAttemptClient] Generating assessment for attempt:', attemptId);
+      const assessmentResponse = await fetch('/api/assessments', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ attemptId }),
       });
 
-      if (!response.ok) throw new Error('Failed to complete task');
+      if (!assessmentResponse.ok) {
+        const errorData = await assessmentResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to generate assessment');
+      }
 
-      const data = await response.json();
-      setAttempt(data.attempt);
+      const assessmentData = await assessmentResponse.json();
+      console.log('[TaskAttemptClient] Assessment generated:', assessmentData.assessment);
+
+      // Refresh the attempt to get the updated data with scores
+      await fetchAttempt();
 
       // Show post-task review
       setShowPostTaskReview(true);
     } catch (err) {
+      console.error('[TaskAttemptClient] Error completing task:', err);
       setError(err instanceof Error ? err.message : 'Failed to complete task');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const resetChat = async () => {
+    if (
+      !confirm('Are you sure you want to reset this conversation? All messages will be cleared.')
+    ) {
+      return;
+    }
+
+    try {
+      // Reset the conversation history by updating the attempt
+      const response = await fetch(`/api/task-attempts/${attemptId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationHistory: {
+            messages: [],
+            startedAt: new Date().toISOString(),
+          },
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to reset chat');
+
+      const data = await response.json();
+      setAttempt(data.attempt);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reset chat');
     }
   };
 
@@ -293,8 +330,6 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
   // Create sidebar content
   const sidebarContent = (
     <div className="p-6">
-      <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Task Information</h2>
-
       {/* Voice Error Display */}
       {voiceError && (
         <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
@@ -325,24 +360,20 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
         </div>
       )}
 
-      {/* Vocabulary Hints Panel */}
-      {!attempt.isCompleted && (
-        <div className="mb-6">
-          <VocabularyHints hints={vocabularyHints} />
-        </div>
-      )}
-
+      {/* Task Information */}
       {attempt.task && (
         <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Task Information</h3>
+
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Scenario</h3>
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Scenario</h4>
             <p className="text-sm text-gray-600 dark:text-gray-400">{attempt.task.scenario}</p>
           </div>
 
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Learning Objectives
-            </h3>
+            </h4>
             <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
               {attempt.task.learningObjectives.map((obj, idx) => (
                 <li key={idx}>{obj}</li>
@@ -351,9 +382,9 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
           </div>
 
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Success Criteria
-            </h3>
+            </h4>
             <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
               {attempt.task.successCriteria.map((criteria, idx) => (
                 <li key={idx}>{criteria}</li>
@@ -371,72 +402,60 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
       )}
 
       {attempt.isCompleted && (
-        <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-          <h3 className="text-sm font-medium text-green-800 dark:text-green-300 mb-2">
-            Assessment Results
-          </h3>
-          <div className="space-y-2 text-sm">
-            {attempt.taskAchievement !== null && (
-              <div className="flex justify-between">
-                <span className="text-gray-700 dark:text-gray-300">Task Achievement:</span>
-                <span className="font-medium">{attempt.taskAchievement}/100</span>
-              </div>
-            )}
-            {attempt.fluency !== null && (
-              <div className="flex justify-between">
-                <span className="text-gray-700 dark:text-gray-300">Fluency:</span>
-                <span className="font-medium">{attempt.fluency}/100</span>
-              </div>
-            )}
-            {attempt.vocabularyGrammarAccuracy !== null && (
-              <div className="flex justify-between">
-                <span className="text-gray-700 dark:text-gray-300">Accuracy:</span>
-                <span className="font-medium">{attempt.vocabularyGrammarAccuracy}/100</span>
-              </div>
-            )}
-            {attempt.politeness !== null && (
-              <div className="flex justify-between">
-                <span className="text-gray-700 dark:text-gray-300">Politeness:</span>
-                <span className="font-medium">{attempt.politeness}/100</span>
-              </div>
-            )}
-            {attempt.overallScore !== null && (
-              <div className="flex justify-between pt-2 border-t border-green-200 dark:border-green-700">
-                <span className="font-medium text-gray-900 dark:text-white">Overall Score:</span>
-                <span className="font-bold">{attempt.overallScore}/100</span>
+        <>
+          <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <h3 className="text-sm font-medium text-green-800 dark:text-green-300 mb-2">
+              Assessment Results
+            </h3>
+            <div className="space-y-2 text-sm">
+              {attempt.taskAchievement !== null && (
+                <div className="flex justify-between">
+                  <span className="text-gray-700 dark:text-gray-300">Task Achievement:</span>
+                  <span className="font-medium">{attempt.taskAchievement}/100</span>
+                </div>
+              )}
+              {attempt.fluency !== null && (
+                <div className="flex justify-between">
+                  <span className="text-gray-700 dark:text-gray-300">Fluency:</span>
+                  <span className="font-medium">{attempt.fluency}/100</span>
+                </div>
+              )}
+              {attempt.vocabularyGrammarAccuracy !== null && (
+                <div className="flex justify-between">
+                  <span className="text-gray-700 dark:text-gray-300">Accuracy:</span>
+                  <span className="font-medium">{attempt.vocabularyGrammarAccuracy}/100</span>
+                </div>
+              )}
+              {attempt.politeness !== null && (
+                <div className="flex justify-between">
+                  <span className="text-gray-700 dark:text-gray-300">Politeness:</span>
+                  <span className="font-medium">{attempt.politeness}/100</span>
+                </div>
+              )}
+              {attempt.overallScore !== null && (
+                <div className="flex justify-between pt-2 border-t border-green-200 dark:border-green-700">
+                  <span className="font-medium text-gray-900 dark:text-white">Overall Score:</span>
+                  <span className="font-bold">{attempt.overallScore}/100</span>
+                </div>
+              )}
+            </div>
+            {attempt.feedback && (
+              <div className="mt-4 pt-4 border-t border-green-200 dark:border-green-700">
+                <p className="text-sm text-gray-700 dark:text-gray-300">{attempt.feedback}</p>
               </div>
             )}
           </div>
-          {attempt.feedback && (
-            <div className="mt-4 pt-4 border-t border-green-200 dark:border-green-700">
-              <p className="text-sm text-gray-700 dark:text-gray-300">{attempt.feedback}</p>
-            </div>
+
+          {!showPostTaskReview && (
+            <Button
+              onClick={() => setShowPostTaskReview(true)}
+              variant="secondary"
+              className="w-full"
+            >
+              View Vocabulary Review
+            </Button>
           )}
-        </div>
-      )}
-
-      {!attempt.isCompleted && (
-        <div className="mt-6">
-          <Button onClick={completeAttempt} variant="secondary" className="w-full">
-            Complete Task
-          </Button>
-        </div>
-      )}
-
-      {attempt.isCompleted && !showPostTaskReview && (
-        <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
-          <p className="text-green-800 dark:text-green-300 font-medium text-sm">
-            Task Completed! Check your results above.
-          </p>
-          <Button
-            onClick={() => setShowPostTaskReview(true)}
-            variant="secondary"
-            size="sm"
-            className="mt-2"
-          >
-            View Vocabulary Review
-          </Button>
-        </div>
+        </>
       )}
     </div>
   );
@@ -497,6 +516,18 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
       title={attempt.task?.title || 'Task Attempt'}
       subtitle={attempt.task ? `${attempt.task.category} • ${attempt.task.difficulty}` : undefined}
       onBack={() => router.push('/dashboard/tasks')}
+      headerActions={
+        !attempt.isCompleted ? (
+          <>
+            <Button onClick={resetChat} variant="outline" size="sm">
+              Reset Chat
+            </Button>
+            <Button onClick={completeAttempt} variant="default" size="sm">
+              Complete Task
+            </Button>
+          </>
+        ) : null
+      }
       messages={messages}
       loading={sending}
       onSendMessage={sendMessage}
