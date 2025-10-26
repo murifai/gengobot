@@ -75,8 +75,6 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
     personalityType: 'Friend',
     traits: [] as string[],
     speakingStyle: '',
-    taskSpecific: false,
-    assignedTasks: [] as string[],
   });
 
   useEffect(() => {
@@ -99,8 +97,6 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
         personalityType: data.personality?.type || 'Friend',
         traits: data.personality?.traits || [],
         speakingStyle: data.speakingStyle || data.personality?.speakingStyle || '',
-        taskSpecific: data.taskSpecific || false,
-        assignedTasks: data.assignedTasks || [],
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -137,8 +133,7 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
             speakingStyle: formData.speakingStyle,
           },
           speakingStyle: formData.speakingStyle,
-          taskSpecific: formData.taskSpecific,
-          assignedTasks: formData.assignedTasks,
+          taskSpecific: false, // Dashboard is only for free chat
         }),
       });
 
@@ -308,29 +303,6 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
                   rows={3}
                 />
               </div>
-            </div>
-
-            {/* Task Configuration */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Task Configuration
-              </h2>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="taskSpecific"
-                  checked={formData.taskSpecific}
-                  onChange={e => setFormData({ ...formData, taskSpecific: e.target.checked })}
-                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                />
-                <Label htmlFor="taskSpecific" className="ml-2 mb-0">
-                  Task-Specific Character
-                </Label>
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Check if this character is designed for specific conversation tasks
-              </p>
             </div>
 
             {/* Error Display */}
