@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/dashboard/app-sidebar';
+import DashboardLayoutWrapper from '../dashboard/DashboardLayoutWrapper';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -16,12 +15,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <SidebarProvider defaultOpen={true}>
-      <AppSidebar user={user} />
-      <SidebarInset>
-        <DashboardHeader user={user} />
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
-      </SidebarInset>
-    </SidebarProvider>
+    <DashboardLayoutWrapper user={user}>
+      <DashboardHeader user={user} />
+      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
+    </DashboardLayoutWrapper>
   );
 }

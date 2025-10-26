@@ -1,20 +1,10 @@
 'use client';
 
 import { User } from '@supabase/supabase-js';
-import { useRouter, usePathname } from 'next/navigation';
-import { LogOut, Menu } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { LogOut } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,44 +23,16 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ user }: DashboardHeaderProps) {
   const { signOut } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
 
   const handleSignOut = async () => {
     await signOut();
     router.push('/');
   };
 
-  // Generate breadcrumbs from pathname
-  const pathSegments = pathname.split('/').filter(Boolean);
-  const breadcrumbs = pathSegments.map((segment, index) => {
-    const href = `/${pathSegments.slice(0, index + 1).join('/')}`;
-    const label = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
-    return { href, label };
-  });
-
   const userInitial = user?.email?.charAt(0).toUpperCase() || 'U';
 
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-      <SidebarTrigger className="-ml-1" />
-      <Separator orientation="vertical" className="mr-2 h-4" />
-      <Breadcrumb>
-        <BreadcrumbList>
-          {breadcrumbs.map((crumb, index) => (
-            <div key={crumb.href} className="flex items-center gap-2">
-              {index > 0 && <BreadcrumbSeparator />}
-              <BreadcrumbItem>
-                {index === breadcrumbs.length - 1 ? (
-                  <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink href={crumb.href}>{crumb.label}</BreadcrumbLink>
-                )}
-              </BreadcrumbItem>
-            </div>
-          ))}
-        </BreadcrumbList>
-      </Breadcrumb>
-
       <div className="ml-auto flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

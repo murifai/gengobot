@@ -17,6 +17,7 @@ When you click "Start Task" (or skip pre-study), the system:
 ### Resume Behavior
 
 This is **intentional behavior** to prevent data loss:
+
 - ✅ Your conversation history is preserved
 - ✅ You can continue where you left off
 - ✅ No progress is lost if you accidentally close the browser
@@ -68,12 +69,15 @@ User Flow 2: Resume
 ## Common Scenarios
 
 ### Scenario 1: I want to continue my previous conversation
+
 ✅ **Just start the task** - The system will automatically resume with your conversation history intact.
 
 ### Scenario 2: I want to start the task fresh
+
 You have two options:
 
 **Option A: Complete the current attempt first**
+
 1. Open the existing attempt
 2. Click "Complete Task"
 3. Review your results
@@ -81,32 +85,41 @@ You have two options:
 
 **Option B: Clear incomplete attempts (Admin/Testing)**
 Run the cleanup script:
+
 ```bash
 npx tsx scripts/clear-incomplete-attempts.ts
 ```
+
 ⚠️ **WARNING**: This deletes ALL incomplete attempts for ALL users!
 
 ## Debugging
 
 ### Check Your Task Attempts
+
 Run this script to see all your attempts:
+
 ```bash
 npx tsx scripts/check-task-attempts.ts
 ```
 
 Output shows:
+
 - Number of incomplete vs completed attempts
 - Message count in each attempt
 - Which attempts will be resumed
 
 ### Activate Inactive Tasks
+
 If you get "Task is not active" error:
+
 ```bash
 npx tsx scripts/activate-all-tasks.ts
 ```
 
 ### View Logs in Browser Console
+
 Look for these log prefixes:
+
 - `[PreTaskStudy]` - Task start flow
 - `[TaskAttemptClient]` - Chat interface loading
 - `[Task Attempt POST]` - Server-side attempt creation
@@ -148,7 +161,9 @@ TaskAttempt {
 ## API Endpoints
 
 ### POST /api/task-attempts
+
 **Request:**
+
 ```json
 {
   "userId": "user-id",
@@ -157,6 +172,7 @@ TaskAttempt {
 ```
 
 **Response (New Attempt):**
+
 ```json
 {
   "attempt": { ... },
@@ -166,6 +182,7 @@ TaskAttempt {
 ```
 
 **Response (Resume Existing):**
+
 ```json
 {
   "attempt": {
@@ -180,25 +197,32 @@ TaskAttempt {
 ```
 
 ### GET /api/task-attempts/[attemptId]
+
 Loads the attempt with full conversation history.
 
 ### POST /api/task-attempts/[attemptId]/message
+
 Adds a new message and updates the conversation history in the database.
 
 ## Troubleshooting
 
 ### Issue: "Task is not active" error
+
 **Solution**: Run `npx tsx scripts/activate-all-tasks.ts`
 
 ### Issue: Chat shows old messages when I want to start fresh
+
 **This is normal behavior!** The system is resuming your previous attempt.
 
 **Solutions**:
+
 1. Complete the current attempt first, then start again
 2. Run `npx tsx scripts/clear-incomplete-attempts.ts` (testing only)
 
 ### Issue: Chat history not showing
+
 **Check**:
+
 1. Open browser console
 2. Look for `[TaskAttemptClient] Loaded attempt:` log
 3. Check the `messageCount` - should match your previous messages
@@ -222,7 +246,7 @@ const handleStartFresh = async () => {
 
   if (data.attempts.length > 0) {
     await fetch(`/api/task-attempts/${data.attempts[0].id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
     });
   }
 
@@ -261,15 +285,18 @@ const checkExistingAttempt = async () => {
 ## Summary
 
 ✅ **Fixed Issues**:
+
 1. Task activation issue - all tasks are now active
 2. Added comprehensive logging for debugging
 
 ✅ **Expected Behavior**:
+
 - Task attempts are automatically resumed to preserve your progress
 - Conversation history is persisted in the database
 - This is a **feature**, not a bug!
 
 ✅ **Tools Available**:
+
 - `scripts/activate-all-tasks.ts` - Activate inactive tasks
 - `scripts/check-task-attempts.ts` - View all attempts
 - `scripts/clear-incomplete-attempts.ts` - Clear incomplete attempts (testing only)

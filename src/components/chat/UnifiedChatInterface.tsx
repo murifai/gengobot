@@ -58,7 +58,7 @@ export default function UnifiedChatInterface({
   const [isSidebarOpen, setIsSidebarOpen] = useState(sidebarDefaultOpen);
 
   return (
-    <div className={cn('flex flex-col h-screen bg-gray-50 dark:bg-gray-900', className)}>
+    <div className={cn('flex flex-col h-full bg-gray-50 dark:bg-gray-900', className)}>
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4 flex items-center gap-4 shrink-0">
         {onBack && (
