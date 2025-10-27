@@ -1,39 +1,32 @@
+'use client';
+
 import { Suspense } from 'react';
 import Link from 'next/link';
 import DeckBrowser from '@/components/deck/DeckBrowser';
 import { LoadingState } from '@/components/ui/LoadingState';
-
-export const metadata = {
-  title: 'Study Decks - Gengobot',
-  description: 'Browse and study flashcard decks',
-};
+import { PageHeader } from '@/components/dashboard/PageHeader';
+import { Button } from '@/components/ui/button';
 
 export default function StudyPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Study Decks</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Browse flashcard decks and practice with spaced repetition
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <PageHeader title="Study Decks">
         <Link href="/study/stats">
-          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-            View Statistics
-          </button>
+          <Button size="sm">View Statistics</Button>
         </Link>
-      </div>
+      </PageHeader>
 
-      <Suspense
-        fallback={
-          <div className="flex justify-center items-center min-h-[400px]">
-            <LoadingState type="spinner" size="lg" />
-          </div>
-        }
-      >
-        <DeckBrowser />
-      </Suspense>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Suspense
+          fallback={
+            <div className="flex justify-center items-center min-h-[400px]">
+              <LoadingState type="spinner" size="lg" />
+            </div>
+          }
+        >
+          <DeckBrowser />
+        </Suspense>
+      </main>
     </div>
   );
 }

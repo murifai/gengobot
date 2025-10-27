@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { CustomAppSidebar } from '@/components/dashboard/CustomAppSidebar';
+import { UserProvider } from '@/contexts/UserContext';
 import DashboardLayoutClient from './DashboardLayoutClient';
 
 interface DashboardLayoutWrapperProps {
@@ -14,20 +15,22 @@ export default function DashboardLayoutWrapper({ children, user }: DashboardLayo
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Custom Sidebar */}
-      <div className="relative">
-        <CustomAppSidebar
-          user={user}
-          isOpen={sidebarOpen}
-          onToggle={() => setSidebarOpen(!sidebarOpen)}
-        />
-      </div>
+    <UserProvider user={user}>
+      <div className="flex h-screen overflow-hidden">
+        {/* Custom Sidebar */}
+        <div className="relative">
+          <CustomAppSidebar
+            user={user}
+            isOpen={sidebarOpen}
+            onToggle={() => setSidebarOpen(!sidebarOpen)}
+          />
+        </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-background">
-        <DashboardLayoutClient user={user}>{children}</DashboardLayoutClient>
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-background">
+          <DashboardLayoutClient user={user}>{children}</DashboardLayoutClient>
+        </div>
       </div>
-    </div>
+    </UserProvider>
   );
 }

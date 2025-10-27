@@ -84,7 +84,7 @@ export default function DeckBrowser() {
 
   if (error) {
     return (
-      <Card className="p-6 text-center">
+      <Card variant="bordered" className="p-6 text-center">
         <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
         <Button onClick={fetchDecks}>Try Again</Button>
       </Card>
@@ -94,7 +94,7 @@ export default function DeckBrowser() {
   return (
     <div>
       {/* Filters */}
-      <Card className="p-6 mb-6">
+      <Card variant="bordered" className="p-6 mb-6">
         <form onSubmit={handleSearch} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -106,7 +106,7 @@ export default function DeckBrowser() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search decks..."
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
@@ -117,7 +117,7 @@ export default function DeckBrowser() {
               <select
                 value={categoryFilter}
                 onChange={e => setCategoryFilter(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All Categories</option>
                 <option value="Kanji">Kanji</option>
@@ -134,7 +134,7 @@ export default function DeckBrowser() {
               <select
                 value={difficultyFilter}
                 onChange={e => setDifficultyFilter(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All Levels</option>
                 <option value="N5">N5</option>
@@ -168,13 +168,17 @@ export default function DeckBrowser() {
 
       {/* Deck Grid */}
       {decks.length === 0 ? (
-        <Card className="p-12 text-center">
+        <Card variant="bordered" className="p-12 text-center">
           <p className="text-gray-600 dark:text-gray-400">No decks found</p>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {decks.map(deck => (
-            <Card key={deck.id} className="p-6 hover:shadow-lg transition-shadow">
+            <Card
+              key={deck.id}
+              variant="bordered"
+              className="p-6 hover:shadow-lg transition-shadow"
+            >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">

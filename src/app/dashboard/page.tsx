@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { BookOpen, GraduationCap, MessageSquare, TrendingUp, Users, Settings } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/dashboard/PageHeader';
 
 const dashboardCards = [
   {
@@ -56,40 +57,39 @@ export default function DashboardPage() {
   const router = useRouter();
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
-        <p className="text-muted-foreground">Continue your Japanese learning journey</p>
-      </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <PageHeader title="Dashboard" />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {dashboardCards.map(card => (
-          <Card key={card.title} className="flex flex-col">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <card.icon className="h-8 w-8 text-primary" />
-                {card.badge && <span className="text-2xl">{card.badge}</span>}
-                {card.badges && (
-                  <div className="flex gap-1">
-                    {card.badges.map((badge, index) => (
-                      <span key={index} className="text-xs bg-secondary/10 px-2 py-1 rounded">
-                        {badge}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <CardTitle>{card.title}</CardTitle>
-              <CardDescription>{card.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="mt-auto">
-              <Button className="w-full" onClick={() => router.push(card.href)}>
-                {card.buttonText}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {dashboardCards.map(card => (
+            <Card key={card.title} variant="bordered" className="flex flex-col">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <card.icon className="h-8 w-8 text-primary" />
+                  {card.badge && <span className="text-2xl">{card.badge}</span>}
+                  {card.badges && (
+                    <div className="flex gap-1">
+                      {card.badges.map((badge, index) => (
+                        <span key={index} className="text-xs bg-secondary/10 px-2 py-1 rounded">
+                          {badge}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <CardTitle>{card.title}</CardTitle>
+                <CardDescription>{card.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="mt-auto">
+                <Button className="w-full" onClick={() => router.push(card.href)}>
+                  {card.buttonText}
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </main>
     </div>
   );
 }

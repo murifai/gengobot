@@ -168,7 +168,7 @@ export default function TasksClient({ user }: TasksClientProps) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTasks.map(task => (
-              <Card key={task.id} className="p-6">
+              <Card key={task.id} variant="bordered" className="p-6">
                 <div className="mb-4">
                   <span className="inline-block px-2 py-1 text-xs font-semibold text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300 rounded">
                     {task.category}
