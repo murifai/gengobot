@@ -8,7 +8,12 @@ export interface Conversation {
 }
 
 export interface Tool {
+  type: 'function';
   name: string;
   description: string;
-  parameters?: Record<string, unknown>;
+  parameters?: {
+    type: 'object';
+    properties: Record<string, unknown>;
+    required?: string[];
+  };
 }

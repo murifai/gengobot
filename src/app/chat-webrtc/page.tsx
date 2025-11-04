@@ -9,19 +9,18 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion } from 'framer-motion';
-import {
-  Mic,
-  MicOff,
-  Send,
-  MessageSquare,
-  Volume2,
-  VolumeX,
-} from 'lucide-react';
+import { Mic, MicOff, Send, MessageSquare, Volume2, VolumeX } from 'lucide-react';
 
 const tools: Tool[] = [
   {
+    type: 'function',
     name: 'getCurrentTime',
     description: 'Get the current time',
+    parameters: {
+      type: 'object',
+      properties: {},
+      required: [],
+    },
   },
 ];
 

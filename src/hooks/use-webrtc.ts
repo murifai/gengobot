@@ -73,17 +73,43 @@ export default function useWebRTCAudioSession(
    * Configure the data channel on open, sending a session update to the server.
    */
   function configureDataChannel(dataChannel: RTCDataChannel) {
-    // Send session update
-    const sessionUpdate = {
+    // Send session update with server VAD enabled for transcription
+    const sessionUpdate: {
+      type: string;
+      session: {
+        modalities: string[];
+        tools?: Tool[];
+        input_audio_transcription?: {
+          model: string;
+        };
+        turn_detection?: {
+          type: string;
+          threshold: number;
+          prefix_padding_ms: number;
+          silence_duration_ms: number;
+        };
+      };
+    } = {
       type: 'session.update',
       session: {
         modalities: ['text', 'audio'],
-        tools: tools || [],
         input_audio_transcription: {
           model: 'whisper-1',
         },
+        turn_detection: {
+          type: 'server_vad',
+          threshold: 0.5,
+          prefix_padding_ms: 300,
+          silence_duration_ms: 700,
+        },
       },
     };
+
+    // Only include tools if they exist and are not empty
+    if (tools && tools.length > 0) {
+      sessionUpdate.session.tools = tools;
+    }
+
     dataChannel.send(JSON.stringify(sessionUpdate));
 
     console.log('Session update sent:', sessionUpdate);
@@ -151,8 +177,23 @@ export default function useWebRTCAudioSession(
          * Error handling
          */
         case 'error': {
-          console.error('WebRTC error:', msg.error);
-          setStatus(`Error: ${msg.error?.message || 'Unknown error'}`);
+          console.error('WebRTC error - full message:', msg);
+          console.error('Error object:', msg.error);
+          console.error('Error type:', typeof msg.error);
+          console.error('Error keys:', msg.error ? Object.keys(msg.error) : 'no error object');
+
+          const errorMessage =
+            msg.error?.message || msg.message || msg.error_message || 'Unknown error';
+          const errorCode = msg.error?.code || msg.code || '';
+          const errorType = msg.error?.type || msg.type || '';
+          const fullError = errorCode
+            ? `[${errorCode}] ${errorMessage}`
+            : errorType && errorType !== 'error'
+              ? `[${errorType}] ${errorMessage}`
+              : errorMessage;
+
+          setStatus(`Error: ${fullError}`);
+          console.error('Formatted error:', fullError);
           break;
         }
 
@@ -175,49 +216,66 @@ export default function useWebRTCAudioSession(
         }
 
         /**
-         * Audio buffer committed => "Processing speech..."
+         * Audio buffer committed => request transcription
          */
         case 'input_audio_buffer.committed': {
           updateEphemeralUserMessage({
-            text: 'Processing speech...',
+            text: 'Transcribing...',
             status: 'processing',
           });
-
-          // Immediately send response.create to trigger AI response and transcription
-          if (dataChannelRef.current?.readyState === 'open') {
-            const responseCreate = {
-              type: 'response.create',
-            };
-            dataChannelRef.current.send(JSON.stringify(responseCreate));
-            console.log('Sent response.create after commit');
-          }
+          console.log('Audio committed, waiting for transcription events...');
           break;
         }
 
         /**
-         * Partial user transcription
+         * Partial user transcription (delta)
          */
-        case 'conversation.item.input_audio_transcription': {
-          const partialText = msg.transcript ?? msg.text ?? 'User is speaking...';
-          updateEphemeralUserMessage({
-            text: partialText,
-            status: 'speaking',
-            isFinal: false,
-          });
+        case 'conversation.item.input_audio_transcription.delta': {
+          console.log('Transcription delta:', msg.delta);
+          const ephemeralId = getOrCreateEphemeralUserId();
+
+          setConversation(prev =>
+            prev.map(convMsg => {
+              if (convMsg.id === ephemeralId) {
+                return {
+                  ...convMsg,
+                  text: (convMsg.text || '') + (msg.delta || ''),
+                  status: 'speaking',
+                  isFinal: false,
+                };
+              }
+              return convMsg;
+            })
+          );
           break;
         }
 
         /**
-         * Final user transcription
+         * Final user transcription - server VAD automatically triggers response
          */
         case 'conversation.item.input_audio_transcription.completed': {
-          console.log('Final user transcription:', msg.transcript);
-          updateEphemeralUserMessage({
+          console.log('✅ Final user transcription event received:', msg);
+
+          // Create a new final user message with the transcript
+          const finalUserMessage: Conversation = {
+            id: msg.item_id || uuidv4(),
+            role: 'user',
             text: msg.transcript || '',
+            timestamp: new Date().toISOString(),
             isFinal: true,
             status: 'final',
+          };
+
+          // Remove any ephemeral user messages and add the final one
+          setConversation(prev => {
+            const ephemeralId = ephemeralUserMessageIdRef.current;
+            const filtered = ephemeralId ? prev.filter(m => m.id !== ephemeralId) : prev;
+            return [...filtered, finalUserMessage];
           });
+
           clearEphemeralUserMessage();
+
+          // Don't manually create response - server VAD handles it automatically
           break;
         }
 
@@ -238,95 +296,88 @@ export default function useWebRTCAudioSession(
 
             console.log('Audio content found:', audioContent);
 
-            if (audioContent && audioContent.transcript) {
-              console.log('User transcript from item.created:', audioContent.transcript);
+            if (audioContent) {
+              if (audioContent.transcript) {
+                console.log('User transcript from item.created:', audioContent.transcript);
 
-              // Create a new final user message instead of updating ephemeral
-              const finalUserMessage: Conversation = {
-                id: msg.item.id || uuidv4(),
-                role: 'user',
-                text: audioContent.transcript,
-                timestamp: new Date().toISOString(),
-                isFinal: true,
-                status: 'final',
-              };
+                // Create a new final user message
+                const finalUserMessage: Conversation = {
+                  id: msg.item.id || uuidv4(),
+                  role: 'user',
+                  text: audioContent.transcript,
+                  timestamp: new Date().toISOString(),
+                  isFinal: true,
+                  status: 'final',
+                };
 
-              // Remove any ephemeral user messages and add the final one
-              setConversation(prev => {
-                const ephemeralId = ephemeralUserMessageIdRef.current;
-                const filtered = ephemeralId
-                  ? prev.filter(m => m.id !== ephemeralId)
-                  : prev;
-                return [...filtered, finalUserMessage];
-              });
+                // Remove any ephemeral user messages and add the final one
+                setConversation(prev => {
+                  const ephemeralId = ephemeralUserMessageIdRef.current;
+                  const filtered = ephemeralId ? prev.filter(m => m.id !== ephemeralId) : prev;
+                  return [...filtered, finalUserMessage];
+                });
 
-              clearEphemeralUserMessage();
-            } else {
-              console.warn('No transcript found in audio content');
+                clearEphemeralUserMessage();
+              } else {
+                console.warn(
+                  'Transcript is null - transcription may not be enabled or still processing'
+                );
+
+                // Keep the ephemeral message showing "Processing speech..."
+                // The transcript might come in a later event
+              }
             }
           }
           break;
         }
 
         /**
-         * Streaming AI transcripts (assistant partial)
+         * Streaming AI transcripts (assistant partial) - skip for instant display
          */
         case 'response.audio_transcript.delta': {
-          const newMessage: Conversation = {
-            id: uuidv4(), // generate a fresh ID for each assistant partial
-            role: 'assistant',
-            text: msg.delta,
-            timestamp: new Date().toISOString(),
-            isFinal: false,
-          };
-
-          setConversation(prev => {
-            const lastMsg = prev[prev.length - 1];
-            if (lastMsg && lastMsg.role === 'assistant' && !lastMsg.isFinal) {
-              // Append to existing assistant partial
-              const updated = [...prev];
-              updated[updated.length - 1] = {
-                ...lastMsg,
-                text: lastMsg.text + msg.delta,
-              };
-              return updated;
-            } else {
-              // Start a new assistant partial
-              return [...prev, newMessage];
-            }
-          });
+          // Don't show streaming text - wait for complete transcript
+          console.log('Skipping delta:', msg.delta);
           break;
         }
 
         /**
-         * Response done - contains full response info including user transcript
+         * Response done - may contain user transcript in usage field
          */
         case 'response.done': {
           console.log('response.done event:', msg.response);
+          console.log('response.done usage:', msg.response?.usage);
 
-          // Check if there's a user message in the response that we haven't added yet
-          if (msg.response?.output) {
-            // Look for user audio input in the response
-            const userTranscript = msg.response.output.find(
-              (item: { type: string }) => item.type === 'message' && item.role === 'user'
-            );
-
-            if (userTranscript) {
-              console.log('Found user transcript in response.done:', userTranscript);
-            }
+          // Try to extract user transcript from usage.input_audio_tokens or other fields
+          if (msg.response?.usage?.input_audio_tokens) {
+            console.log('Audio tokens detected in response');
           }
+
+          // Log the full response structure to help debug
+          console.log('Full response structure:', JSON.stringify(msg.response, null, 2));
           break;
         }
 
         /**
-         * Mark the last assistant message as final
+         * Complete AI transcript - display all at once
          */
         case 'response.audio_transcript.done': {
+          console.log('Complete AI transcript:', msg.transcript);
+
+          // Create a complete final message with the full transcript
+          const assistantMessage: Conversation = {
+            id: msg.item_id || uuidv4(),
+            role: 'assistant',
+            text: msg.transcript || '',
+            timestamp: new Date().toISOString(),
+            isFinal: true,
+            status: 'final',
+          };
+
+          // Add the complete message
           setConversation(prev => {
-            if (prev.length === 0) return prev;
-            const updated = [...prev];
-            updated[updated.length - 1].isFinal = true;
-            return updated;
+            // Remove any partial assistant messages and add the complete one
+            const filtered = prev.filter(m => !(m.role === 'assistant' && !m.isFinal));
+            return [...filtered, assistantMessage];
           });
           break;
         }
