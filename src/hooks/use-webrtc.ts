@@ -14,6 +14,7 @@ interface UseWebRTCAudioSessionReturn {
   startSession: () => Promise<void>;
   stopSession: () => void;
   handleStartStopClick: () => void;
+  commitAudioBuffer: () => void;
   registerFunction: (name: string, fn: (...args: unknown[]) => unknown) => void;
   msgs: unknown[];
   currentVolume: number;
@@ -488,6 +489,30 @@ export default function useWebRTCAudioSession(
   }
 
   /**
+   * Manually commit audio buffer (stop speaking and process)
+   */
+  function commitAudioBuffer() {
+    if (!dataChannelRef.current || dataChannelRef.current.readyState !== 'open') {
+      console.error('Data channel not ready');
+      return;
+    }
+
+    // Send input_audio_buffer.commit event
+    const commitMessage = {
+      type: 'input_audio_buffer.commit',
+    };
+
+    dataChannelRef.current.send(JSON.stringify(commitMessage));
+
+    // Create response to process the audio
+    const response = {
+      type: 'response.create',
+    };
+
+    dataChannelRef.current.send(JSON.stringify(response));
+  }
+
+  /**
    * Send a text message through the data channel
    */
   function sendTextMessage(text: string) {
@@ -545,6 +570,7 @@ export default function useWebRTCAudioSession(
     startSession,
     stopSession,
     handleStartStopClick,
+    commitAudioBuffer,
     registerFunction,
     msgs,
     currentVolume,

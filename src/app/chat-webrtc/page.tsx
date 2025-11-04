@@ -9,7 +9,15 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion } from 'framer-motion';
-import { Mic, MicOff, Send, MessageSquare, Volume2, VolumeX } from 'lucide-react';
+import {
+  Mic,
+  MicOff,
+  Send,
+  MessageSquare,
+  Volume2,
+  VolumeX,
+  Square,
+} from 'lucide-react';
 
 const tools: Tool[] = [
   {
@@ -29,6 +37,7 @@ export default function WebRTCChatPage() {
     isSessionActive,
     audioIndicatorRef,
     handleStartStopClick,
+    commitAudioBuffer,
     conversation,
     sendTextMessage,
     currentVolume,
@@ -109,6 +118,38 @@ export default function WebRTCChatPage() {
 
             {/* Controls Area */}
             <div className="border-t border-gray-200 dark:border-gray-700 p-4 space-y-4">
+              {/* Current User Transcript */}
+              {isSessionActive && conversation.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3"
+                >
+                  <div className="flex items-start gap-2">
+                    <Mic className="h-4 w-4 mt-0.5 text-blue-600 dark:text-blue-400" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">
+                        {conversation[conversation.length - 1]?.role === 'user' &&
+                        !conversation[conversation.length - 1]?.isFinal
+                          ? conversation[conversation.length - 1]?.status === 'speaking'
+                            ? 'Listening...'
+                            : conversation[conversation.length - 1]?.status === 'processing'
+                              ? 'Processing...'
+                              : 'Your message'
+                          : 'Ready to listen'}
+                      </p>
+                      {conversation[conversation.length - 1]?.role === 'user' &&
+                        !conversation[conversation.length - 1]?.isFinal && (
+                          <p className="text-sm text-gray-700 dark:text-gray-300 break-words">
+                            {conversation[conversation.length - 1]?.text || 'Speak now...'}
+                          </p>
+                        )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Audio Indicator and Volume */}
               <div className="flex items-center gap-4">
                 <div
@@ -140,24 +181,45 @@ export default function WebRTCChatPage() {
                 </div>
               </div>
 
-              {/* Start/Stop Button */}
-              <Button
-                onClick={handleStartStopClick}
-                className="w-full h-12 text-lg font-semibold"
-                variant={isSessionActive ? 'destructive' : 'default'}
-              >
-                {isSessionActive ? (
-                  <>
-                    <MicOff className="mr-2 h-5 w-5" />
-                    End Session
-                  </>
-                ) : (
-                  <>
-                    <Mic className="mr-2 h-5 w-5" />
-                    Start Session
-                  </>
-                )}
-              </Button>
+              {/* Control Buttons */}
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleStartStopClick}
+                  className="flex-1 h-12 text-lg font-semibold"
+                  variant={isSessionActive ? 'destructive' : 'default'}
+                >
+                  {isSessionActive ? (
+                    <>
+                      <MicOff className="mr-2 h-5 w-5" />
+                      End Session
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="mr-2 h-5 w-5" />
+                      Start Session
+                    </>
+                  )}
+                </Button>
+                {isSessionActive &&
+                  conversation.length > 0 &&
+                  conversation[conversation.length - 1]?.role === 'user' &&
+                  !conversation[conversation.length - 1]?.isFinal && (
+                    <motion.div
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: 'auto' }}
+                      exit={{ opacity: 0, width: 0 }}
+                    >
+                      <Button
+                        onClick={commitAudioBuffer}
+                        className="h-12 px-6"
+                        variant="outline"
+                        title="Stop speaking and send message"
+                      >
+                        <Square className="h-5 w-5 fill-current" />
+                      </Button>
+                    </motion.div>
+                  )}
+              </div>
 
               {/* Text Input */}
               {isSessionActive && (
