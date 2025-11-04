@@ -148,6 +148,15 @@ export default function useWebRTCAudioSession(
 
       switch (msg.type) {
         /**
+         * Error handling
+         */
+        case 'error': {
+          console.error('WebRTC error:', msg.error);
+          setStatus(`Error: ${msg.error?.message || 'Unknown error'}`);
+          break;
+        }
+
+        /**
          * User speech started
          */
         case 'input_audio_buffer.speech_started': {
@@ -207,12 +216,19 @@ export default function useWebRTCAudioSession(
          * Conversation item created - contains the finalized user input
          */
         case 'conversation.item.created': {
+          console.log('conversation.item.created full details:', JSON.stringify(msg.item, null, 2));
+
           // Check if this is a user message with audio input
           if (msg.item?.role === 'user' && msg.item?.type === 'message') {
+            console.log('User message detected, content:', msg.item.content);
+
             // Extract transcript from audio content
             const audioContent = msg.item.content?.find(
               (c: { type: string }) => c.type === 'input_audio'
             );
+
+            console.log('Audio content found:', audioContent);
+
             if (audioContent && audioContent.transcript) {
               console.log('User transcript from item.created:', audioContent.transcript);
               updateEphemeralUserMessage({
@@ -221,6 +237,8 @@ export default function useWebRTCAudioSession(
                 status: 'final',
               });
               clearEphemeralUserMessage();
+            } else {
+              console.warn('No transcript found in audio content');
             }
           }
           break;
