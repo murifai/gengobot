@@ -182,6 +182,15 @@ export default function useWebRTCAudioSession(
             text: 'Processing speech...',
             status: 'processing',
           });
+
+          // Immediately send response.create to trigger AI response and transcription
+          if (dataChannelRef.current?.readyState === 'open') {
+            const responseCreate = {
+              type: 'response.create',
+            };
+            dataChannelRef.current.send(JSON.stringify(responseCreate));
+            console.log('Sent response.create after commit');
+          }
           break;
         }
 
@@ -286,6 +295,26 @@ export default function useWebRTCAudioSession(
               return [...prev, newMessage];
             }
           });
+          break;
+        }
+
+        /**
+         * Response done - contains full response info including user transcript
+         */
+        case 'response.done': {
+          console.log('response.done event:', msg.response);
+
+          // Check if there's a user message in the response that we haven't added yet
+          if (msg.response?.output) {
+            // Look for user audio input in the response
+            const userTranscript = msg.response.output.find(
+              (item: { type: string }) => item.type === 'message' && item.role === 'user'
+            );
+
+            if (userTranscript) {
+              console.log('Found user transcript in response.done:', userTranscript);
+            }
+          }
           break;
         }
 
