@@ -231,11 +231,26 @@ export default function useWebRTCAudioSession(
 
             if (audioContent && audioContent.transcript) {
               console.log('User transcript from item.created:', audioContent.transcript);
-              updateEphemeralUserMessage({
+
+              // Create a new final user message instead of updating ephemeral
+              const finalUserMessage: Conversation = {
+                id: msg.item.id || uuidv4(),
+                role: 'user',
                 text: audioContent.transcript,
+                timestamp: new Date().toISOString(),
                 isFinal: true,
                 status: 'final',
+              };
+
+              // Remove any ephemeral user messages and add the final one
+              setConversation(prev => {
+                const ephemeralId = ephemeralUserMessageIdRef.current;
+                const filtered = ephemeralId
+                  ? prev.filter(m => m.id !== ephemeralId)
+                  : prev;
+                return [...filtered, finalUserMessage];
               });
+
               clearEphemeralUserMessage();
             } else {
               console.warn('No transcript found in audio content');
