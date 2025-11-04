@@ -10,7 +10,7 @@ import {
   TrendingUp,
   Users,
   Book,
-  BarChart3,
+  Mic,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -51,6 +51,11 @@ const items = [
     title: 'Chat',
     url: '/dashboard/chat',
     icon: MessageSquare,
+  },
+  {
+    title: 'Voice Chat',
+    url: '/chat-webrtc',
+    icon: Mic,
   },
   {
     title: 'Progress',
