@@ -3,8 +3,8 @@
 import { User } from '@supabase/supabase-js';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 
 interface ProgressStats {
   totalAttempts: number;

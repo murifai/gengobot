@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Edit, Download, Plus, Trash2, Edit2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import FlashcardEditor from '@/components/deck/FlashcardEditor';
 
 interface DeckViewPageProps {

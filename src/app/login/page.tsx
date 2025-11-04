@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
+import { Card } from '@/components/ui/Card';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);

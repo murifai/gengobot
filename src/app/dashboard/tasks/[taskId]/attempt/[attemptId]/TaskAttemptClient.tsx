@@ -3,7 +3,7 @@
 import { User } from '@supabase/supabase-js';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import UnifiedChatInterface from '@/components/chat/UnifiedChatInterface';
 import PostTaskReview from '@/components/task/PostTaskReview';
 

@@ -1,12 +1,12 @@
-export { Button } from './button';
-export { buttonVariants } from './button';
+export { Button } from './Button';
+export { buttonVariants } from './Button';
 
-export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './card';
-export type { CardProps } from './card';
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card';
+export type { CardProps } from './Card';
 
 export { Dialog, DialogTitle, DialogDescription } from './dialog';
 export type { DialogProps } from './dialog';
 
-export { Input } from './input';
+export { Input } from './Input';
 
-export { Badge } from './badge';
+export { Badge } from './Badge';

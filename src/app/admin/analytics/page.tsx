@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { TrendingUp, Users, Target, Award, Calendar, Download } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 
 interface AnalyticsData {
   overview: {
