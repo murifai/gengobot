@@ -144,7 +144,7 @@ export default function useWebRTCAudioSession(
   async function handleDataChannelMessage(event: MessageEvent) {
     try {
       const msg = JSON.parse(event.data);
-      // console.log("Incoming dataChannel message:", msg);
+      console.log('Incoming dataChannel message:', msg.type, msg);
 
       switch (msg.type) {
         /**
@@ -193,7 +193,7 @@ export default function useWebRTCAudioSession(
          * Final user transcription
          */
         case 'conversation.item.input_audio_transcription.completed': {
-          // console.log("Final user transcription:", msg.transcript);
+          console.log('Final user transcription:', msg.transcript);
           updateEphemeralUserMessage({
             text: msg.transcript || '',
             isFinal: true,
