@@ -204,6 +204,29 @@ export default function useWebRTCAudioSession(
         }
 
         /**
+         * Conversation item created - contains the finalized user input
+         */
+        case 'conversation.item.created': {
+          // Check if this is a user message with audio input
+          if (msg.item?.role === 'user' && msg.item?.type === 'message') {
+            // Extract transcript from audio content
+            const audioContent = msg.item.content?.find(
+              (c: { type: string }) => c.type === 'input_audio'
+            );
+            if (audioContent && audioContent.transcript) {
+              console.log('User transcript from item.created:', audioContent.transcript);
+              updateEphemeralUserMessage({
+                text: audioContent.transcript,
+                isFinal: true,
+                status: 'final',
+              });
+              clearEphemeralUserMessage();
+            }
+          }
+          break;
+        }
+
+        /**
          * Streaming AI transcripts (assistant partial)
          */
         case 'response.audio_transcript.delta': {
