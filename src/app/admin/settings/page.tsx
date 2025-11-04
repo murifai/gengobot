@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Save, Key, ToggleLeft, ToggleRight, Mail, Shield, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/ui/Input';
 
 interface SystemSettings {
   apiKeys: {
