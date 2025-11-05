@@ -71,47 +71,48 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Create flashcards
-      const flashcards = await Promise.all(
-        cards.map(async (card: ImportCardData, index: number) => {
-          const cardData: Record<string, unknown> = {
-            deckId: deck.id,
-            cardType: card.cardType,
-            position: index,
-          };
+      // Create flashcards using createMany for better performance
+      const flashcardData = cards.map((card: ImportCardData, index: number) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const cardData: any = {
+          deckId: deck.id,
+          cardType: card.cardType,
+          position: index,
+          exampleSentence: card.exampleSentence || null,
+          exampleTranslation: card.exampleTranslation || null,
+          notes: card.notes || null,
+          tags: card.tags || null,
+        };
 
-          // Add type-specific fields
-          switch (card.cardType) {
-            case 'kanji':
-              cardData.kanji = card.kanji;
-              cardData.kanjiMeaning = card.kanjiMeaning;
-              cardData.onyomi = card.onyomi || null;
-              cardData.kunyomi = card.kunyomi || null;
-              break;
-            case 'vocabulary':
-              cardData.word = card.word;
-              cardData.wordMeaning = card.wordMeaning;
-              cardData.reading = card.reading;
-              cardData.partOfSpeech = card.partOfSpeech || null;
-              break;
-            case 'grammar':
-              cardData.grammarPoint = card.grammarPoint;
-              cardData.grammarMeaning = card.grammarMeaning;
-              cardData.usageNote = card.usageNote || null;
-              break;
-          }
+        // Add type-specific fields
+        switch (card.cardType) {
+          case 'kanji':
+            cardData.kanji = card.kanji;
+            cardData.kanjiMeaning = card.kanjiMeaning;
+            cardData.onyomi = card.onyomi || null;
+            cardData.kunyomi = card.kunyomi || null;
+            break;
+          case 'vocabulary':
+            cardData.word = card.word;
+            cardData.wordMeaning = card.wordMeaning;
+            cardData.reading = card.reading;
+            cardData.partOfSpeech = card.partOfSpeech || null;
+            break;
+          case 'grammar':
+            cardData.grammarPoint = card.grammarPoint;
+            cardData.grammarMeaning = card.grammarMeaning;
+            cardData.usageNote = card.usageNote || null;
+            break;
+        }
 
-          // Add common fields
-          cardData.exampleSentence = card.exampleSentence || null;
-          cardData.exampleTranslation = card.exampleTranslation || null;
-          cardData.notes = card.notes || null;
-          cardData.tags = card.tags || null;
+        return cardData;
+      });
 
-          return tx.flashcard.create({ data: cardData });
-        })
-      );
+      await tx.flashcard.createMany({
+        data: flashcardData,
+      });
 
-      return { deck, flashcards };
+      return { deck };
     });
 
     // Log admin action if user is admin

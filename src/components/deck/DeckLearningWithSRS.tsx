@@ -83,16 +83,18 @@ export default function DeckLearningWithSRS({
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <Card className="max-w-2xl w-full p-8 text-center">
-          <p className="text-gray-600 dark:text-gray-400 mb-4">No cards available in this deck.</p>
-          <Button onClick={onExit}>Go Back</Button>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Tidak ada kartu dalam dek ini.</p>
+          <Button onClick={onExit}>Kembali</Button>
         </Card>
       </div>
     );
   }
 
-  const handleShowAnswer = () => {
-    setShowAnswer(true);
-    setReviewedCards(prev => new Set([...prev, currentIndex]));
+  const handleFlipCard = () => {
+    setShowAnswer(!showAnswer);
+    if (!showAnswer) {
+      setReviewedCards(prev => new Set([...prev, currentIndex]));
+    }
   };
 
   const handleRating = async (rating: Rating) => {
@@ -142,179 +144,194 @@ export default function DeckLearningWithSRS({
     }
   };
 
-  const renderCardContent = () => {
+  const renderCardFront = () => {
     switch (currentCard.cardType) {
       case 'kanji':
         return (
-          <>
-            <div className="mb-8">
-              <div className="text-center mb-6">
-                <div className="inline-block px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full text-sm font-medium mb-4">
-                  Kanji Card
-                </div>
-              </div>
-              <div className="text-8xl font-bold text-center text-gray-900 dark:text-white mb-4">
-                {currentCard.kanji}
-              </div>
-            </div>
-
-            {showAnswer && (
-              <div className="space-y-4 bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Meaning
-                  </h3>
-                  <p className="text-lg text-gray-900 dark:text-white">
-                    {currentCard.kanjiMeaning}
-                  </p>
-                </div>
-                {currentCard.onyomi && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      On&apos;yomi (音読み)
-                    </h3>
-                    <p className="text-lg text-gray-900 dark:text-white">{currentCard.onyomi}</p>
-                  </div>
-                )}
-                {currentCard.kunyomi && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Kun&apos;yomi (訓読み)
-                    </h3>
-                    <p className="text-lg text-gray-900 dark:text-white">{currentCard.kunyomi}</p>
-                  </div>
-                )}
-                {currentCard.exampleSentence && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Example
-                    </h3>
-                    <p className="text-lg text-gray-900 dark:text-white mb-2">
-                      {currentCard.exampleSentence}
-                    </p>
-                    {currentCard.exampleTranslation && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {currentCard.exampleTranslation}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </>
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="text-8xl font-bold text-center text-white">{currentCard.kanji}</div>
+          </div>
         );
 
       case 'vocabulary':
         return (
-          <>
-            <div className="mb-8">
-              <div className="text-center mb-6">
-                <div className="inline-block px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm font-medium mb-4">
-                  Vocabulary Card
-                </div>
-              </div>
-              <div className="text-6xl font-bold text-center text-gray-900 dark:text-white mb-2">
-                {currentCard.word}
-              </div>
-              {currentCard.reading && (
-                <div className="text-2xl text-center text-gray-600 dark:text-gray-400">
-                  {currentCard.reading}
-                </div>
-              )}
-            </div>
-
-            {showAnswer && (
-              <div className="space-y-4 bg-green-50 dark:bg-green-900/20 p-6 rounded-lg">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Meaning
-                  </h3>
-                  <p className="text-lg text-gray-900 dark:text-white">{currentCard.wordMeaning}</p>
-                </div>
-                {currentCard.partOfSpeech && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Part of Speech
-                    </h3>
-                    <p className="text-gray-900 dark:text-white">{currentCard.partOfSpeech}</p>
-                  </div>
-                )}
-                {currentCard.exampleSentence && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Example
-                    </h3>
-                    <p className="text-lg text-gray-900 dark:text-white mb-2">
-                      {currentCard.exampleSentence}
-                    </p>
-                    {currentCard.exampleTranslation && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {currentCard.exampleTranslation}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="text-6xl font-bold text-center text-white mb-2">{currentCard.word}</div>
+            {currentCard.reading && (
+              <div className="text-2xl text-center text-white/80">{currentCard.reading}</div>
             )}
-          </>
+          </div>
         );
 
       case 'grammar':
         return (
-          <>
-            <div className="mb-8">
-              <div className="text-center mb-6">
-                <div className="inline-block px-3 py-1 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded-full text-sm font-medium mb-4">
-                  Grammar Card
-                </div>
-              </div>
-              <div className="text-4xl font-bold text-center text-gray-900 dark:text-white">
-                {currentCard.grammarPoint}
-              </div>
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="text-4xl font-bold text-center text-white">
+              {currentCard.grammarPoint}
             </div>
-
-            {showAnswer && (
-              <div className="space-y-4 bg-orange-50 dark:bg-orange-900/20 p-6 rounded-lg">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Meaning
-                  </h3>
-                  <p className="text-lg text-gray-900 dark:text-white">
-                    {currentCard.grammarMeaning}
-                  </p>
-                </div>
-                {currentCard.usageNote && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Usage Note
-                    </h3>
-                    <p className="text-gray-900 dark:text-white whitespace-pre-wrap">
-                      {currentCard.usageNote}
-                    </p>
-                  </div>
-                )}
-                {currentCard.exampleSentence && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Example
-                    </h3>
-                    <p className="text-lg text-gray-900 dark:text-white mb-2">
-                      {currentCard.exampleSentence}
-                    </p>
-                    {currentCard.exampleTranslation && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {currentCard.exampleTranslation}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </>
+          </div>
         );
 
       default:
-        return <p className="text-center text-gray-600 dark:text-gray-400">Unknown card type</p>;
+        return (
+          <p className="text-center text-gray-600 dark:text-gray-400">Jenis kartu tidak dikenal</p>
+        );
+    }
+  };
+
+  const renderCardBack = () => {
+    switch (currentCard.cardType) {
+      case 'kanji':
+        return (
+          <div className="h-full flex flex-col justify-center p-8">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Arti</h3>
+                <p className="text-lg text-gray-900 dark:text-white">{currentCard.kanjiMeaning}</p>
+              </div>
+              {currentCard.onyomi && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    On&apos;yomi (音読み)
+                  </h3>
+                  <p className="text-lg text-gray-900 dark:text-white">{currentCard.onyomi}</p>
+                </div>
+              )}
+              {currentCard.kunyomi && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    Kun&apos;yomi (訓読み)
+                  </h3>
+                  <p className="text-lg text-gray-900 dark:text-white">{currentCard.kunyomi}</p>
+                </div>
+              )}
+              {currentCard.exampleSentence && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    Contoh
+                  </h3>
+                  <p className="text-lg text-gray-900 dark:text-white mb-2">
+                    {currentCard.exampleSentence}
+                  </p>
+                  {currentCard.exampleTranslation && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {currentCard.exampleTranslation}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+            {currentCard.notes && (
+              <div className="mt-6 p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg border-l-4 border-blue-400">
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                  Catatan
+                </h3>
+                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                  {currentCard.notes}
+                </p>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'vocabulary':
+        return (
+          <div className="h-full flex flex-col justify-center p-8">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Arti</h3>
+                <p className="text-lg text-gray-900 dark:text-white">{currentCard.wordMeaning}</p>
+              </div>
+              {currentCard.partOfSpeech && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    Jenis Kata
+                  </h3>
+                  <p className="text-gray-900 dark:text-white">{currentCard.partOfSpeech}</p>
+                </div>
+              )}
+              {currentCard.exampleSentence && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    Contoh
+                  </h3>
+                  <p className="text-lg text-gray-900 dark:text-white mb-2">
+                    {currentCard.exampleSentence}
+                  </p>
+                  {currentCard.exampleTranslation && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {currentCard.exampleTranslation}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+            {currentCard.notes && (
+              <div className="mt-6 p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg border-l-4 border-green-400">
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                  Catatan
+                </h3>
+                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                  {currentCard.notes}
+                </p>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'grammar':
+        return (
+          <div className="h-full flex flex-col justify-center p-8">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Arti</h3>
+                <p className="text-lg text-gray-900 dark:text-white">
+                  {currentCard.grammarMeaning}
+                </p>
+              </div>
+              {currentCard.usageNote && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    Catatan Penggunaan
+                  </h3>
+                  <p className="text-gray-900 dark:text-white whitespace-pre-wrap">
+                    {currentCard.usageNote}
+                  </p>
+                </div>
+              )}
+              {currentCard.exampleSentence && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    Contoh
+                  </h3>
+                  <p className="text-lg text-gray-900 dark:text-white mb-2">
+                    {currentCard.exampleSentence}
+                  </p>
+                  {currentCard.exampleTranslation && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {currentCard.exampleTranslation}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+            {currentCard.notes && (
+              <div className="mt-6 p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg border-l-4 border-orange-400">
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                  Catatan
+                </h3>
+                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                  {currentCard.notes}
+                </p>
+              </div>
+            )}
+          </div>
+        );
+
+      default:
+        return (
+          <p className="text-center text-gray-600 dark:text-gray-400">Jenis kartu tidak dikenal</p>
+        );
     }
   };
 
@@ -333,28 +350,34 @@ export default function DeckLearningWithSRS({
             onClick={onExit}
             className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-sm"
           >
-            Exit
+            Keluar
           </button>
         </div>
 
         {/* Statistics Bar */}
         {reviewStats && (
           <div className="mb-4 grid grid-cols-3 gap-3">
-            <Card className="p-3 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-              <div className="text-xs text-blue-600 dark:text-blue-400 mb-1">Due Today</div>
-              <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+            <Card className="p-3" style={{ backgroundColor: '#1dcddc20', borderColor: '#1dcddc' }}>
+              <div className="text-xs mb-1" style={{ color: '#1dcddc' }}>
+                Diriviw
+              </div>
+              <div className="text-2xl font-bold" style={{ color: '#1dcddc' }}>
                 {reviewStats.dueToday}
               </div>
             </Card>
-            <Card className="p-3 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
-              <div className="text-xs text-green-600 dark:text-green-400 mb-1">New Cards</div>
-              <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+            <Card className="p-3" style={{ backgroundColor: '#8bd17b20', borderColor: '#8bd17b' }}>
+              <div className="text-xs mb-1" style={{ color: '#8bd17b' }}>
+                Baru
+              </div>
+              <div className="text-2xl font-bold" style={{ color: '#8bd17b' }}>
                 {reviewStats.newCards}
               </div>
             </Card>
-            <Card className="p-3 bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800">
-              <div className="text-xs text-purple-600 dark:text-purple-400 mb-1">Total Cards</div>
-              <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+            <Card className="p-3" style={{ backgroundColor: '#4a3e7220', borderColor: '#4a3e72' }}>
+              <div className="text-xs mb-1" style={{ color: '#4a3e72' }}>
+                Total
+              </div>
+              <div className="text-2xl font-bold" style={{ color: '#4a3e72' }}>
                 {reviewStats.totalCards}
               </div>
             </Card>
@@ -363,27 +386,35 @@ export default function DeckLearningWithSRS({
 
         {/* Session Stats */}
         <div className="mb-4 grid grid-cols-4 gap-2">
-          <div className="text-center p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
-            <div className="text-xs text-red-600 dark:text-red-400">Again</div>
-            <div className="text-lg font-semibold text-red-700 dark:text-red-300">
+          <div className="text-center p-2 rounded-lg" style={{ backgroundColor: '#ff5e7520' }}>
+            <div className="text-xs" style={{ color: '#ff5e75' }}>
+              Baru
+            </div>
+            <div className="text-lg font-semibold" style={{ color: '#ff5e75' }}>
               {sessionStats.againCount}
             </div>
           </div>
-          <div className="text-center p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-            <div className="text-xs text-orange-600 dark:text-orange-400">Hard</div>
-            <div className="text-lg font-semibold text-orange-700 dark:text-orange-300">
+          <div className="text-center p-2 rounded-lg" style={{ backgroundColor: '#fdf29d20' }}>
+            <div className="text-xs" style={{ color: '#b8a24a' }}>
+              Susah
+            </div>
+            <div className="text-lg font-semibold" style={{ color: '#b8a24a' }}>
               {sessionStats.hardCount}
             </div>
           </div>
-          <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-            <div className="text-xs text-green-600 dark:text-green-400">Good</div>
-            <div className="text-lg font-semibold text-green-700 dark:text-green-300">
+          <div className="text-center p-2 rounded-lg" style={{ backgroundColor: '#8bd17b20' }}>
+            <div className="text-xs" style={{ color: '#8bd17b' }}>
+              Oke
+            </div>
+            <div className="text-lg font-semibold" style={{ color: '#8bd17b' }}>
               {sessionStats.goodCount}
             </div>
           </div>
-          <div className="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <div className="text-xs text-blue-600 dark:text-blue-400">Easy</div>
-            <div className="text-lg font-semibold text-blue-700 dark:text-blue-300">
+          <div className="text-center p-2 rounded-lg" style={{ backgroundColor: '#1dcddc20' }}>
+            <div className="text-xs" style={{ color: '#1dcddc' }}>
+              Gampang
+            </div>
+            <div className="text-lg font-semibold" style={{ color: '#1dcddc' }}>
               {sessionStats.easyCount}
             </div>
           </div>
@@ -393,114 +424,180 @@ export default function DeckLearningWithSRS({
         <div className="mb-6">
           <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
             <span>
-              Card {currentIndex + 1} of {totalCards}
+              Kartu {currentIndex + 1} dari {totalCards}
             </span>
-            <span>{progress}% reviewed</span>
+            <span>{progress}% diriviw</span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div
-              className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
+              className="h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progress}%`, backgroundColor: '#1dcddc' }}
             />
           </div>
         </div>
 
-        {/* Card */}
-        <Card className="p-8 mb-6 min-h-[400px] flex flex-col justify-between">
-          <div>{renderCardContent()}</div>
+        {/* Flip Card Container - Portrait */}
+        <div className="mb-6 perspective-1000 max-w-sm mx-auto">
+          <div
+            onClick={handleFlipCard}
+            className={`relative w-full aspect-[3/4] transition-transform duration-700 transform-style-3d cursor-pointer ${
+              showAnswer ? 'rotate-y-180' : ''
+            }`}
+            style={{
+              transformStyle: 'preserve-3d',
+              transition: 'transform 0.7s cubic-bezier(0.4, 0.0, 0.2, 1)',
+            }}
+          >
+            {/* Front of Card */}
+            <Card
+              className="absolute inset-0 backface-hidden overflow-hidden rounded-2xl shadow-xl"
+              style={{
+                backfaceVisibility: 'hidden',
+                backgroundColor: '#1dcddc',
+              }}
+            >
+              {renderCardFront()}
+            </Card>
 
-          {/* Notes */}
-          {showAnswer && currentCard.notes && (
-            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border-l-4 border-gray-400">
-              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Notes</h3>
-              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                {currentCard.notes}
-              </p>
-            </div>
-          )}
-        </Card>
+            {/* Back of Card */}
+            <Card
+              className="absolute inset-0 backface-hidden rotate-y-180 overflow-auto rounded-2xl shadow-xl"
+              style={{
+                backfaceVisibility: 'hidden',
+                transform: 'rotateY(180deg)',
+                backgroundColor: '#fafafa',
+              }}
+            >
+              {renderCardBack()}
+            </Card>
+          </div>
+        </div>
+
+        {/* Custom CSS for flip animation */}
+        <style jsx>{`
+          .perspective-1000 {
+            perspective: 1000px;
+          }
+          .transform-style-3d {
+            transform-style: preserve-3d;
+          }
+          .backface-hidden {
+            backface-visibility: hidden;
+          }
+          .rotate-y-180 {
+            transform: rotateY(180deg);
+          }
+        `}</style>
 
         {/* Controls */}
-        {!showAnswer ? (
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handlePrevious}
-              disabled={currentIndex === 0}
-              className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              title="Previous card"
+        <div className="max-w-sm mx-auto space-y-4">
+          <button
+            onClick={handleFlipCard}
+            className="w-full p-4 rounded-lg text-white transition-colors flex items-center justify-center shadow-lg"
+            style={{ backgroundColor: '#ff5e75' }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#e54d66')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#ff5e75')}
+            title={showAnswer ? 'Flip to front' : 'Turn over'}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-gray-700 dark:text-gray-300"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+          </button>
+
+          {/* Rating Buttons - Always Visible */}
+          <div className="grid grid-cols-4 gap-3">
+            <button
+              onClick={() => handleRating('again')}
+              disabled={submittingRating || !showAnswer}
+              className="flex items-center justify-center py-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: submittingRating || !showAnswer ? '#f5f5f5' : '#ff5e75',
+                color: submittingRating || !showAnswer ? '#999' : '#fff',
+              }}
+              onMouseEnter={e => {
+                if (!submittingRating && showAnswer)
+                  e.currentTarget.style.backgroundColor = '#e54d66';
+              }}
+              onMouseLeave={e => {
+                if (!submittingRating && showAnswer)
+                  e.currentTarget.style.backgroundColor = '#ff5e75';
+              }}
+            >
+              <span className="text-sm font-semibold">Baru</span>
             </button>
 
-            <Button onClick={handleShowAnswer} className="flex-1" variant="default">
-              Show Answer
-            </Button>
+            <button
+              onClick={() => handleRating('hard')}
+              disabled={submittingRating || !showAnswer}
+              className="flex items-center justify-center py-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: submittingRating || !showAnswer ? '#f5f5f5' : '#fdf29d',
+                color: submittingRating || !showAnswer ? '#999' : '#333',
+              }}
+              onMouseEnter={e => {
+                if (!submittingRating && showAnswer)
+                  e.currentTarget.style.backgroundColor = '#fcee7a';
+              }}
+              onMouseLeave={e => {
+                if (!submittingRating && showAnswer)
+                  e.currentTarget.style.backgroundColor = '#fdf29d';
+              }}
+            >
+              <span className="text-sm font-semibold">Susah</span>
+            </button>
+
+            <button
+              onClick={() => handleRating('good')}
+              disabled={submittingRating || !showAnswer}
+              className="flex items-center justify-center py-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: submittingRating || !showAnswer ? '#f5f5f5' : '#8bd17b',
+                color: submittingRating || !showAnswer ? '#999' : '#fff',
+              }}
+              onMouseEnter={e => {
+                if (!submittingRating && showAnswer)
+                  e.currentTarget.style.backgroundColor = '#7bc169';
+              }}
+              onMouseLeave={e => {
+                if (!submittingRating && showAnswer)
+                  e.currentTarget.style.backgroundColor = '#8bd17b';
+              }}
+            >
+              <span className="text-sm font-semibold">Oke</span>
+            </button>
+
+            <button
+              onClick={() => handleRating('easy')}
+              disabled={submittingRating || !showAnswer}
+              className="flex items-center justify-center py-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: submittingRating || !showAnswer ? '#f5f5f5' : '#1dcddc',
+                color: submittingRating || !showAnswer ? '#999' : '#fff',
+              }}
+              onMouseEnter={e => {
+                if (!submittingRating && showAnswer)
+                  e.currentTarget.style.backgroundColor = '#18b8c6';
+              }}
+              onMouseLeave={e => {
+                if (!submittingRating && showAnswer)
+                  e.currentTarget.style.backgroundColor = '#1dcddc';
+              }}
+            >
+              <span className="text-sm font-semibold">Gampang</span>
+            </button>
           </div>
-        ) : (
-          <div className="space-y-4">
-            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-              How well did you know this?
-            </p>
-            <div className="grid grid-cols-4 gap-2">
-              <button
-                onClick={() => handleRating('again')}
-                disabled={submittingRating}
-                className="flex flex-col items-center justify-center p-4 rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 border-2 border-red-200 dark:border-red-800 transition-colors disabled:opacity-50"
-              >
-                <span className="text-2xl mb-2">❌</span>
-                <span className="text-sm font-semibold text-red-700 dark:text-red-300">Again</span>
-                <span className="text-xs text-red-600 dark:text-red-400">{'<1 min'}</span>
-              </button>
-
-              <button
-                onClick={() => handleRating('hard')}
-                disabled={submittingRating}
-                className="flex flex-col items-center justify-center p-4 rounded-lg bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/20 dark:hover:bg-orange-900/30 border-2 border-orange-200 dark:border-orange-800 transition-colors disabled:opacity-50"
-              >
-                <span className="text-2xl mb-2">🤔</span>
-                <span className="text-sm font-semibold text-orange-700 dark:text-orange-300">
-                  Hard
-                </span>
-                <span className="text-xs text-orange-600 dark:text-orange-400">{'<10 min'}</span>
-              </button>
-
-              <button
-                onClick={() => handleRating('good')}
-                disabled={submittingRating}
-                className="flex flex-col items-center justify-center p-4 rounded-lg bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30 border-2 border-green-200 dark:border-green-800 transition-colors disabled:opacity-50"
-              >
-                <span className="text-2xl mb-2">✅</span>
-                <span className="text-sm font-semibold text-green-700 dark:text-green-300">
-                  Good
-                </span>
-                <span className="text-xs text-green-600 dark:text-green-400">{'<1 day'}</span>
-              </button>
-
-              <button
-                onClick={() => handleRating('easy')}
-                disabled={submittingRating}
-                className="flex flex-col items-center justify-center p-4 rounded-lg bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 border-2 border-blue-200 dark:border-blue-800 transition-colors disabled:opacity-50"
-              >
-                <span className="text-2xl mb-2">🎯</span>
-                <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">Easy</span>
-                <span className="text-xs text-blue-600 dark:text-blue-400">{'4 days'}</span>
-              </button>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

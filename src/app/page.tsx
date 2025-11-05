@@ -19,15 +19,15 @@ export default function Home() {
                 <div className="h-10 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
               ) : user ? (
                 <Link href="/dashboard">
-                  <Button>Dashboard</Button>
+                  <Button>Dasbor</Button>
                 </Link>
               ) : (
                 <>
                   <Link href="/login">
-                    <Button variant="secondary">Sign In</Button>
+                    <Button variant="secondary">Masuk</Button>
                   </Link>
                   <Link href="/login">
-                    <Button>Get Started</Button>
+                    <Button>Mulai</Button>
                   </Link>
                 </>
               )}
@@ -40,32 +40,32 @@ export default function Home() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center">
           <h2 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-            Master Japanese Through
+            Kuasai Bahasa Jepang Melalui
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-              AI-Powered Conversations
+              Percakapan Bertenaga AI
             </span>
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-            Enhance your Japanese speaking skills through task-based interactive roleplay
-            conversations powered by advanced AI technology.
+            Tingkatkan kemampuan berbicara bahasa Jepang Anda melalui percakapan roleplay interaktif
+            berbasis tugas yang didukung oleh teknologi AI canggih.
           </p>
           <div className="flex gap-4 justify-center">
             {!loading && !user && (
               <>
                 <Link href="/login">
                   <Button size="lg" className="text-lg px-8 py-6">
-                    Start Learning Free
+                    Mulai Belajar Gratis
                   </Button>
                 </Link>
                 <Button size="lg" variant="secondary" className="text-lg px-8 py-6">
-                  Watch Demo
+                  Lihat Demo
                 </Button>
               </>
             )}
             {!loading && user && (
               <Link href="/dashboard">
                 <Button size="lg" className="text-lg px-8 py-6">
-                  Go to Dashboard
+                  Ke Dasbor
                 </Button>
               </Link>
             )}
@@ -77,33 +77,33 @@ export default function Home() {
           <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg">
             <div className="text-4xl mb-4">🎯</div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-              Task-Based Learning
+              Pembelajaran Berbasis Tugas
             </h3>
             <p className="text-gray-600 dark:text-gray-300">
-              Practice Japanese through real-world scenarios and interactive tasks designed to
-              improve your practical language skills.
+              Latih bahasa Jepang melalui skenario dunia nyata dan tugas interaktif yang dirancang
+              untuk meningkatkan keterampilan bahasa praktis Anda.
             </p>
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg">
             <div className="text-4xl mb-4">🤖</div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-              AI Characters
+              Karakter AI
             </h3>
             <p className="text-gray-600 dark:text-gray-300">
-              Engage in natural conversations with AI-powered characters that adapt to your learning
-              level and interests.
+              Terlibat dalam percakapan alami dengan karakter bertenaga AI yang menyesuaikan dengan
+              tingkat pembelajaran dan minat Anda.
             </p>
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg">
             <div className="text-4xl mb-4">🎙️</div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-              Voice Recognition
+              Pengenalan Suara
             </h3>
             <p className="text-gray-600 dark:text-gray-300">
-              Improve your pronunciation with advanced voice recognition technology and get instant
-              feedback on your speaking.
+              Tingkatkan pengucapan Anda dengan teknologi pengenalan suara canggih dan dapatkan
+              umpan balik instan tentang cara bicara Anda.
             </p>
           </div>
         </div>

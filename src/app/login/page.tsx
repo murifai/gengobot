@@ -40,10 +40,12 @@ export default function LoginPage() {
       <Card className="w-full max-w-md p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            {isLogin ? 'Welcome Back' : 'Create Account'}
+            {isLogin ? 'Selamat Datang Kembali' : 'Buat Akun'}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            {isLogin ? 'Sign in to continue to GengoBot' : 'Sign up to get started with GengoBot'}
+            {isLogin
+              ? 'Masuk untuk melanjutkan ke GengoBot'
+              : 'Daftar untuk memulai dengan GengoBot'}
           </p>
         </div>
 
@@ -53,7 +55,7 @@ export default function LoginPage() {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
-              Email
+              Surel
             </label>
             <Input
               id="email"
@@ -71,7 +73,7 @@ export default function LoginPage() {
               htmlFor="password"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
-              Password
+              Kata Sandi
             </label>
             <Input
               id="password"
@@ -92,7 +94,7 @@ export default function LoginPage() {
           )}
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Loading...' : isLogin ? 'Sign In' : 'Sign Up'}
+            {loading ? 'Memuat...' : isLogin ? 'Masuk' : 'Daftar'}
           </Button>
         </form>
 
@@ -103,7 +105,7 @@ export default function LoginPage() {
             className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
             disabled={loading}
           >
-            {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+            {isLogin ? 'Belum punya akun? Daftar' : 'Sudah punya akun? Masuk'}
           </button>
         </div>
       </Card>

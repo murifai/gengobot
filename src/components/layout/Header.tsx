@@ -12,10 +12,10 @@ export default function Header({ className }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/task-chat', label: 'Task Chat' },
-    { href: '/progress', label: 'Progress' },
-    { href: '/settings', label: 'Settings' },
+    { href: '/dashboard', label: 'Dasbor' },
+    { href: '/task-chat', label: 'Obrolan Tugas' },
+    { href: '/progress', label: 'Kemajuan' },
+    { href: '/settings', label: 'Pengaturan' },
   ];
 
   return (
