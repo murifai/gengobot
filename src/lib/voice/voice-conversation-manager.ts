@@ -195,6 +195,13 @@ export class VoiceConversationManager {
    */
   async startRecording(): Promise<void> {
     try {
+      // Check if getUserMedia is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error(
+          'getUserMedia is not available. Please use HTTPS or check browser compatibility.'
+        );
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       this.mediaRecorder = new MediaRecorder(stream);
       this.audioChunks = [];

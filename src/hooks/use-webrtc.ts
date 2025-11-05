@@ -494,6 +494,13 @@ export default function useWebRTCAudioSession(
    */
   async function startSession() {
     try {
+      // Check if getUserMedia is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error(
+          'getUserMedia is not available. Please use HTTPS or check browser compatibility.'
+        );
+      }
+
       setStatus('Requesting microphone access...');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioStreamRef.current = stream;

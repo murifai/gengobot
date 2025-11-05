@@ -61,7 +61,7 @@ export default function WebRTCChatPage() {
           <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
             <div className="flex items-center gap-3">
               <MessageSquare className="h-6 w-6 text-primary" />
-              <h1 className="text-2xl font-bold">Voice Chat Assistant</h1>
+              <h1 className="text-2xl font-bold">Percakapan bebas</h1>
             </div>
             {isSessionActive && (
               <Badge variant="default" className="animate-pulse">
@@ -76,8 +76,7 @@ export default function WebRTCChatPage() {
             <ScrollArea className="flex-1 p-4">
               {conversation.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 dark:text-gray-400">
-                  <Mic className="h-12 w-12 mb-4 opacity-50" />
-                  <p className="text-lg">Start a session to begin your conversation</p>
+                  <p className="text-lg">Tap ikon mikrofon untuk memulai percakapan</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -171,9 +170,7 @@ export default function WebRTCChatPage() {
                   )}
                 </div>
                 <div className="flex-1">
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                    {status || 'Ready to connect'}
-                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1"></div>
                   <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <motion.div
                       className="h-full bg-green-500"
@@ -193,13 +190,12 @@ export default function WebRTCChatPage() {
               >
                 {isSessionActive ? (
                   <>
-                    <MicOff className="mr-2 h-5 w-5" />
-                    End Session
+                    <MicOff className="mr-2 h-5 w-5 font-black" />
+                    Hentikan
                   </>
                 ) : (
                   <>
                     <Mic className="mr-2 h-5 w-5" />
-                    Start Session
                   </>
                 )}
               </Button>

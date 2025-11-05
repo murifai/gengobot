@@ -18,11 +18,23 @@ export default function StudyPage() {
             Browse flashcard decks and practice with spaced repetition
           </p>
         </div>
-        <Link href="/study/stats">
-          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-            View Statistics
-          </button>
-        </Link>
+        <div className="flex gap-3">
+          <Link href="/study/decks/new">
+            <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+              Create Deck
+            </button>
+          </Link>
+          <Link href="/study/my-decks">
+            <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
+              My Decks
+            </button>
+          </Link>
+          <Link href="/study/stats">
+            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+              View Statistics
+            </button>
+          </Link>
+        </div>
       </div>
 
       <Suspense

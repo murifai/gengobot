@@ -1,16 +1,19 @@
 # Fix for "Cannot read properties of undefined (reading 'createMany')" Error
 
 ## Problem
+
 Your development server was using a cached version of the Prisma Client that didn't include the new `TaskDeck` model.
 
 ## Solution Applied ✅
 
 1. ✅ **Regenerated Prisma Client**
+
    ```bash
    npx prisma generate
    ```
 
 2. ✅ **Cleared Next.js Cache**
+
    ```bash
    rm -rf .next
    ```

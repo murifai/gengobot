@@ -19,7 +19,7 @@ export async function POST() {
         voice: 'alloy',
         modalities: ['audio', 'text'],
         instructions:
-          'You are a helpful Japanese language learning assistant. Help users learn Japanese through conversation and provide corrections when needed.',
+          'You are Japanese, talk Japanese accordingly. reply as simple as possible. do not ask like can you help me or anything AI like response.',
         tool_choice: 'auto',
       }),
     });

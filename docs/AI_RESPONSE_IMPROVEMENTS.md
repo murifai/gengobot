@@ -1,13 +1,16 @@
 # AI Response Improvements
 
 ## Problem
+
 The AI was responding with generic, unnatural responses like:
+
 ```
 User: こんにちは。
 AI: こんにちは。に対する応答です。
 ```
 
 This happened because:
+
 1. The voice route had a placeholder response: `${transcription.transcript}に対する応答です。`
 2. The message route lacked specific character roleplay context
 3. No clear conversation stage guidance
@@ -19,6 +22,7 @@ This happened because:
 **File**: [src/lib/ai/task-response-generator.ts](src/lib/ai/task-response-generator.ts)
 
 This centralized utility provides:
+
 - **Character role determination** based on task scenario
 - **Conversation stage tracking** (opening, early, middle, closing)
 - **Context-aware prompting** for natural roleplay
@@ -27,10 +31,12 @@ This centralized utility provides:
 ### 2. Character Role Detection
 
 The system now automatically detects the appropriate character based on:
+
 - Task category (Jalan-jalan, Keseharian, Pekerjaan)
 - Scenario keywords (駅/station, レストラン/restaurant, 店/shop, etc.)
 
 **Supported Characters**:
+
 - 駅員 (えきいん / station attendant) - for train stations
 - ウェイター/ウェイトレス - for restaurants
 - 店員 (てんいん / shop clerk) - for shops
@@ -76,29 +82,35 @@ GUIDELINES:
 The AI adapts its behavior based on conversation stage:
 
 **Opening** (0 messages):
+
 - "If they greet you, respond naturally in character"
 - Expects こんにちは, すみません, etc.
 
 **Early** (1-2 messages):
+
 - "Listen to what the student needs"
 - Help establish the conversation flow
 
 **Middle** (3+ messages):
+
 - "Continue assisting with questions"
 - Main conversation body
 
 **Closing** (objectives completed):
+
 - "Wrap up naturally if appropriate"
 - Natural conversation ending
 
 ### 5. Updated API Routes
 
 **Text Message Route**: [src/app/api/task-attempts/[attemptId]/message/route.ts](src/app/api/task-attempts/[attemptId]/message/route.ts)
+
 - Now uses `generateTaskResponse()` utility
 - Removed duplicated prompt logic
 - Consistent with voice route
 
 **Voice Route**: [src/app/api/task-attempts/[attemptId]/voice/route.ts](src/app/api/task-attempts/[attemptId]/voice/route.ts)
+
 - Replaced placeholder response with actual OpenAI call
 - Uses same `generateTaskResponse()` utility
 - Ensures voice and text responses are consistent
@@ -106,6 +118,7 @@ The AI adapts its behavior based on conversation stage:
 ## Expected Behavior Now
 
 ### Example 1: Station Scenario
+
 **Scenario**: "Kamu sedang berada di peron stasiun. Tujuanmu adalah Stasiun Tokyo..."
 
 ```
@@ -116,6 +129,7 @@ AI: こんにちは！何かお手伝いしましょうか？(Hello! Can I help 
 The AI responds as a station attendant would - politely acknowledging the greeting and offering assistance.
 
 ### Example 2: Continuing Conversation
+
 ```
 User: すみません、この電車は東京駅に止まりますか？
 AI: はい、止まります。東京駅は次の次の駅です。(Yes, it stops there. Tokyo Station is two stops from here.)
@@ -124,6 +138,7 @@ AI: はい、止まります。東京駅は次の次の駅です。(Yes, it stop
 The AI stays in character and provides relevant information.
 
 ### Example 3: Restaurant Scenario
+
 If the scenario involves a restaurant:
 
 ```
@@ -147,6 +162,7 @@ The AI adapts to the restaurant context.
 To test the improvements:
 
 1. **Start fresh** (incomplete attempts cleared):
+
    ```bash
    npx tsx scripts/clear-incomplete-attempts.ts
    ```
@@ -182,6 +198,7 @@ if (scenario.includes('病院') || scenario.includes('hospital')) {
 ### Adjusting Response Length
 
 In the system prompt, modify:
+
 ```
 7. Keep responses concise (2-3 sentences maximum unless asked to elaborate)
 ```
@@ -191,6 +208,7 @@ Change "2-3 sentences" to your preferred length.
 ### Changing AI Model
 
 In the `generateTaskResponse` function:
+
 ```typescript
 const completion = await openai.chat.completions.create({
   model: 'gpt-4', // Change to 'gpt-4-turbo', 'gpt-3.5-turbo', etc.
