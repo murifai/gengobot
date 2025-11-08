@@ -20,6 +20,15 @@ interface UseWebRTCAudioSessionReturn {
   currentVolume: number;
   conversation: Conversation[];
   sendTextMessage: (text: string) => void;
+  // Push-to-Talk functions
+  isPushToTalkActive: boolean;
+  startPushToTalk: () => void;
+  stopPushToTalk: () => void;
+  // Token & Timer tracking
+  inputTokens: number;
+  outputTokens: number;
+  sessionDuration: number;
+  estimatedCost: number;
 }
 
 /**
@@ -62,6 +71,17 @@ export default function useWebRTCAudioSession(
    */
   const ephemeralUserMessageIdRef = useRef<string | null>(null);
 
+  // Push-to-Talk state (PTT only mode)
+  const [isPushToTalkActive, setIsPushToTalkActive] = useState(false);
+
+  // Token & Timer tracking
+  const [inputTokens, setInputTokens] = useState(0);
+  const [outputTokens, setOutputTokens] = useState(0);
+  const [sessionDuration, setSessionDuration] = useState(0);
+  const [estimatedCost, setEstimatedCost] = useState(0);
+  const sessionStartTimeRef = useRef<number | null>(null);
+  const timerIntervalRef = useRef<number | null>(null);
+
   /**
    * Register a function (tool) so the AI can call it.
    */
@@ -73,7 +93,7 @@ export default function useWebRTCAudioSession(
    * Configure the data channel on open, sending a session update to the server.
    */
   function configureDataChannel(dataChannel: RTCDataChannel) {
-    // Send session update with server VAD enabled for transcription
+    // Send session update - VAD only enabled in 'vad' mode
     const sessionUpdate: {
       type: string;
       session: {
@@ -87,21 +107,18 @@ export default function useWebRTCAudioSession(
           threshold: number;
           prefix_padding_ms: number;
           silence_duration_ms: number;
-        };
+        } | null;
       };
     } = {
       type: 'session.update',
       session: {
         modalities: ['text', 'audio'],
+        // Whisper transcription enabled for text transcripts
         input_audio_transcription: {
           model: 'whisper-1',
         },
-        turn_detection: {
-          type: 'server_vad',
-          threshold: 0.5,
-          prefix_padding_ms: 300,
-          silence_duration_ms: 700,
-        },
+        // PTT mode only - no server VAD (saves ~50-75% tokens)
+        turn_detection: null,
       },
     };
 
@@ -112,7 +129,7 @@ export default function useWebRTCAudioSession(
 
     dataChannel.send(JSON.stringify(sessionUpdate));
 
-    console.log('Session update sent:', sessionUpdate);
+    console.log('Session update sent (PTT mode):', sessionUpdate);
   }
 
   /**
@@ -347,13 +364,30 @@ export default function useWebRTCAudioSession(
           console.log('response.done event:', msg.response);
           console.log('response.done usage:', msg.response?.usage);
 
-          // Try to extract user transcript from usage.input_audio_tokens or other fields
-          if (msg.response?.usage?.input_audio_tokens) {
-            console.log('Audio tokens detected in response');
-          }
+          // Track token usage and calculate cost
+          if (msg.response?.usage) {
+            const usage = msg.response.usage;
+            const inputAudioTokens = usage.input_tokens || usage.input_audio_tokens || 0;
+            const outputAudioTokens = usage.output_tokens || usage.output_audio_tokens || 0;
 
-          // Log the full response structure to help debug
-          console.log('Full response structure:', JSON.stringify(msg.response, null, 2));
+            setInputTokens(prev => prev + inputAudioTokens);
+            setOutputTokens(prev => prev + outputAudioTokens);
+
+            // Calculate cost (gpt-realtime-mini-2025-10-06)
+            // Audio input: $0.036/min, Audio output: $0.091/min
+            // ~400-500 tokens per second of audio
+            const inputMinutes = inputAudioTokens / (450 * 60); // ~450 tokens/sec
+            const outputMinutes = outputAudioTokens / (450 * 60);
+            const cost = inputMinutes * 0.036 + outputMinutes * 0.091;
+
+            setEstimatedCost(prev => prev + cost);
+
+            console.log('Token usage:', {
+              input: inputAudioTokens,
+              output: outputAudioTokens,
+              cost: `$${cost.toFixed(4)}`,
+            });
+          }
           break;
         }
 
@@ -559,7 +593,7 @@ export default function useWebRTCAudioSession(
 
       // Send SDP offer to OpenAI Realtime
       const baseUrl = 'https://api.openai.com/v1/realtime';
-      const model = 'gpt-4o-realtime-preview-2024-12-17';
+      const model = 'gpt-realtime-mini-2025-10-06';
       const response = await fetch(`${baseUrl}?model=${model}&voice=${voice}`, {
         method: 'POST',
         body: offer.sdp,
@@ -575,6 +609,15 @@ export default function useWebRTCAudioSession(
 
       setIsSessionActive(true);
       setStatus('Session established successfully!');
+
+      // Start timer
+      sessionStartTimeRef.current = Date.now();
+      timerIntervalRef.current = window.setInterval(() => {
+        if (sessionStartTimeRef.current) {
+          const duration = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
+          setSessionDuration(duration);
+        }
+      }, 1000);
     } catch (err) {
       console.error('startSession error:', err);
       setStatus(`Error: ${err}`);
@@ -609,6 +652,10 @@ export default function useWebRTCAudioSession(
       clearInterval(volumeIntervalRef.current);
       volumeIntervalRef.current = null;
     }
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
     analyserRef.current = null;
 
     ephemeralUserMessageIdRef.current = null;
@@ -617,7 +664,8 @@ export default function useWebRTCAudioSession(
     setIsSessionActive(false);
     setStatus('Session stopped');
     setMsgs([]);
-    setConversation([]);
+    // DON'T clear conversation - preserve chat history after session ends
+    // setConversation([]);
   }
 
   /**
@@ -701,6 +749,41 @@ export default function useWebRTCAudioSession(
     dataChannelRef.current.send(JSON.stringify(response));
   }
 
+  /**
+   * Start Push-to-Talk recording
+   * Creates ephemeral user message and starts recording audio
+   */
+  function startPushToTalk() {
+    if (!isSessionActive || !dataChannelRef.current) {
+      console.warn('Cannot start PTT: session not active');
+      return;
+    }
+
+    setIsPushToTalkActive(true);
+
+    // Create ephemeral user message
+    getOrCreateEphemeralUserId();
+
+    console.log('🎤 PTT: Recording started');
+  }
+
+  /**
+   * Stop Push-to-Talk recording
+   * Commits audio buffer and triggers AI response
+   */
+  function stopPushToTalk() {
+    if (!isSessionActive || !dataChannelRef.current) {
+      return;
+    }
+
+    setIsPushToTalkActive(false);
+
+    // Commit the audio buffer to trigger AI response
+    commitAudioBuffer();
+
+    console.log('🛑 PTT: Recording stopped, processing...');
+  }
+
   // Cleanup on unmount
   useEffect(() => {
     return () => stopSession();
@@ -719,5 +802,14 @@ export default function useWebRTCAudioSession(
     currentVolume,
     conversation,
     sendTextMessage,
+    // Push-to-Talk functions
+    isPushToTalkActive,
+    startPushToTalk,
+    stopPushToTalk,
+    // Token & Timer tracking
+    inputTokens,
+    outputTokens,
+    sessionDuration,
+    estimatedCost,
   };
 }
