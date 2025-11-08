@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getCurrentSessionUser } from '@/lib/auth/session';
 import { prisma } from '@/lib/prisma';
 import { CharacterService } from '@/lib/character/character-service';
 import { CharacterCreationData } from '@/types/character';
@@ -42,18 +42,15 @@ export async function GET(request: NextRequest) {
 // POST /api/characters - Create new character
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const sessionUser = await getCurrentSessionUser();
 
-    if (!user) {
+    if (!sessionUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get the database user ID from authId
+    // Get the database user ID from email
     const dbUser = await prisma.user.findUnique({
-      where: { authId: user.id },
+      where: { email: sessionUser.email! },
       select: { id: true },
     });
 
@@ -63,7 +60,10 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    const character = await CharacterService.createCharacter(dbUser.id, body as CharacterCreationData);
+    const character = await CharacterService.createCharacter(
+      dbUser.id,
+      body as CharacterCreationData
+    );
 
     return NextResponse.json(character, { status: 201 });
   } catch (error) {

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 import { redirect } from 'next/navigation';
 import PreTaskStudyClient from './PreTaskStudyClient';
 
@@ -8,14 +8,11 @@ export default async function PreTaskStudyPage({
   params: Promise<{ taskId: string }>;
 }) {
   const { taskId } = await params;
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await auth();
+  const user = session?.user;
 
   if (!user) {
-    redirect('/auth/login');
+    redirect('/login');
   }
 
   return <PreTaskStudyClient user={user} taskId={taskId} />;

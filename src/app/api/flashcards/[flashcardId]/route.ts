@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { createClient } from '@/lib/supabase/server';
+import { getCurrentSessionUser } from '@/lib/auth/session';
 import { CardType } from '@/types/deck';
 
 // GET /api/flashcards/[flashcardId] - Get a specific flashcard
@@ -11,12 +11,9 @@ export async function GET(
   try {
     const { flashcardId } = await params;
 
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const sessionUser = await getCurrentSessionUser();
 
-    if (!user) {
+    if (!sessionUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -52,17 +49,14 @@ export async function PUT(
   try {
     const { flashcardId } = await params;
 
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const sessionUser = await getCurrentSessionUser();
 
-    if (!user) {
+    if (!sessionUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const dbUser = await prisma.user.findUnique({
-      where: { email: user.email! },
+      where: { email: sessionUser.email! },
     });
 
     if (!dbUser) {
@@ -155,17 +149,14 @@ export async function DELETE(
   try {
     const { flashcardId } = await params;
 
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const sessionUser = await getCurrentSessionUser();
 
-    if (!user) {
+    if (!sessionUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const dbUser = await prisma.user.findUnique({
-      where: { email: user.email! },
+      where: { email: sessionUser.email! },
     });
 
     if (!dbUser) {

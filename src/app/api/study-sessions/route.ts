@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getCurrentSessionUser } from '@/lib/auth/session';
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -8,28 +8,16 @@ import { prisma } from '@/lib/prisma';
  */
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const sessionUser = await getCurrentSessionUser();
 
-    if (!user?.id) {
+    if (!sessionUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user from database - support both authId (UUID) and id (CUID) formats
-    let dbUser = await prisma.user.findUnique({
-      where: { authId: user.id },
+    const dbUser = await prisma.user.findUnique({
+      where: { email: sessionUser.email! },
       select: { id: true, email: true, name: true },
     });
-
-    // Fallback to email lookup if authId lookup fails
-    if (!dbUser && user.email) {
-      dbUser = await prisma.user.findUnique({
-        where: { email: user.email },
-        select: { id: true, email: true, name: true },
-      });
-    }
 
     if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });

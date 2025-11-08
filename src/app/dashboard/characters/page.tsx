@@ -1,17 +1,22 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import CharactersClient from './CharactersClient'
+import { redirect } from 'next/navigation';
+import { auth } from '@/lib/auth/auth';
+import { User } from '@/types/user';
+import CharactersClient from './CharactersClient';
 
 export default async function CharactersPage() {
-  const supabase = await createClient()
+  const session = await auth();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
+  if (!session?.user?.email) {
+    redirect('/login');
   }
 
-  return <CharactersClient user={user} />
+  const user: User = {
+    id: session.user.id,
+    email: session.user.email,
+    name: session.user.name,
+    image: session.user.image,
+    isAdmin: session.user.isAdmin,
+  };
+
+  return <CharactersClient user={user} />;
 }
