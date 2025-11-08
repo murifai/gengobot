@@ -1,15 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import useWebRTCAudioSession from '@/hooks/use-webrtc';
 import { Tool } from '@/types/conversation';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion } from 'framer-motion';
-import { Mic, MicOff, Send, MessageSquare, Volume2, VolumeX } from 'lucide-react';
+import { Mic, Send } from 'lucide-react';
 
 const tools: Tool[] = [
   {
@@ -25,19 +24,24 @@ const tools: Tool[] = [
 ];
 
 export default function WebRTCChatPage() {
-  // State for voice selection
   const [voice] = useState('alloy');
   const [textInput, setTextInput] = useState('');
 
   // WebRTC Audio Session Hook
   const {
-    status,
     isSessionActive,
-    audioIndicatorRef,
     handleStartStopClick,
     conversation,
     sendTextMessage,
-    currentVolume,
+    // Push-to-Talk
+    isPushToTalkActive,
+    startPushToTalk,
+    stopPushToTalk,
+    // Token & Timer
+    inputTokens,
+    outputTokens,
+    sessionDuration,
+    estimatedCost,
   } = useWebRTCAudioSession(voice, tools);
 
   const handleSendText = (e: React.FormEvent) => {
@@ -48,6 +52,43 @@ export default function WebRTCChatPage() {
     }
   };
 
+  // Format duration as MM:SS
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Spacebar keyboard shortcut for PTT
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.code === 'Space' && isSessionActive && !isPushToTalkActive) {
+        e.preventDefault();
+        startPushToTalk();
+      }
+    },
+    [isSessionActive, isPushToTalkActive, startPushToTalk]
+  );
+
+  const handleKeyUp = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.code === 'Space' && isSessionActive && isPushToTalkActive) {
+        e.preventDefault();
+        stopPushToTalk();
+      }
+    },
+    [isSessionActive, isPushToTalkActive, stopPushToTalk]
+  );
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [handleKeyDown, handleKeyUp]);
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto max-w-4xl p-4 h-screen flex flex-col">
@@ -57,33 +98,43 @@ export default function WebRTCChatPage() {
           transition={{ duration: 0.5 }}
           className="flex flex-col h-full gap-4"
         >
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-            <div className="flex items-center gap-3">
-              <MessageSquare className="h-6 w-6 text-primary" />
-              <h1 className="text-2xl font-bold">Voice Chat Assistant</h1>
+          {/* Stats Bar */}
+          {isSessionActive && (
+            <div className="grid grid-cols-4 gap-2 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm text-sm">
+              <div className="text-center">
+                <div className="text-xs text-gray-500">Time</div>
+                <div className="font-mono font-semibold">{formatDuration(sessionDuration)}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-gray-500">Input</div>
+                <div className="font-mono font-semibold">{inputTokens.toLocaleString()}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-gray-500">Output</div>
+                <div className="font-mono font-semibold">{outputTokens.toLocaleString()}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-gray-500">Cost</div>
+                <div className="font-mono font-semibold text-green-600">
+                  ${estimatedCost.toFixed(4)}
+                </div>
+              </div>
             </div>
-            {isSessionActive && (
-              <Badge variant="default" className="animate-pulse">
-                LIVE
-              </Badge>
-            )}
-          </div>
+          )}
 
           {/* Main Chat Area */}
           <Card className="flex-1 flex flex-col overflow-hidden">
-            {/* Conversation Display */}
             <ScrollArea className="flex-1 p-4">
               {conversation.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 dark:text-gray-400">
-                  <Mic className="h-12 w-12 mb-4 opacity-50" />
-                  <p className="text-lg">Start a session to begin your conversation</p>
+                  <Mic className="h-16 w-16 mb-4 opacity-50" />
+                  <p className="text-lg font-medium">Press Space or Hold Button to Talk</p>
+                  <p className="text-sm mt-2">Push-to-Talk mode saves ~50-75% cost</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {conversation
                     .filter(msg => {
-                      // Show final messages with text, or non-final assistant messages
                       if (msg.isFinal && msg.text) return true;
                       if (msg.role === 'assistant' && !msg.isFinal) return true;
                       return false;
@@ -121,88 +172,52 @@ export default function WebRTCChatPage() {
             </ScrollArea>
 
             {/* Controls Area */}
-            <div className="border-t border-gray-200 dark:border-gray-700 p-4 space-y-4">
-              {/* Current User Transcript */}
-              {isSessionActive && conversation.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3"
-                >
-                  <div className="flex items-start gap-2">
-                    <Mic className="h-4 w-4 mt-0.5 text-blue-600 dark:text-blue-400" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">
-                        {conversation[conversation.length - 1]?.role === 'user' &&
-                        !conversation[conversation.length - 1]?.isFinal
-                          ? conversation[conversation.length - 1]?.status === 'speaking'
-                            ? 'Listening...'
-                            : conversation[conversation.length - 1]?.status === 'processing'
-                              ? 'Processing...'
-                              : 'Your message'
-                          : 'Ready to listen'}
-                      </p>
-                      {conversation[conversation.length - 1]?.role === 'user' &&
-                        !conversation[conversation.length - 1]?.isFinal && (
-                          <p className="text-sm text-gray-700 dark:text-gray-300 break-words">
-                            {conversation[conversation.length - 1]?.text || 'Speak now...'}
-                          </p>
-                        )}
-                    </div>
+            <div className="border-t border-gray-200 dark:border-gray-700 p-4 space-y-3">
+              {/* PTT Status */}
+              {isSessionActive && isPushToTalkActive && (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-2 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <Mic className="h-4 w-4 text-red-600 dark:text-red-400 animate-pulse" />
+                    <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                      Recording... Release to send
+                    </span>
                   </div>
-                </motion.div>
+                </div>
               )}
 
-              {/* Audio Indicator and Volume */}
-              <div className="flex items-center gap-4">
-                <div
-                  ref={audioIndicatorRef}
-                  className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 transition-all duration-150 flex items-center justify-center"
-                  style={{
-                    transform: `scale(${1 + currentVolume * 0.5})`,
-                    backgroundColor: currentVolume > 0.1 ? 'rgb(34, 197, 94)' : undefined,
-                  }}
-                >
-                  {currentVolume > 0.1 ? (
-                    <Volume2 className="h-4 w-4 text-white" />
-                  ) : (
-                    <VolumeX className="h-4 w-4 text-gray-500" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                    {status || 'Ready to connect'}
-                  </div>
-                  <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-green-500"
-                      initial={{ width: '0%' }}
-                      animate={{ width: `${currentVolume * 100}%` }}
-                      transition={{ duration: 0.1 }}
-                    />
-                  </div>
-                </div>
-              </div>
-
               {/* Control Buttons */}
-              <Button
-                onClick={handleStartStopClick}
-                className="w-full h-12 text-lg font-semibold"
-                variant={isSessionActive ? 'destructive' : 'default'}
-              >
-                {isSessionActive ? (
-                  <>
-                    <MicOff className="mr-2 h-5 w-5" />
+              {!isSessionActive ? (
+                <Button
+                  onClick={handleStartStopClick}
+                  className="w-full h-12 text-lg font-semibold"
+                  variant="default"
+                >
+                  <Mic className="mr-2 h-5 w-5" />
+                  Start Session
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <Button
+                    onMouseDown={startPushToTalk}
+                    onMouseUp={stopPushToTalk}
+                    onTouchStart={startPushToTalk}
+                    onTouchEnd={stopPushToTalk}
+                    className="w-full h-16 text-lg font-semibold"
+                    variant={isPushToTalkActive ? 'destructive' : 'default'}
+                  >
+                    <Mic className="mr-2 h-6 w-6" />
+                    {isPushToTalkActive ? 'Recording...' : 'Hold to Talk (or Space)'}
+                  </Button>
+                  <Button
+                    onClick={handleStartStopClick}
+                    className="w-full"
+                    variant="outline"
+                    size="sm"
+                  >
                     End Session
-                  </>
-                ) : (
-                  <>
-                    <Mic className="mr-2 h-5 w-5" />
-                    Start Session
-                  </>
-                )}
-              </Button>
+                  </Button>
+                </div>
+              )}
 
               {/* Text Input */}
               {isSessionActive && (

@@ -43,6 +43,13 @@ export class AudioRecorder {
    */
   async initialize(constraints: AudioConstraints = {}): Promise<void> {
     try {
+      // Check if getUserMedia is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error(
+          'getUserMedia is not available. Please use HTTPS or check browser compatibility.'
+        );
+      }
+
       const defaultConstraints: MediaStreamConstraints = {
         audio: {
           sampleRate: constraints.sampleRate || 48000,

@@ -33,37 +33,37 @@ import { User } from '@supabase/supabase-js';
 // Menu items
 const items = [
   {
-    title: 'Dashboard',
+    title: 'Dasbor',
     url: '/dashboard',
     icon: Home,
   },
   {
-    title: 'Tasks',
+    title: 'Tugas',
     url: '/dashboard/tasks',
     icon: GraduationCap,
   },
   {
-    title: 'Study Decks',
+    title: 'Dek Belajar',
     url: '/study',
     icon: BookOpen,
   },
   {
-    title: 'Chat',
+    title: 'Obrolan',
     url: '/dashboard/chat',
     icon: MessageSquare,
   },
   {
-    title: 'Voice Chat',
+    title: 'Obrolan Suara',
     url: '/chat-webrtc',
     icon: Mic,
   },
   {
-    title: 'Progress',
+    title: 'Kemajuan',
     url: '/dashboard/progress',
     icon: TrendingUp,
   },
   {
-    title: 'Characters',
+    title: 'Karakter',
     url: '/dashboard/characters',
     icon: Users,
   },
@@ -71,7 +71,7 @@ const items = [
 
 const bottomItems = [
   {
-    title: 'Settings',
+    title: 'Pengaturan',
     url: '/dashboard/settings',
     icon: Settings,
   },
@@ -99,7 +99,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">GengoBot</span>
-                  <span className="truncate text-xs">Language Learning</span>
+                  <span className="truncate text-xs">Belajar Bahasa</span>
                 </div>
               </a>
             </SidebarMenuButton>
@@ -109,7 +109,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
+          <SidebarGroupLabel>Menu Utama</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map(item => (
@@ -161,7 +161,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
-                  {user?.user_metadata?.full_name || 'User'}
+                  {user?.user_metadata?.full_name || 'Pengguna'}
                 </span>
                 <span className="truncate text-xs">{user?.email}</span>
               </div>

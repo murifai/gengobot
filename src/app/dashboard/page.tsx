@@ -7,48 +7,49 @@ import { Button } from '@/components/ui/Button';
 
 const dashboardCards = [
   {
-    title: 'Task-Based Learning',
-    description: 'Practice Japanese through interactive tasks and assessments',
+    title: 'Pembelajaran Berbasis Tugas',
+    description: 'Latih bahasa Jepang melalui tugas dan penilaian interaktif',
     icon: GraduationCap,
     href: '/dashboard/tasks',
-    buttonText: 'Start Learning',
+    buttonText: 'Mulai Belajar',
   },
   {
-    title: 'Study Decks',
-    description: 'Review flashcards with spaced repetition for vocabulary, kanji, and grammar',
+    title: 'Dek Belajar',
+    description:
+      'Tinjau flashcard dengan pengulangan berjarak untuk kosakata, kanji, dan tata bahasa',
     icon: BookOpen,
     href: '/study',
-    buttonText: 'Study Now',
+    buttonText: 'Belajar Sekarang',
     badge: '📚',
   },
   {
-    title: 'Free Chat Mode',
-    description: 'Have conversations with AI characters using text or voice input',
+    title: 'Mode Obrolan Bebas',
+    description: 'Lakukan percakapan dengan karakter AI menggunakan teks atau input suara',
     icon: MessageSquare,
     href: '/dashboard/chat',
-    buttonText: 'Start Chatting',
+    buttonText: 'Mulai Mengobrol',
     badges: ['💬', '🎙️'],
   },
   {
-    title: 'Progress Tracking',
-    description: 'View your learning progress and statistics',
+    title: 'Pelacakan Kemajuan',
+    description: 'Lihat kemajuan belajar dan statistik Anda',
     icon: TrendingUp,
     href: '/dashboard/progress',
-    buttonText: 'View Progress',
+    buttonText: 'Lihat Kemajuan',
   },
   {
-    title: 'Characters',
-    description: 'Create and manage your AI conversation partners',
+    title: 'Karakter',
+    description: 'Buat dan kelola mitra percakapan AI Anda',
     icon: Users,
     href: '/dashboard/characters',
-    buttonText: 'Manage Characters',
+    buttonText: 'Kelola Karakter',
   },
   {
-    title: 'Settings',
-    description: 'Customize your learning experience',
+    title: 'Pengaturan',
+    description: 'Sesuaikan pengalaman belajar Anda',
     icon: Settings,
     href: '/dashboard/settings',
-    buttonText: 'Open Settings',
+    buttonText: 'Buka Pengaturan',
   },
 ];
 
@@ -58,8 +59,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
-        <p className="text-muted-foreground">Continue your Japanese learning journey</p>
+        <h1 className="text-3xl font-bold tracking-tight">Selamat datang kembali!</h1>
+        <p className="text-muted-foreground">Lanjutkan perjalanan belajar bahasa Jepang Anda</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

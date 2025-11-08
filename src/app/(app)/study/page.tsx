@@ -13,16 +13,28 @@ export default function StudyPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Study Decks</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Dek Belajar</h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Browse flashcard decks and practice with spaced repetition
+            Jelajahi dek flashcard dan latih dengan pengulangan berjarak
           </p>
         </div>
-        <Link href="/study/stats">
-          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-            View Statistics
-          </button>
-        </Link>
+        <div className="flex gap-3">
+          <Link href="/study/decks/new">
+            <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+              Buat Dek
+            </button>
+          </Link>
+          <Link href="/study/my-decks">
+            <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
+              Dek Saya
+            </button>
+          </Link>
+          <Link href="/study/stats">
+            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+              Lihat Statistik
+            </button>
+          </Link>
+        </div>
       </div>
 
       <Suspense

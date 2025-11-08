@@ -1,6 +1,7 @@
 # Study Deck System Implementation
 
 ## Overview
+
 Successfully implemented a comprehensive Study Deck system that replaces the Prerequisites field in the Task-Based Chat feature. This allows admins to attach one or more learning decks to tasks, enabling students to study flashcards before starting chat tasks.
 
 ---
@@ -10,6 +11,7 @@ Successfully implemented a comprehensive Study Deck system that replaces the Pre
 ### Schema Updates ([prisma/schema.prisma](prisma/schema.prisma))
 
 **New Model: TaskDeck**
+
 - Join table for Task-Deck many-to-many relationship
 - Fields: `id`, `taskId`, `deckId`, `order`, `createdAt`
 - Indexes on `taskId` and `deckId`
@@ -17,13 +19,16 @@ Successfully implemented a comprehensive Study Deck system that replaces the Pre
 - Cascade deletion when Task or Deck is deleted
 
 **Task Model Updates**
+
 - Removed: `prerequisites` field (deprecated)
 - Added: `studyDecks` relation to TaskDeck model
 
 **Deck Model Updates**
+
 - Added: `taskDecks` relation to TaskDeck model
 
 ### Migration SQL ([prisma/migrations/add_task_deck_relationship.sql](prisma/migrations/add_task_deck_relationship.sql))
+
 ```sql
 CREATE TABLE "TaskDeck" (
     "id" TEXT NOT NULL,
@@ -39,6 +44,7 @@ CREATE TABLE "TaskDeck" (
 ```
 
 **To apply migration:**
+
 ```bash
 npx prisma migrate deploy
 npx prisma generate
@@ -51,6 +57,7 @@ npx prisma generate
 ### DeckSelector Component ([src/components/admin/DeckSelector.tsx](src/components/admin/DeckSelector.tsx))
 
 **Features:**
+
 - Multi-select deck interface with search functionality
 - Real-time deck preview (name, description, card count, category, difficulty)
 - Add/remove decks dynamically
@@ -59,12 +66,14 @@ npx prisma generate
 - Fetches public decks from `/api/decks?limit=100&isPublic=true`
 
 **Props:**
+
 - `selectedDeckIds: string[]` - Currently selected deck IDs
 - `onChange: (deckIds: string[]) => void` - Callback when selection changes
 
 ### TaskEditorForm Updates ([src/components/admin/TaskEditorForm.tsx](src/components/admin/TaskEditorForm.tsx))
 
 **Changes:**
+
 - Replaced Prerequisites textarea with DeckSelector component
 - Updated `TaskFormData` interface: `prerequisites` → `studyDeckIds: string[]`
 - Integrated DeckSelector into form layout
@@ -77,17 +86,20 @@ npx prisma generate
 ### Tasks API Updates
 
 **POST /api/tasks** ([src/app/api/tasks/route.ts](src/app/api/tasks/route.ts))
+
 - Accepts `studyDeckIds` array in request body
 - Creates TaskDeck associations after task creation
 - Maintains order of decks based on array index
 
 **GET /api/tasks/[taskId]** ([src/app/api/tasks/[taskId]/route.ts](src/app/api/tasks/[taskId]/route.ts))
+
 - Returns task with `studyDecks` relation
 - Includes full deck information (name, description, category, difficulty, totalCards)
 - Adds `studyDeckIds` array to response for form compatibility
 - Ordered by `order` field (ascending)
 
 **PUT /api/tasks/[taskId]** ([src/app/api/tasks/[taskId]/route.ts](src/app/api/tasks/[taskId]/route.ts))
+
 - Accepts `studyDeckIds` array in request body
 - Deletes existing TaskDeck associations
 - Creates new associations with updated deck list
@@ -96,10 +108,12 @@ npx prisma generate
 ### New API Endpoint
 
 **GET /api/tasks/[taskId]/decks** ([src/app/api/tasks/[taskId]/decks/route.ts](src/app/api/tasks/[taskId]/decks/route.ts))
+
 - Fetches all decks associated with a task
 - Includes complete flashcard data for each deck
 - Returns active flashcards only, ordered by position
 - Response format:
+
 ```json
 {
   "decks": [
@@ -124,12 +138,14 @@ npx prisma generate
 ### PreTaskStudyClient Updates ([src/app/dashboard/tasks/[taskId]/pre-study/PreTaskStudyClient.tsx](src/app/dashboard/tasks/[taskId]/pre-study/PreTaskStudyClient.tsx))
 
 **Changes:**
+
 - Removed mock vocabulary/grammar card data
 - Added `Deck` and `Flashcard` interfaces
 - Fetches real deck data from `/api/tasks/[taskId]/decks`
 - Passes decks array to PreTaskStudy component
 
 **Data Flow:**
+
 1. Fetch task details from `/api/tasks/[taskId]`
 2. Fetch associated decks from `/api/tasks/[taskId]/decks`
 3. Pass decks with flashcards to PreTaskStudy component
@@ -137,6 +153,7 @@ npx prisma generate
 ### PreTaskStudy Component Updates ([src/components/task/PreTaskStudy.tsx](src/components/task/PreTaskStudy.tsx))
 
 **Changes:**
+
 - Replaced `vocabularyCards` and `grammarCards` props with `decks` array
 - Updated study selection screen to display all task decks
 - Color-coded deck cards by category (Kanji=purple, Vocabulary=blue, Grammar=green, Mixed=orange)
@@ -145,6 +162,7 @@ npx prisma generate
 - Sequential deck progression (complete one deck before moving to next)
 
 **Study Flow:**
+
 1. **Scenario** → Display task scenario
 2. **Learning Objectives** → Show what student will learn
 3. **Study Selection** → List all available decks with option to start or skip
@@ -157,6 +175,7 @@ npx prisma generate
 **New Component for Card Study Interface**
 
 **Features:**
+
 - Supports all three card types: Kanji, Vocabulary, Grammar
 - Show/Hide answer functionality
 - Previous/Next navigation
@@ -170,6 +189,7 @@ npx prisma generate
 - Completion callback for multi-deck progression
 
 **Props:**
+
 - `deck: Deck` - Deck with flashcards to study
 - `onComplete: () => void` - Called when all cards reviewed
 - `onExit: () => void` - Called when user exits early
@@ -181,14 +201,17 @@ npx prisma generate
 All three card types from the existing deck system are fully supported:
 
 ### Kanji Cards
+
 - **Fields**: kanji, kanjiMeaning, onyomi, kunyomi, exampleSentence, exampleTranslation, notes
 - **Display**: Large kanji character (8xl font), readings, examples
 
 ### Vocabulary Cards
+
 - **Fields**: word, wordMeaning, reading, partOfSpeech, exampleSentence, exampleTranslation, notes
 - **Display**: Word with furigana, meaning, part of speech, examples
 
 ### Grammar Cards
+
 - **Fields**: grammarPoint, grammarMeaning, usageNote, exampleSentence, exampleTranslation, notes
 - **Display**: Grammar pattern, meaning, usage notes, examples
 
@@ -197,6 +220,7 @@ All three card types from the existing deck system are fully supported:
 ## 6. Key Features
 
 ### Admin Experience
+
 ✅ Replace Prerequisites with intuitive Study Deck selector
 ✅ Search and filter available public decks
 ✅ Multi-select with visual feedback
@@ -205,6 +229,7 @@ All three card types from the existing deck system are fully supported:
 ✅ Seamless integration with existing task editor
 
 ### Student Experience
+
 ✅ Optional study before task (skip or study)
 ✅ View all associated decks with metadata
 ✅ Sequential deck learning (one at a time)
@@ -214,6 +239,7 @@ All three card types from the existing deck system are fully supported:
 ✅ Smooth flow from study to task start
 
 ### Technical
+
 ✅ Modular design for reusability
 ✅ Type-safe interfaces throughout
 ✅ Efficient API queries with proper indexing
@@ -266,6 +292,7 @@ gengobot/
 ## 8. Testing Checklist
 
 ### Admin Workflow
+
 - [ ] Create new task with study decks
 - [ ] Edit existing task and add/remove decks
 - [ ] Reorder decks and verify order preservation
@@ -273,6 +300,7 @@ gengobot/
 - [ ] View task with associated decks in task list
 
 ### Student Workflow
+
 - [ ] View pre-task study screen with deck list
 - [ ] Study Kanji cards (check all fields display correctly)
 - [ ] Study Vocabulary cards (check all fields display correctly)
@@ -283,6 +311,7 @@ gengobot/
 - [ ] Complete all decks and start task
 
 ### Edge Cases
+
 - [ ] Task with no decks (should show "No study materials")
 - [ ] Deck with no cards (should handle gracefully)
 - [ ] Delete deck that's associated with task (cascade delete)
@@ -290,6 +319,7 @@ gengobot/
 - [ ] Multiple tasks using same deck
 
 ### Database
+
 - [ ] Run migration successfully
 - [ ] Verify TaskDeck table created with indexes
 - [ ] Check foreign key constraints work
@@ -300,6 +330,7 @@ gengobot/
 ## 9. Migration Steps
 
 1. **Apply Database Migration**
+
    ```bash
    npx prisma migrate deploy
    npx prisma generate
@@ -328,6 +359,7 @@ gengobot/
 ## 10. Future Enhancements
 
 ### Short-term
+
 - [ ] Add spaced repetition tracking for pre-task study
 - [ ] Save study session statistics
 - [ ] Show completion percentage per deck
@@ -335,6 +367,7 @@ gengobot/
 - [ ] Allow students to bookmark difficult cards
 
 ### Long-term
+
 - [ ] Generate deck suggestions based on task difficulty/category
 - [ ] Auto-create decks from task vocabulary
 - [ ] Track which decks students find most helpful

@@ -15,12 +15,13 @@ export async function POST() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-realtime-preview-2024-12-17',
+        model: 'gpt-realtime-mini-2025-10-06',
         voice: 'alloy',
         modalities: ['audio', 'text'],
-        instructions:
-          'You are a helpful Japanese language learning assistant. Help users learn Japanese through conversation and provide corrections when needed.',
+        instructions: '関西弁で短く答えて。1-2文で簡潔に。',
         tool_choice: 'auto',
+        // turn_detection disabled for Push-to-Talk mode (saves ~50-75% on audio tokens)
+        // User will manually control when to record audio
       }),
     });
 
