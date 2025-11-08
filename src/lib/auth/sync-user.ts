@@ -7,7 +7,8 @@ import { User as SupabaseUser } from '@supabase/supabase-js';
  */
 export async function syncUser(supabaseUser: SupabaseUser) {
   try {
-    const existingUser = await prisma.user.findUnique({
+    // First check if user exists by authId
+    let existingUser = await prisma.user.findUnique({
       where: { authId: supabaseUser.id },
     });
 
@@ -17,6 +18,22 @@ export async function syncUser(supabaseUser: SupabaseUser) {
         where: { authId: supabaseUser.id },
         data: {
           email: supabaseUser.email!,
+          name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0],
+        },
+      });
+    }
+
+    // Check if user exists by email (for seeded users without authId)
+    const userByEmail = await prisma.user.findUnique({
+      where: { email: supabaseUser.email! },
+    });
+
+    if (userByEmail) {
+      // Update existing user with authId
+      return await prisma.user.update({
+        where: { email: supabaseUser.email! },
+        data: {
+          authId: supabaseUser.id,
           name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0],
         },
       });
