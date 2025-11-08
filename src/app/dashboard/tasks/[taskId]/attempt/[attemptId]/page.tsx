@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 import TaskAttemptClient from './TaskAttemptClient';
 
 export default async function TaskAttemptPage({
@@ -8,10 +8,8 @@ export default async function TaskAttemptPage({
   params: Promise<{ taskId: string; attemptId: string }>;
 }) {
   const { taskId, attemptId } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await auth();
+  const user = session?.user;
 
   if (!user) {
     redirect('/login');

@@ -1,6 +1,6 @@
 'use client';
 
-import { User } from '@supabase/supabase-js';
+import { User } from '@/types/user';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import PreTaskStudy from '@/components/task/PreTaskStudy';
@@ -115,11 +115,15 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
         isExisting: data.isExisting,
         attemptId: data.attempt.id,
         messageCount: data.attempt.conversationHistory?.messages?.length || 0,
-        message: data.message
+        message: data.message,
       });
 
       if (data.isExisting) {
-        console.log('[PreTaskStudy] Resuming existing attempt with', data.attempt.conversationHistory?.messages?.length || 0, 'messages');
+        console.log(
+          '[PreTaskStudy] Resuming existing attempt with',
+          data.attempt.conversationHistory?.messages?.length || 0,
+          'messages'
+        );
       }
 
       router.push(`/dashboard/tasks/${taskId}/attempt/${data.attempt.id}`);

@@ -1,6 +1,6 @@
 'use client';
 
-import { User } from '@supabase/supabase-js';
+import { User } from '@/types/user';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';

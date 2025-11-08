@@ -1,17 +1,14 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import ProgressClient from './ProgressClient'
+import { redirect } from 'next/navigation';
+import { auth } from '@/lib/auth/auth';
+import ProgressClient from './ProgressClient';
 
 export default async function ProgressPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const session = await auth();
+  const user = session?.user;
 
   if (!user) {
-    redirect('/login')
+    redirect('/login');
   }
 
-  return <ProgressClient user={user} />
+  return <ProgressClient user={user} />;
 }

@@ -1,21 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { createClient } from '@/lib/supabase/server';
+import { getCurrentSessionUser } from '@/lib/auth/session';
 
 // GET /api/decks - List decks with pagination and filters
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const sessionUser = await getCurrentSessionUser();
 
-    if (!user) {
+    if (!sessionUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const dbUser = await prisma.user.findUnique({
-      where: { email: user.email! },
+      where: { email: sessionUser.email! },
     });
 
     if (!dbUser) {
@@ -138,17 +135,14 @@ export async function GET(request: NextRequest) {
 // POST /api/decks - Create a new deck
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const sessionUser = await getCurrentSessionUser();
 
-    if (!user) {
+    if (!sessionUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const dbUser = await prisma.user.findUnique({
-      where: { email: user.email! },
+      where: { email: sessionUser.email! },
     });
 
     if (!dbUser) {

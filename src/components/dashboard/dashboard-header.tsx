@@ -1,8 +1,8 @@
 'use client';
 
-import { User } from '@supabase/supabase-js';
+import { User } from '@/types/user';
 import { useRouter, usePathname } from 'next/navigation';
-import { LogOut, Menu } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/separator';

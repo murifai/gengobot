@@ -1,6 +1,6 @@
 'use client';
 
-import { User } from '@supabase/supabase-js';
+import { User } from '@/types/user';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -19,7 +19,7 @@ interface TasksClientProps {
   user: User;
 }
 
-export default function TasksClient({ user }: TasksClientProps) {
+export default function TasksClient({}: TasksClientProps) {
   const router = useRouter();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);

@@ -28,7 +28,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User } from '@supabase/supabase-js';
+import { User } from '@/types/user';
 
 // Menu items
 const items = [

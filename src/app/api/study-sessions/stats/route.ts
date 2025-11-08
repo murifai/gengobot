@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getCurrentSessionUser } from '@/lib/auth/session';
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -8,17 +8,14 @@ import { prisma } from '@/lib/prisma';
  */
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const sessionUser = await getCurrentSessionUser();
 
-    if (!user?.email) {
+    if (!sessionUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const dbUser = await prisma.user.findUnique({
-      where: { email: user.email },
+      where: { email: sessionUser.email! },
       select: { id: true },
     });
 

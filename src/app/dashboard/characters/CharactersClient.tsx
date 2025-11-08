@@ -1,6 +1,6 @@
 'use client';
 
-import { User } from '@supabase/supabase-js';
+import { User } from '@/types/user';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -19,7 +19,7 @@ interface CharactersClientProps {
   user: User;
 }
 
-export default function CharactersClient({ user }: CharactersClientProps) {
+export default function CharactersClient({}: CharactersClientProps) {
   const router = useRouter();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);

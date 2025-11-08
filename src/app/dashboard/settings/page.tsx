@@ -1,24 +1,21 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 import { prisma } from '@/lib/prisma';
 import SettingsClient from './SettingsClient';
 
 export const runtime = 'nodejs';
 
 export default async function SettingsPage() {
-  const supabase = await createClient();
+  const session = await auth();
+  const user = session?.user;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  if (!user?.email) {
     redirect('/login');
   }
 
   // Get user data from database
   const dbUser = await prisma.user.findUnique({
-    where: { email: user.email! },
+    where: { email: user.email },
     select: {
       id: true,
       name: true,
