@@ -17,9 +17,9 @@ model Task {
   subcategoryId      String? // Reference to TaskSubcategory
   difficulty         String // N1-N5 JLPT levels
   scenario           String   @db.Text
-  learningObjectives Json // Array of learning goals
-  successCriteria    Json // Completion requirements
-  estimatedDuration  Int // Minutes
+  learningObjectives   Json // Array of learning goals
+  conversationExample  Json // Example conversation flow
+  estimatedDuration    Int // Minutes
   isActive           Boolean  @default(true)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt

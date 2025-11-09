@@ -43,7 +43,7 @@ interface PreTaskStudyProps {
   taskTitle: string;
   taskScenario?: string;
   learningObjectives?: string[];
-  successCriteria?: string[];
+  conversationExample?: string[];
   decks?: Deck[];
   onSkip: () => void;
   onComplete: () => void;
@@ -60,7 +60,7 @@ export default function PreTaskStudy({
   taskTitle,
   taskScenario,
   learningObjectives = [],
-  successCriteria = [],
+  conversationExample = [],
   decks = [],
   onComplete,
 }: PreTaskStudyProps) {
@@ -284,9 +284,9 @@ export default function PreTaskStudy({
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               How to Complete This Task
             </h2>
-            {successCriteria.length > 0 ? (
+            {conversationExample.length > 0 ? (
               <ul className="space-y-3">
-                {successCriteria.map((criteria, idx) => (
+                {conversationExample.map((criteria, idx) => (
                   <li key={idx} className="flex items-start gap-3">
                     <span className="flex-shrink-0 w-6 h-6 bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-300 rounded-full flex items-center justify-center text-sm">
                       ✓

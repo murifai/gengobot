@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       'difficulty',
       'scenario',
       'learningObjectives',
-      'successCriteria',
+      'conversationExample',
       'estimatedDuration',
     ];
 
@@ -119,9 +119,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!Array.isArray(body.successCriteria) || body.successCriteria.length === 0) {
+    if (!Array.isArray(body.conversationExample) || body.conversationExample.length === 0) {
       return NextResponse.json(
-        { error: 'successCriteria must be a non-empty array' },
+        { error: 'conversationExample must be a non-empty array' },
         { status: 400 }
       );
     }
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
         difficulty: body.difficulty,
         scenario: body.scenario,
         learningObjectives: body.learningObjectives,
-        successCriteria: body.successCriteria,
+        conversationExample: body.conversationExample,
         estimatedDuration: body.estimatedDuration,
         characterId: body.characterId || null,
         createdBy: body.createdBy || null,

@@ -120,7 +120,10 @@ export async function POST(request: NextRequest) {
       where: { id: taskId },
     });
 
-    console.log('[Task Attempt POST] Task lookup:', task ? `found (active: ${task.isActive})` : 'not found');
+    console.log(
+      '[Task Attempt POST] Task lookup:',
+      task ? `found (active: ${task.isActive})` : 'not found'
+    );
 
     if (!task) {
       console.error('[Task Attempt POST] Task not found:', taskId);
@@ -141,7 +144,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('[Task Attempt POST] Existing attempt:', existingAttempt ? `found (${existingAttempt.id})` : 'not found');
+    console.log(
+      '[Task Attempt POST] Existing attempt:',
+      existingAttempt ? `found (${existingAttempt.id})` : 'not found'
+    );
 
     if (existingAttempt) {
       console.log('[Task Attempt POST] Resuming existing attempt:', existingAttempt.id);
@@ -175,7 +181,7 @@ export async function POST(request: NextRequest) {
             difficulty: true,
             scenario: true,
             learningObjectives: true,
-            successCriteria: true,
+            conversationExample: true,
             estimatedDuration: true,
             character: true,
           },
@@ -217,9 +223,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('[Task Attempt POST] Error creating task attempt:', error);
-    return NextResponse.json({
-      error: 'Failed to create task attempt',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Failed to create task attempt',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }

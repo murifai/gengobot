@@ -14,7 +14,7 @@ interface Task {
   difficulty: string;
   scenario: string;
   learningObjectives: string[];
-  successCriteria: string[];
+  conversationExample: string[];
   estimatedDuration: number;
   prerequisites: string;
   isActive: boolean;
@@ -191,7 +191,7 @@ export default function ViewTaskPage({ params }: { params: Promise<{ taskId: str
                 Success Criteria
               </h2>
               <ul className="list-disc list-inside space-y-2">
-                {task.successCriteria.map((criterion, index) => (
+                {task.conversationExample.map((criterion, index) => (
                   <li key={index} className="text-gray-700 dark:text-gray-300">
                     {criterion}
                   </li>

@@ -19,7 +19,7 @@ describe('ConversationManager', () => {
       difficulty: 'N5',
       scenario: 'You are at a cafe...',
       learningObjectives: ['Drink vocabulary', 'Ordering phrases'],
-      successCriteria: ['Greet staff', 'Order drink', 'Pay for order'],
+      conversationExample: ['Greet staff', 'Order drink', 'Pay for order'],
       estimatedDuration: 10,
       prerequisites: null,
       isActive: true,

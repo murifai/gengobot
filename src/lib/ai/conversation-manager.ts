@@ -52,7 +52,7 @@ export class ConversationManager {
     context: TaskConversationContext,
     objectiveIndex: number
   ): TaskConversationContext {
-    const objectives = context.task.successCriteria as string[];
+    const objectives = context.task.conversationExample as string[];
     const objective = objectives[objectiveIndex];
 
     if (!objective || context.completedObjectives.includes(objective)) {
@@ -70,7 +70,7 @@ export class ConversationManager {
    * Check if all objectives are completed
    */
   areAllObjectivesCompleted(context: TaskConversationContext): boolean {
-    const objectives = context.task.successCriteria as string[];
+    const objectives = context.task.conversationExample as string[];
     return context.completedObjectives.length >= objectives.length;
   }
 
@@ -78,7 +78,7 @@ export class ConversationManager {
    * Get current objective
    */
   getCurrentObjective(context: TaskConversationContext): string | null {
-    const objectives = context.task.successCriteria as string[];
+    const objectives = context.task.conversationExample as string[];
     return objectives[context.currentObjective] || null;
   }
 
@@ -86,7 +86,7 @@ export class ConversationManager {
    * Get progress percentage
    */
   getProgress(context: TaskConversationContext): number {
-    const objectives = context.task.successCriteria as string[];
+    const objectives = context.task.conversationExample as string[];
     return Math.round((context.completedObjectives.length / objectives.length) * 100);
   }
 
@@ -204,7 +204,7 @@ export class ConversationManager {
     confidence: number;
   } {
     // This is a simple heuristic. In production, use GPT-4 to analyze
-    const objective = (context.task.successCriteria as string[])[objectiveIndex];
+    const objective = (context.task.conversationExample as string[])[objectiveIndex];
     const recentMessages = context.conversationHistory.slice(-6);
 
     // Check for completion keywords in recent messages

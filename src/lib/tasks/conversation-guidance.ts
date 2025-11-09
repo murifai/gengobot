@@ -12,7 +12,7 @@ export interface TaskConversationContext {
   category: string;
   scenario: string;
   learningObjectives: string[];
-  successCriteria: string[];
+  conversationExample: string[];
   currentObjective: number;
   completedObjectives: string[];
   conversationHistory: Message[];
@@ -155,7 +155,7 @@ export function generateTaskSystemPrompt(context: TaskConversationContext): stri
     category,
     scenario,
     learningObjectives,
-    successCriteria,
+    conversationExample,
     currentObjective,
     userProficiency,
     characterPersonality,
@@ -175,8 +175,8 @@ export function generateTaskSystemPrompt(context: TaskConversationContext): stri
 **Learning Objectives:**
 ${learningObjectives.map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
 
-**Success Criteria:**
-${successCriteria.map((crit, i) => `${i + 1}. ${crit}`).join('\n')}
+**Conversation Example:**
+${conversationExample.map((example, i) => `${i + 1}. ${example}`).join('\n')}
 
 **Your Role:**
 1. Guide the learner through the scenario naturally

@@ -28,7 +28,7 @@ export async function GET(
             difficulty: true,
             scenario: true,
             learningObjectives: true,
-            successCriteria: true,
+            conversationExample: true,
             estimatedDuration: true,
             character: true,
           },
@@ -87,10 +87,13 @@ export async function GET(
     });
   } catch (error) {
     console.error('[Task Attempt GET] Error fetching task attempt:', error);
-    return NextResponse.json({
-      error: 'Failed to fetch task attempt',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Failed to fetch task attempt',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }
 

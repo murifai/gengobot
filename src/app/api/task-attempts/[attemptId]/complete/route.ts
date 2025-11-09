@@ -170,7 +170,7 @@ export async function GET(
     const messages = conversationHistory?.messages || [];
     const completedObjectives = conversationHistory?.completedObjectives || [];
     const learningObjectives = (attempt.task.learningObjectives as string[]) || [];
-    const successCriteria = (attempt.task.successCriteria as string[]) || [];
+    const conversationExample = (attempt.task.conversationExample as string[]) || [];
 
     // Calculate readiness
     const hasMessages = messages.length >= 5; // Minimum 5 messages
@@ -208,7 +208,7 @@ export async function GET(
         objectives: objectivesComplete ? '✅' : '❌',
         duration: hasMinimumDuration ? '✅' : '⚠️',
       },
-      successCriteria,
+      conversationExample,
     });
   } catch (error) {
     console.error('Error checking task completion readiness:', error);

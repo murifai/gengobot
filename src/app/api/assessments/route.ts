@@ -39,10 +39,13 @@ export async function POST(request: NextRequest) {
 
     // Get task objectives
     const taskObjectives = (attempt.task.learningObjectives as string[]) || [];
-    const successCriteria = (attempt.task.successCriteria as string[]) || [];
+    const conversationExample = (attempt.task.conversationExample as string[]) || [];
 
     // Determine completed objectives (simplified - would need more logic)
-    const completedObjectives = successCriteria.slice(0, Math.floor(successCriteria.length * 0.7));
+    const completedObjectives = conversationExample.slice(
+      0,
+      Math.floor(conversationExample.length * 0.7)
+    );
 
     // Generate assessment
     const assessment = await TaskAssessmentService.generateTaskAssessment({

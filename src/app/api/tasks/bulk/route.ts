@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
                 difficulty: task.difficulty,
                 scenario: task.scenario,
                 learningObjectives: task.learningObjectives as never,
-                successCriteria: task.successCriteria as never,
+                conversationExample: task.conversationExample as never,
                 estimatedDuration: task.estimatedDuration,
                 prerequisites: task.prerequisites as never,
                 characterId: task.characterId,

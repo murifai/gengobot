@@ -13,7 +13,7 @@ interface Task {
   difficulty: string;
   scenario: string;
   learningObjectives: string[];
-  successCriteria: string[];
+  conversationExample: string[];
 }
 
 interface Flashcard {
@@ -166,7 +166,7 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
       taskTitle={task.title}
       taskScenario={task.scenario}
       learningObjectives={task.learningObjectives}
-      successCriteria={task.successCriteria}
+      conversationExample={task.conversationExample}
       decks={decks}
       onSkip={handleSkip}
       onComplete={handleComplete}

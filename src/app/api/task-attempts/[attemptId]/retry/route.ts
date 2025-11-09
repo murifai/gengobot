@@ -74,7 +74,7 @@ export async function POST(
             difficulty: true,
             scenario: true,
             learningObjectives: true,
-            successCriteria: true,
+            conversationExample: true,
             estimatedDuration: true,
             character: true,
           },

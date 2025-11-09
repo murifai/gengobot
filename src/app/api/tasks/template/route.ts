@@ -15,7 +15,7 @@ export async function GET() {
         scenario: 'You are at a cafe and want to order a coffee and pastry',
         learningObjectives:
           'Practice polite requests, Learn food vocabulary, Use appropriate particles',
-        successCriteria:
+        conversationExample:
           'Successfully order items, Use correct particles, Respond to staff questions',
         estimatedDuration: '10',
         prerequisites: 'Basic greetings, Numbers 1-10',
@@ -36,7 +36,7 @@ export async function GET() {
       { wch: 12 }, // difficulty
       { wch: 50 }, // scenario
       { wch: 50 }, // learningObjectives
-      { wch: 50 }, // successCriteria
+      { wch: 50 }, // conversationExample
       { wch: 15 }, // estimatedDuration
       { wch: 30 }, // prerequisites
       { wch: 30 }, // characterId
@@ -91,10 +91,10 @@ export async function GET() {
         Notes: 'Comma-separated list of objectives',
       },
       {
-        Field: 'successCriteria',
-        Description: 'Success criteria (required)',
+        Field: 'conversationExample',
+        Description: 'Conversation example (required)',
         Example: 'Successfully order items, Use correct particles, Respond to staff questions',
-        Notes: 'Comma-separated list of criteria',
+        Notes: 'Comma-separated list of conversation examples',
       },
       {
         Field: 'estimatedDuration',

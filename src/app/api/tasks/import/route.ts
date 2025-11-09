@@ -10,7 +10,7 @@ interface TaskImportRow {
   difficulty: string;
   scenario: string;
   learningObjectives: string;
-  successCriteria: string;
+  conversationExample: string;
   estimatedDuration?: string | number;
   prerequisites?: string;
   characterId?: string;
@@ -78,8 +78,8 @@ export async function POST(request: NextRequest) {
               .filter((obj: string) => obj.length > 0)
           : [];
 
-        const successCriteria = row.successCriteria
-          ? row.successCriteria
+        const conversationExample = row.conversationExample
+          ? row.conversationExample
               .split(',')
               .map((crit: string) => crit.trim())
               .filter((crit: string) => crit.length > 0)
@@ -89,8 +89,8 @@ export async function POST(request: NextRequest) {
           throw new Error('learningObjectives must contain at least one objective');
         }
 
-        if (successCriteria.length === 0) {
-          throw new Error('successCriteria must contain at least one criterion');
+        if (conversationExample.length === 0) {
+          throw new Error('conversationExample must contain at least one example');
         }
 
         // Parse isActive
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
             difficulty: row.difficulty as 'N5' | 'N4' | 'N3' | 'N2' | 'N1',
             scenario: row.scenario.trim(),
             learningObjectives,
-            successCriteria,
+            conversationExample,
             isActive,
             ...(row.subcategoryId && row.subcategoryId.trim() !== ''
               ? { subcategoryId: row.subcategoryId.trim() }

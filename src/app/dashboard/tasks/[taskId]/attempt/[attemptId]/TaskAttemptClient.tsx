@@ -37,7 +37,7 @@ interface TaskAttempt {
     difficulty: string;
     scenario: string;
     learningObjectives: string[];
-    successCriteria: string[];
+    conversationExample: string[];
     estimatedDuration: number;
   };
 }
@@ -386,7 +386,7 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
               Success Criteria
             </h4>
             <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
-              {attempt.task.successCriteria.map((criteria, idx) => (
+              {attempt.task.conversationExample.map((criteria, idx) => (
                 <li key={idx}>{criteria}</li>
               ))}
             </ul>

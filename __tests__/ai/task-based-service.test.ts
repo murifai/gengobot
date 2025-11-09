@@ -37,7 +37,7 @@ describe('TaskBasedAIService', () => {
       difficulty: 'N5',
       scenario: 'You are at a ramen restaurant and want to order...',
       learningObjectives: ['Food vocabulary', 'Polite ordering phrases'],
-      successCriteria: ['Greet the staff', 'Order a dish', 'Specify preferences'],
+      conversationExample: ['Greet the staff', 'Order a dish', 'Specify preferences'],
       estimatedDuration: 15,
       prerequisites: null,
       isActive: true,

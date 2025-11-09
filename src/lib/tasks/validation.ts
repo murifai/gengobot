@@ -16,7 +16,7 @@ export interface TaskData {
   difficulty?: string;
   scenario?: string;
   learningObjectives?: string[];
-  successCriteria?: string[];
+  conversationExample?: string[];
   estimatedDuration?: number;
   prerequisites?: string[];
   characterId?: string | null;
@@ -70,8 +70,8 @@ export function validateTaskData(data: TaskData, isUpdate = false): TaskValidati
       errors.push('At least one learning objective is required');
     }
 
-    if (!data.successCriteria || data.successCriteria.length === 0) {
-      errors.push('At least one success criterion is required');
+    if (!data.conversationExample || data.conversationExample.length === 0) {
+      errors.push('At least one conversation example is required');
     }
 
     if (!data.estimatedDuration || data.estimatedDuration <= 0) {
@@ -153,26 +153,26 @@ export function validateTaskData(data: TaskData, isUpdate = false): TaskValidati
     }
   }
 
-  // Success criteria validation
-  if (data.successCriteria !== undefined) {
-    if (!Array.isArray(data.successCriteria)) {
-      errors.push('Success criteria must be an array');
+  // Conversation example validation
+  if (data.conversationExample !== undefined) {
+    if (!Array.isArray(data.conversationExample)) {
+      errors.push('Conversation example must be an array');
     } else {
-      if (data.successCriteria.length === 0) {
-        errors.push('At least one success criterion is required');
+      if (data.conversationExample.length === 0) {
+        errors.push('At least one conversation example is required');
       }
 
-      if (data.successCriteria.length > 10) {
-        warnings.push('More than 10 success criteria may make the task too complex');
+      if (data.conversationExample.length > 10) {
+        warnings.push('More than 10 conversation examples may make the task too complex');
       }
 
-      data.successCriteria.forEach((criterion, index) => {
-        if (typeof criterion !== 'string' || criterion.trim().length === 0) {
-          errors.push(`Success criterion ${index + 1} must be a non-empty string`);
+      data.conversationExample.forEach((example, index) => {
+        if (typeof example !== 'string' || example.trim().length === 0) {
+          errors.push(`Conversation example ${index + 1} must be a non-empty string`);
         }
 
-        if (criterion.length > 500) {
-          errors.push(`Success criterion ${index + 1} must not exceed 500 characters`);
+        if (example.length > 500) {
+          errors.push(`Conversation example ${index + 1} must not exceed 500 characters`);
         }
       });
     }
@@ -282,14 +282,14 @@ export function validateTaskCompleteness(task: TaskData): TaskValidationResult {
     warnings.push('Estimated duration is not a multiple of 5 - consider rounding for consistency');
   }
 
-  // Check if learning objectives match success criteria count
+  // Check if learning objectives match conversation example count
   if (
     task.learningObjectives &&
-    task.successCriteria &&
-    task.learningObjectives.length !== task.successCriteria.length
+    task.conversationExample &&
+    task.learningObjectives.length !== task.conversationExample.length
   ) {
     warnings.push(
-      'Number of learning objectives and success criteria differ - consider aligning them'
+      'Number of learning objectives and conversation examples differ - consider aligning them'
     );
   }
 

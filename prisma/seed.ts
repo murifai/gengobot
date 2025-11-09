@@ -42,7 +42,7 @@ async function main() {
         'Memahami etiket restoran',
         'Menangani interaksi pembayaran',
       ],
-      successCriteria: [
+      conversationExample: [
         'Berhasil memesan makanan',
         'Menyebutkan minimal satu preferensi (tingkat pedas, topping, dll.)',
         'Menyelesaikan transaksi pembayaran',
@@ -64,7 +64,7 @@ async function main() {
         'Dasar-dasar negosiasi harga',
         'Etiket berbelanja',
       ],
-      successCriteria: [
+      conversationExample: [
         'Menemukan dan mengidentifikasi item pakaian yang diinginkan',
         'Bertanya tentang ukuran dan warna',
         'Menanyakan harga',
@@ -86,7 +86,7 @@ async function main() {
         'Memahami deskripsi lokasi',
         'Mengungkapkan rasa terima kasih',
       ],
-      successCriteria: [
+      conversationExample: [
         'Menanyakan arah dengan sopan',
         'Memahami respons arah dasar',
         'Mengonfirmasi rute',
@@ -108,7 +108,7 @@ async function main() {
         'Menjelaskan gejala',
         'Memahami penjadwalan janji temu',
       ],
-      successCriteria: [
+      conversationExample: [
         'Menjelaskan alasan kunjungan',
         'Memberikan ketersediaan waktu',
         'Mengonfirmasi tanggal dan waktu janji temu',
@@ -130,7 +130,7 @@ async function main() {
         'Membahas pengalaman kerja',
         'Ekspresi kesopanan profesional',
       ],
-      successCriteria: [
+      conversationExample: [
         'Memberikan perkenalan diri yang komprehensif',
         'Menjelaskan pengalaman kerja yang relevan',
         'Menggunakan keigo (bahasa hormat) yang tepat',

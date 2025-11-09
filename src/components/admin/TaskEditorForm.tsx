@@ -14,7 +14,7 @@ interface TaskFormData {
   difficulty: string;
   scenario: string;
   learningObjectives: string[];
-  successCriteria: string[];
+  conversationExample: string[];
   estimatedDuration: number;
   studyDeckIds: string[];
   characterId: string | null;
@@ -56,7 +56,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
     difficulty: initialData?.difficulty || 'N5',
     scenario: initialData?.scenario || '',
     learningObjectives: initialData?.learningObjectives || [''],
-    successCriteria: initialData?.successCriteria || [''],
+    conversationExample: initialData?.conversationExample || [''],
     estimatedDuration: initialData?.estimatedDuration || 10,
     studyDeckIds: initialData?.studyDeckIds || [],
     characterId: initialData?.characterId || null,
@@ -131,9 +131,9 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
       newErrors.learningObjectives = 'At least one learning objective is required';
     }
 
-    const validCriteria = formData.successCriteria.filter(crit => crit.trim());
-    if (validCriteria.length === 0) {
-      newErrors.successCriteria = 'At least one success criterion is required';
+    const validExamples = formData.conversationExample.filter(ex => ex.trim());
+    if (validExamples.length === 0) {
+      newErrors.conversationExample = 'At least one conversation example is required';
     }
 
     if (formData.estimatedDuration < 1) {
@@ -158,7 +158,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
       const cleanedData = {
         ...formData,
         learningObjectives: formData.learningObjectives.filter(obj => obj.trim()),
-        successCriteria: formData.successCriteria.filter(crit => crit.trim()),
+        conversationExample: formData.conversationExample.filter(ex => ex.trim()),
         // Note: updatedBy is omitted - admin logging will be handled server-side
       };
 
@@ -185,14 +185,14 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
     }
   };
 
-  const addArrayItem = (field: 'learningObjectives' | 'successCriteria') => {
+  const addArrayItem = (field: 'learningObjectives' | 'conversationExample') => {
     setFormData(prev => ({
       ...prev,
       [field]: [...prev[field], ''],
     }));
   };
 
-  const removeArrayItem = (field: 'learningObjectives' | 'successCriteria', index: number) => {
+  const removeArrayItem = (field: 'learningObjectives' | 'conversationExample', index: number) => {
     setFormData(prev => ({
       ...prev,
       [field]: prev[field].filter((_, i) => i !== index),
@@ -200,7 +200,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
   };
 
   const updateArrayItem = (
-    field: 'learningObjectives' | 'successCriteria',
+    field: 'learningObjectives' | 'conversationExample',
     index: number,
     value: string
   ) => {
@@ -369,25 +369,25 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
         )}
       </div>
 
-      {/* Success Criteria */}
+      {/* Conversation Example */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Success Criteria *
+          Conversation Example *
         </label>
-        {formData.successCriteria.map((criterion, index) => (
+        {formData.conversationExample.map((example, index) => (
           <div key={index} className="flex gap-2 mb-2">
             <Input
               type="text"
-              value={criterion}
-              onChange={e => updateArrayItem('successCriteria', index, e.target.value)}
-              placeholder={`Criterion ${index + 1}`}
+              value={example}
+              onChange={e => updateArrayItem('conversationExample', index, e.target.value)}
+              placeholder={`Example ${index + 1}`}
               className="flex-1"
             />
-            {formData.successCriteria.length > 1 && (
+            {formData.conversationExample.length > 1 && (
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => removeArrayItem('successCriteria', index)}
+                onClick={() => removeArrayItem('conversationExample', index)}
               >
                 Remove
               </Button>
@@ -398,13 +398,13 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
           type="button"
           variant="secondary"
           size="sm"
-          onClick={() => addArrayItem('successCriteria')}
+          onClick={() => addArrayItem('conversationExample')}
           className="mt-2"
         >
-          + Add Criterion
+          + Add Example
         </Button>
-        {errors.successCriteria && (
-          <p className="text-red-500 text-sm mt-1">{errors.successCriteria}</p>
+        {errors.conversationExample && (
+          <p className="text-red-500 text-sm mt-1">{errors.conversationExample}</p>
         )}
       </div>
 

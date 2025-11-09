@@ -59,8 +59,8 @@ export function generateTaskSystemPrompt(
 # Learning Objectives
 ${(task.learningObjectives as string[]).map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
 
-# Success Criteria
-${(task.successCriteria as string[]).map((criteria, i) => `${i + 1}. ${criteria}`).join('\n')}
+# Conversation Example
+${(task.conversationExample as string[]).map((example, i) => `${i + 1}. ${example}`).join('\n')}
 
 # Your Role
 `;
@@ -80,11 +80,11 @@ Stay in character while helping the student complete the task objectives.
   prompt += `
 # Guidelines
 1. Respond primarily in Japanese at ${userProficiency} level
-2. Guide the student to complete each success criterion
+2. Guide the student through the conversation example steps
 3. Provide natural conversational responses appropriate to the scenario
 4. Gently correct major errors by modeling correct usage
 5. Encourage the student and provide hints if they struggle
-6. Track progress toward completing all success criteria
+6. Track progress toward completing all conversation example steps
 7. Keep responses concise (2-4 sentences) unless explanation is needed
 8. Use appropriate Japanese politeness levels (敬語/keigo) for the context
 `;
@@ -106,7 +106,7 @@ export function generateAssessmentPrompt(
 - Title: ${task.title}
 - JLPT Level: ${userProficiency}
 - Learning Objectives: ${JSON.stringify(task.learningObjectives)}
-- Success Criteria: ${JSON.stringify(task.successCriteria)}
+- Conversation Example: ${JSON.stringify(task.conversationExample)}
 
 # Conversation to Evaluate
 ${conversationHistory.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n\n')}
@@ -114,7 +114,7 @@ ${conversationHistory.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n
 # Evaluation Criteria (Score each 0-100)
 
 1. **Task Achievement (タスク達成度)**
-   - Did the student complete all success criteria?
+   - Did the student complete all conversation example steps?
    - How well were the learning objectives achieved?
    - Was the task scenario successfully navigated?
 

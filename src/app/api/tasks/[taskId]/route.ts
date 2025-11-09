@@ -103,10 +103,10 @@ export async function PUT(
       }
     }
 
-    if (body.successCriteria !== undefined) {
-      if (!Array.isArray(body.successCriteria) || body.successCriteria.length === 0) {
+    if (body.conversationExample !== undefined) {
+      if (!Array.isArray(body.conversationExample) || body.conversationExample.length === 0) {
         return NextResponse.json(
-          { error: 'successCriteria must be a non-empty array' },
+          { error: 'conversationExample must be a non-empty array' },
           { status: 400 }
         );
       }
@@ -122,7 +122,7 @@ export async function PUT(
       'difficulty',
       'scenario',
       'learningObjectives',
-      'successCriteria',
+      'conversationExample',
       'estimatedDuration',
       'prerequisites',
       'characterId',
