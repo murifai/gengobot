@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/auth';
-import TaskAttemptClient from './TaskAttemptClient';
+import TaskAttemptClientStreaming from './TaskAttemptClientStreaming';
 
 export default async function TaskAttemptPage({
   params,
@@ -15,5 +15,5 @@ export default async function TaskAttemptPage({
     redirect('/login');
   }
 
-  return <TaskAttemptClient user={user} taskId={taskId} attemptId={attemptId} />;
+  return <TaskAttemptClientStreaming user={user} taskId={taskId} attemptId={attemptId} />;
 }

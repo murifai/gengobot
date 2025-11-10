@@ -93,27 +93,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'userId and taskId are required' }, { status: 400 });
     }
 
-    // Verify user exists - support both authId (UUID) and id (CUID) formats
-    let user = await prisma.user.findUnique({
-      where: { authId: userId },
+    // Verify user exists by id
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
     });
 
-    console.log('[Task Attempt POST] User lookup by authId:', user ? 'found' : 'not found');
-
-    // Fallback to id lookup if authId lookup fails
-    if (!user) {
-      user = await prisma.user.findUnique({
-        where: { id: userId },
-      });
-      console.log('[Task Attempt POST] User lookup by id:', user ? 'found' : 'not found');
-    }
+    console.log('[Task Attempt POST] User lookup:', user ? 'found' : 'not found');
 
     if (!user) {
       console.error('[Task Attempt POST] User not found:', userId);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    console.log('[Task Attempt POST] Found user:', { id: user.id, authId: user.authId });
+    console.log('[Task Attempt POST] Found user:', { id: user.id, email: user.email });
 
     // Verify task exists and is active
     const task = await prisma.task.findUnique({

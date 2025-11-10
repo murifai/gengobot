@@ -4,8 +4,9 @@ import { User } from '@/types/user';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import UnifiedChatInterface from '@/components/chat/UnifiedChatInterface';
+import StreamingChatInterface from '@/components/chat/StreamingChatInterface';
 import PostTaskReview from '@/components/task/PostTaskReview';
+import { useStreamingChat } from '@/hooks/useStreamingChat';
 
 interface TaskAttempt {
   id: string;
@@ -37,25 +38,40 @@ interface TaskAttempt {
     difficulty: string;
     scenario: string;
     learningObjectives: string[];
-    conversationExample: string[];
+    conversationExample: string | string[];
     estimatedDuration: number;
   };
 }
 
-interface TaskAttemptClientProps {
+interface TaskAttemptClientStreamingProps {
   user: User;
   taskId: string;
   attemptId: string;
 }
 
-export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps) {
+export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptClientStreamingProps) {
   const router = useRouter();
   const [attempt, setAttempt] = useState<TaskAttempt | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [voiceError, setVoiceError] = useState<string | null>(null);
-  const [sending, setSending] = useState(false);
   const [showPostTaskReview, setShowPostTaskReview] = useState(false);
+
+  // Initialize streaming chat with existing messages
+  const {
+    messages: streamingMessages,
+    isStreaming,
+    error: streamingError,
+    sendMessage,
+    clearError: clearStreamingError,
+  } = useStreamingChat(
+    attemptId,
+    attempt?.conversationHistory.messages.map(msg => ({
+      role: msg.role as 'user' | 'assistant',
+      content: msg.content,
+      timestamp: msg.timestamp,
+    })) || []
+  );
 
   useEffect(() => {
     fetchAttempt();
@@ -64,12 +80,12 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
 
   const fetchAttempt = async () => {
     try {
-      console.log('[TaskAttemptClient] Fetching attempt:', attemptId);
+      console.log('[TaskAttemptClientStreaming] Fetching attempt:', attemptId);
       const response = await fetch(`/api/task-attempts/${attemptId}`);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('[TaskAttemptClient] Failed to fetch attempt:', {
+        console.error('[TaskAttemptClientStreaming] Failed to fetch attempt:', {
           status: response.status,
           statusText: response.statusText,
           error: errorData,
@@ -82,7 +98,7 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
       }
 
       const data = await response.json();
-      console.log('[TaskAttemptClient] Loaded attempt:', {
+      console.log('[TaskAttemptClientStreaming] Loaded attempt:', {
         attemptId: data.attempt.id,
         messageCount: data.attempt.conversationHistory?.messages?.length || 0,
         isCompleted: data.attempt.isCompleted,
@@ -90,128 +106,55 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
       });
       setAttempt(data.attempt);
     } catch (err) {
-      console.error('[TaskAttemptClient] Error loading attempt:', err);
+      console.error('[TaskAttemptClientStreaming] Error loading attempt:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
 
-  const sendMessage = async (messageText: string) => {
-    if (!messageText.trim() || sending || !attempt) return;
-
-    // Optimistic UI update - add user message immediately
-    const userMessage = {
-      role: 'user',
-      content: messageText.trim(),
-      timestamp: new Date().toISOString(),
-    };
-
-    const optimisticAttempt = {
-      ...attempt,
-      conversationHistory: {
-        ...attempt.conversationHistory,
-        messages: [...attempt.conversationHistory.messages, userMessage],
-      },
-    };
-
-    setAttempt(optimisticAttempt as TaskAttempt);
-    setSending(true);
-
-    try {
-      const response = await fetch(`/api/task-attempts/${attemptId}/message`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: messageText.trim() }),
-      });
-
-      if (!response.ok) throw new Error('Failed to send message');
-
-      const data = await response.json();
-      setAttempt(data.attempt);
-    } catch (err) {
-      // Revert optimistic update on error
-      setAttempt(attempt);
-      setError(err instanceof Error ? err.message : 'Failed to send message');
-    } finally {
-      setSending(false);
-    }
-  };
-
   const handleVoiceRecording = async (audioBlob: Blob, duration: number) => {
-    if (sending) return;
+    if (isStreaming) return;
 
-    // Clear previous voice error
     setVoiceError(null);
-    setSending(true);
 
     try {
-      // Create FormData for audio upload
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
 
-      console.log('Sending voice recording:', {
+      console.log('🎤 Step 1: Transcribing audio...', {
         size: audioBlob.size,
-        type: audioBlob.type,
         duration,
-        attemptId,
       });
 
-      const response = await fetch(`/api/task-attempts/${attemptId}/voice`, {
+      // STEP 1: Transcribe FIRST and show user message IMMEDIATELY
+      const transcribeResponse = await fetch('/api/whisper/transcribe', {
         method: 'POST',
         body: formData,
       });
 
-      if (!response.ok) {
-        const responseText = await response.text();
-        console.error('Voice API error response:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: responseText,
-        });
-
-        let errorData;
-        try {
-          errorData = JSON.parse(responseText);
-        } catch {
-          errorData = { error: responseText || 'Failed to process voice input' };
-        }
-
-        // Show user-friendly error messages
-        const errorMessage = errorData.error || `Server error: ${response.status}`;
-        const warnings = errorData.warnings || [];
-
-        if (warnings.length > 0) {
-          setVoiceError(`${errorMessage}\n${warnings.join('\n')}`);
-        } else {
-          setVoiceError(errorMessage);
-        }
-
-        throw new Error(errorMessage);
+      if (!transcribeResponse.ok) {
+        throw new Error('Failed to transcribe audio');
       }
 
-      const data = await response.json();
-      console.log('Voice response:', data);
+      const { transcript } = await transcribeResponse.json();
+      console.log('✅ Transcription complete:', transcript);
 
-      // Refresh the attempt to get updated conversation
-      await fetchAttempt();
+      // STEP 2: Send transcript to streaming API
+      // sendMessage() will add both user message and AI response
+      console.log('🤖 Sending transcript to AI...');
+      await sendMessage(transcript);
     } catch (err) {
       console.error('Voice recording error:', err);
-      // Error already set above if it was a response error
       if (err instanceof Error && !voiceError) {
         setVoiceError(err.message);
       }
-    } finally {
-      setSending(false);
     }
   };
 
   const completeAttempt = async () => {
     try {
-      setSending(true);
-
-      // First, generate the assessment using AI
-      console.log('[TaskAttemptClient] Generating assessment for attempt:', attemptId);
+      console.log('[TaskAttemptClientStreaming] Generating assessment for attempt:', attemptId);
       const assessmentResponse = await fetch('/api/assessments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -224,18 +167,13 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
       }
 
       const assessmentData = await assessmentResponse.json();
-      console.log('[TaskAttemptClient] Assessment generated:', assessmentData.assessment);
+      console.log('[TaskAttemptClientStreaming] Assessment generated:', assessmentData.assessment);
 
-      // Refresh the attempt to get the updated data with scores
       await fetchAttempt();
-
-      // Show post-task review
       setShowPostTaskReview(true);
     } catch (err) {
-      console.error('[TaskAttemptClient] Error completing task:', err);
+      console.error('[TaskAttemptClientStreaming] Error completing task:', err);
       setError(err instanceof Error ? err.message : 'Failed to complete task');
-    } finally {
-      setSending(false);
     }
   };
 
@@ -247,7 +185,6 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
     }
 
     try {
-      // Reset the conversation history by updating the attempt
       const response = await fetch(`/api/task-attempts/${attemptId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -263,13 +200,13 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
 
       const data = await response.json();
       setAttempt(data.attempt);
+      window.location.reload(); // Reload to reset streaming messages
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reset chat');
     }
   };
 
   const handleAddToReviewQueue = async (words: string[]) => {
-    // TODO: Implement API call to add words to user's review queue
     console.log('Adding words to review queue:', words);
     alert(`${words.length} words will be added to your review queue!`);
   };
@@ -314,18 +251,6 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
       </div>
     );
   }
-
-  // Convert conversation messages to Message format
-  const messages = attempt.conversationHistory.messages.map((msg, idx) => ({
-    id: `${attemptId}-${idx}`,
-    content: msg.content,
-    isUser: msg.role === 'user',
-    timestamp: new Date(msg.timestamp),
-    audioUrl:
-      msg.role === 'assistant'
-        ? (msg as { voiceMetadata?: { audioUrl?: string } }).voiceMetadata?.audioUrl
-        : undefined,
-  }));
 
   // Create sidebar content
   const sidebarContent = (
@@ -386,7 +311,10 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
               Conversation Example
             </h4>
             <div className="bg-gray-50 dark:bg-gray-900 rounded p-3 space-y-2">
-              {attempt.task.conversationExample.map((line, idx) => (
+              {(Array.isArray(attempt.task.conversationExample)
+                ? attempt.task.conversationExample
+                : attempt.task.conversationExample.split('\n')
+              ).map((line, idx) => (
                 <div key={idx} className="text-sm text-gray-600 dark:text-gray-400">
                   {line}
                 </div>
@@ -464,7 +392,6 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
 
   // Show post-task review modal
   if (showPostTaskReview && attempt.isCompleted) {
-    // Mock data - TODO: Get actual data from task attempt
     const vocabularyUsed = [
       {
         word: 'こんにちは',
@@ -514,7 +441,7 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
   }
 
   return (
-    <UnifiedChatInterface
+    <StreamingChatInterface
       title={attempt.task?.title || 'Task Attempt'}
       subtitle={attempt.task ? `${attempt.task.category} • ${attempt.task.difficulty}` : undefined}
       onBack={() => router.push('/dashboard/tasks')}
@@ -524,21 +451,25 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
             <Button onClick={resetChat} variant="outline" size="sm">
               Reset Chat
             </Button>
-            <Button onClick={completeAttempt} variant="default" size="sm">
+            <Button onClick={completeAttempt} variant="default" size="sm" disabled={isStreaming}>
               Complete Task
             </Button>
           </>
         ) : null
       }
-      messages={messages}
-      loading={sending}
+      messages={streamingMessages}
+      isStreaming={isStreaming}
       onSendMessage={sendMessage}
       onVoiceRecording={handleVoiceRecording}
       placeholder="Type your message in Japanese..."
-      disabled={attempt.isCompleted || sending}
+      disabled={attempt.isCompleted}
       enableVoice={!attempt.isCompleted}
       sidebar={sidebarContent}
-      emptyStateMessage="No messages yet. Start the conversation!"
+      sidebarDefaultOpen={true}
+      emptyStateMessage="Start your conversation to practice the task scenario!"
+      error={streamingError}
+      onClearError={clearStreamingError}
+      attemptId={attemptId}
     />
   );
 }

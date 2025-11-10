@@ -1,6 +1,9 @@
 // Voice-enabled task conversation API
 // Phase 3.3: Voice Interaction System
 
+// MUST import OpenAI shims first before any other imports
+import 'openai/shims/node';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { taskVoiceService } from '@/lib/voice/task-voice-service';
@@ -43,7 +46,6 @@ export async function POST(
     // Parse form data
     const formData = await request.formData();
     const audioFile = formData.get('audio') as File;
-    const configJson = formData.get('config') as string;
 
     console.log('Voice endpoint - received formData:', {
       hasAudio: !!audioFile,
@@ -56,9 +58,6 @@ export async function POST(
       console.error('Voice endpoint - No audio file in formData');
       return NextResponse.json({ error: 'Audio file is required' }, { status: 400 });
     }
-
-    // Parse optional config
-    const config = configJson ? JSON.parse(configJson) : undefined;
 
     // Build conversation context
     const conversationHistory = attempt.conversationHistory as {
@@ -228,9 +227,7 @@ export async function POST(
       progress: {
         completedObjectives: completedObjectives.length,
         totalObjectives: learningObjectives.length,
-        percentage: Math.round(
-          (completedObjectives.length / learningObjectives.length) * 100
-        ),
+        percentage: Math.round((completedObjectives.length / learningObjectives.length) * 100),
         messageCount: updatedMessages.length,
       },
       validation: {

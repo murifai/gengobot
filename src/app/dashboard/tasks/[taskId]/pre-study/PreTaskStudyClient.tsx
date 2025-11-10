@@ -105,9 +105,16 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { error: `Server error: ${response.status} ${response.statusText}` };
+        }
         console.error('[PreTaskStudy] Failed to start task:', errorData);
-        throw new Error(errorData.error || errorData.details || 'Failed to start task');
+        throw new Error(
+          errorData.error || errorData.details || `Failed to start task (${response.status})`
+        );
       }
 
       const data = await response.json();
