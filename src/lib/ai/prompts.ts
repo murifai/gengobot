@@ -60,7 +60,7 @@ export function generateTaskSystemPrompt(
 ${(task.learningObjectives as string[]).map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
 
 # Conversation Example
-${(task.conversationExample as string[]).map((example, i) => `${i + 1}. ${example}`).join('\n')}
+${task.conversationExample}
 
 # Your Role
 `;

@@ -14,7 +14,7 @@ interface TaskFormData {
   difficulty: string;
   scenario: string;
   learningObjectives: string[];
-  conversationExample: string[];
+  conversationExample: string;
   estimatedDuration: number;
   studyDeckIds: string[];
   characterId: string | null;
@@ -56,7 +56,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
     difficulty: initialData?.difficulty || 'N5',
     scenario: initialData?.scenario || '',
     learningObjectives: initialData?.learningObjectives || [''],
-    conversationExample: initialData?.conversationExample || [''],
+    conversationExample: initialData?.conversationExample || '',
     estimatedDuration: initialData?.estimatedDuration || 10,
     studyDeckIds: initialData?.studyDeckIds || [],
     characterId: initialData?.characterId || null,
@@ -131,9 +131,8 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
       newErrors.learningObjectives = 'At least one learning objective is required';
     }
 
-    const validExamples = formData.conversationExample.filter(ex => ex.trim());
-    if (validExamples.length === 0) {
-      newErrors.conversationExample = 'At least one conversation example is required';
+    if (!formData.conversationExample.trim()) {
+      newErrors.conversationExample = 'Conversation example is required';
     }
 
     if (formData.estimatedDuration < 1) {
@@ -158,7 +157,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
       const cleanedData = {
         ...formData,
         learningObjectives: formData.learningObjectives.filter(obj => obj.trim()),
-        conversationExample: formData.conversationExample.filter(ex => ex.trim()),
+        conversationExample: formData.conversationExample.trim(),
         // Note: updatedBy is omitted - admin logging will be handled server-side
       };
 
@@ -185,25 +184,21 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
     }
   };
 
-  const addArrayItem = (field: 'learningObjectives' | 'conversationExample') => {
+  const addArrayItem = (field: 'learningObjectives') => {
     setFormData(prev => ({
       ...prev,
       [field]: [...prev[field], ''],
     }));
   };
 
-  const removeArrayItem = (field: 'learningObjectives' | 'conversationExample', index: number) => {
+  const removeArrayItem = (field: 'learningObjectives', index: number) => {
     setFormData(prev => ({
       ...prev,
       [field]: prev[field].filter((_, i) => i !== index),
     }));
   };
 
-  const updateArrayItem = (
-    field: 'learningObjectives' | 'conversationExample',
-    index: number,
-    value: string
-  ) => {
+  const updateArrayItem = (field: 'learningObjectives', index: number, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: prev[field].map((item, i) => (i === index ? value : item)),
@@ -372,40 +367,21 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
       {/* Conversation Example */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Conversation Example *
+          Conversation Example * (Dialog format: T: teacher, G: student)
         </label>
-        {formData.conversationExample.map((example, index) => (
-          <div key={index} className="flex gap-2 mb-2">
-            <Input
-              type="text"
-              value={example}
-              onChange={e => updateArrayItem('conversationExample', index, e.target.value)}
-              placeholder={`Example ${index + 1}`}
-              className="flex-1"
-            />
-            {formData.conversationExample.length > 1 && (
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => removeArrayItem('conversationExample', index)}
-              >
-                Remove
-              </Button>
-            )}
-          </div>
-        ))}
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={() => addArrayItem('conversationExample')}
-          className="mt-2"
-        >
-          + Add Example
-        </Button>
+        <textarea
+          value={formData.conversationExample}
+          onChange={e => setFormData(prev => ({ ...prev, conversationExample: e.target.value }))}
+          placeholder="T: 〇〇さん、今の作業の進み具合はどうですか？&#10;G: はい、今は半分くらい終わっています。&#10;T: 次はどんな作業をする予定ですか？&#10;G: 部品の検品をする予定です。"
+          rows={8}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white font-mono text-sm"
+        />
         {errors.conversationExample && (
           <p className="text-red-500 text-sm mt-1">{errors.conversationExample}</p>
         )}
+        <p className="text-gray-500 text-xs mt-1">
+          Enter conversation dialog with line breaks. Use T: for teacher and G: for student/learner.
+        </p>
       </div>
 
       {/* Estimated Duration & Character */}

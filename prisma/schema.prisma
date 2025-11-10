@@ -16,9 +16,9 @@ model Task {
   category           String // Restaurant, Shopping, Travel, etc.
   subcategoryId      String? // Reference to TaskSubcategory
   difficulty         String // N1-N5 JLPT levels
-  scenario           String   @db.Text
+  scenario             String @db.Text
   learningObjectives   Json // Array of learning goals
-  conversationExample  Json // Example conversation flow
+  conversationExample  String @db.Text // Example conversation dialog (T: teacher, G: student)
   estimatedDuration    Int // Minutes
   isActive           Boolean  @default(true)
   createdAt          DateTime @default(now())

@@ -39,12 +39,13 @@ export async function POST(request: NextRequest) {
 
     // Get task objectives
     const taskObjectives = (attempt.task.learningObjectives as string[]) || [];
-    const conversationExample = (attempt.task.conversationExample as string[]) || [];
 
-    // Determine completed objectives (simplified - would need more logic)
-    const completedObjectives = conversationExample.slice(
+    // Determine completed objectives based on conversation quality
+    // (simplified - in production, this would analyze the actual conversation)
+    const conversationQuality = conversationHistory.length / 10; // Basic quality metric
+    const completedObjectives = taskObjectives.slice(
       0,
-      Math.floor(conversationExample.length * 0.7)
+      Math.min(taskObjectives.length, Math.ceil(conversationQuality * taskObjectives.length))
     );
 
     // Generate assessment

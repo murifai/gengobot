@@ -119,9 +119,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!Array.isArray(body.conversationExample) || body.conversationExample.length === 0) {
+    if (
+      typeof body.conversationExample !== 'string' ||
+      body.conversationExample.trim().length === 0
+    ) {
       return NextResponse.json(
-        { error: 'conversationExample must be a non-empty array' },
+        { error: 'conversationExample must be a non-empty string' },
         { status: 400 }
       );
     }

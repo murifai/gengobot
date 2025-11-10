@@ -43,7 +43,7 @@ interface PreTaskStudyProps {
   taskTitle: string;
   taskScenario?: string;
   learningObjectives?: string[];
-  conversationExample?: string[];
+  conversationExample?: string;
   decks?: Deck[];
   onSkip: () => void;
   onComplete: () => void;
@@ -60,7 +60,7 @@ export default function PreTaskStudy({
   taskTitle,
   taskScenario,
   learningObjectives = [],
-  conversationExample = [],
+  conversationExample = '',
   decks = [],
   onComplete,
 }: PreTaskStudyProps) {
@@ -282,22 +282,15 @@ export default function PreTaskStudy({
 
           <div className="mb-8">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              How to Complete This Task
+              Conversation Example
             </h2>
-            {conversationExample.length > 0 ? (
-              <ul className="space-y-3">
-                {conversationExample.map((criteria, idx) => (
-                  <li key={idx} className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-300 rounded-full flex items-center justify-center text-sm">
-                      ✓
-                    </span>
-                    <p className="text-gray-700 dark:text-gray-300 pt-0.5">{criteria}</p>
-                  </li>
-                ))}
-              </ul>
+            {conversationExample ? (
+              <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 font-mono text-sm whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                {conversationExample}
+              </div>
             ) : (
               <p className="text-gray-600 dark:text-gray-400 italic">
-                No success criteria specified
+                No conversation example provided
               </p>
             )}
           </div>

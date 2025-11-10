@@ -185,18 +185,14 @@ export default function ViewTaskPage({ params }: { params: Promise<{ taskId: str
               </ul>
             </div>
 
-            {/* Success Criteria */}
+            {/* Conversation Example */}
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                Success Criteria
+                Conversation Example
               </h2>
-              <ul className="list-disc list-inside space-y-2">
-                {task.conversationExample.map((criterion, index) => (
-                  <li key={index} className="text-gray-700 dark:text-gray-300">
-                    {criterion}
-                  </li>
-                ))}
-              </ul>
+              <div className="bg-gray-50 dark:bg-gray-900 rounded p-4 font-mono text-sm whitespace-pre-wrap">
+                {task.conversationExample}
+              </div>
             </div>
 
             {/* Prerequisites */}

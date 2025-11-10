@@ -16,7 +16,7 @@ export interface TaskData {
   difficulty?: string;
   scenario?: string;
   learningObjectives?: string[];
-  conversationExample?: string[];
+  conversationExample?: string;
   estimatedDuration?: number;
   prerequisites?: string[];
   characterId?: string | null;
@@ -70,8 +70,8 @@ export function validateTaskData(data: TaskData, isUpdate = false): TaskValidati
       errors.push('At least one learning objective is required');
     }
 
-    if (!data.conversationExample || data.conversationExample.length === 0) {
-      errors.push('At least one conversation example is required');
+    if (!data.conversationExample || data.conversationExample.trim().length === 0) {
+      errors.push('Conversation example is required');
     }
 
     if (!data.estimatedDuration || data.estimatedDuration <= 0) {
@@ -155,26 +155,27 @@ export function validateTaskData(data: TaskData, isUpdate = false): TaskValidati
 
   // Conversation example validation
   if (data.conversationExample !== undefined) {
-    if (!Array.isArray(data.conversationExample)) {
-      errors.push('Conversation example must be an array');
+    if (typeof data.conversationExample !== 'string') {
+      errors.push('Conversation example must be a string');
     } else {
-      if (data.conversationExample.length === 0) {
-        errors.push('At least one conversation example is required');
+      if (data.conversationExample.trim().length === 0) {
+        errors.push('Conversation example is required');
       }
 
-      if (data.conversationExample.length > 10) {
-        warnings.push('More than 10 conversation examples may make the task too complex');
+      if (data.conversationExample.trim().length < 20) {
+        errors.push('Conversation example must be at least 20 characters long');
       }
 
-      data.conversationExample.forEach((example, index) => {
-        if (typeof example !== 'string' || example.trim().length === 0) {
-          errors.push(`Conversation example ${index + 1} must be a non-empty string`);
-        }
+      if (data.conversationExample.length > 5000) {
+        errors.push('Conversation example must not exceed 5000 characters');
+      }
 
-        if (example.length > 500) {
-          errors.push(`Conversation example ${index + 1} must not exceed 500 characters`);
-        }
-      });
+      // Check for T: and G: format
+      if (!data.conversationExample.includes('T:') && !data.conversationExample.includes('G:')) {
+        warnings.push(
+          'Conversation example should include T: (teacher) and G: (student) dialog format'
+        );
+      }
     }
   }
 
@@ -282,15 +283,11 @@ export function validateTaskCompleteness(task: TaskData): TaskValidationResult {
     warnings.push('Estimated duration is not a multiple of 5 - consider rounding for consistency');
   }
 
-  // Check if learning objectives match conversation example count
-  if (
-    task.learningObjectives &&
-    task.conversationExample &&
-    task.learningObjectives.length !== task.conversationExample.length
-  ) {
-    warnings.push(
-      'Number of learning objectives and conversation examples differ - consider aligning them'
-    );
+  // Check if conversation example is present and has good length
+  if (task.conversationExample) {
+    if (task.conversationExample.trim().length < 50) {
+      warnings.push('Conversation example is quite short - consider adding more dialog exchanges');
+    }
   }
 
   return {

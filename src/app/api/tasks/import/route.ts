@@ -78,19 +78,14 @@ export async function POST(request: NextRequest) {
               .filter((obj: string) => obj.length > 0)
           : [];
 
-        const conversationExample = row.conversationExample
-          ? row.conversationExample
-              .split(',')
-              .map((crit: string) => crit.trim())
-              .filter((crit: string) => crit.length > 0)
-          : [];
+        const conversationExample = row.conversationExample ? row.conversationExample.trim() : '';
 
         if (learningObjectives.length === 0) {
           throw new Error('learningObjectives must contain at least one objective');
         }
 
         if (conversationExample.length === 0) {
-          throw new Error('conversationExample must contain at least one example');
+          throw new Error('conversationExample must not be empty');
         }
 
         // Parse isActive

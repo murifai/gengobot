@@ -383,13 +383,11 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
 
           <div>
             <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Success Criteria
+              Conversation Example
             </h4>
-            <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
-              {attempt.task.conversationExample.map((criteria, idx) => (
-                <li key={idx}>{criteria}</li>
-              ))}
-            </ul>
+            <div className="bg-gray-50 dark:bg-gray-900 rounded p-3 font-mono text-xs whitespace-pre-wrap text-gray-600 dark:text-gray-400">
+              {attempt.task.conversationExample}
+            </div>
           </div>
 
           <div>

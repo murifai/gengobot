@@ -42,12 +42,8 @@ async function main() {
         'Memahami etiket restoran',
         'Menangani interaksi pembayaran',
       ],
-      conversationExample: [
-        'Berhasil memesan makanan',
-        'Menyebutkan minimal satu preferensi (tingkat pedas, topping, dll.)',
-        'Menyelesaikan transaksi pembayaran',
-        'Menggunakan tingkat kesopanan yang sesuai',
-      ],
+      conversationExample:
+        'T: いらっしゃいませ。ご注文はお決まりですか？\nG: はい、醤油ラーメンをください。\nT: かしこまりました。トッピングは何にしますか？\nG: チャーシューと煮卵をお願いします。\nT: 辛さはいかがいたしましょうか？\nG: 普通の辛さでお願いします。\nT: かしこまりました。少々お待ちください。',
       estimatedDuration: 15,
       isActive: true,
     },
@@ -64,12 +60,8 @@ async function main() {
         'Dasar-dasar negosiasi harga',
         'Etiket berbelanja',
       ],
-      conversationExample: [
-        'Menemukan dan mengidentifikasi item pakaian yang diinginkan',
-        'Bertanya tentang ukuran dan warna',
-        'Menanyakan harga',
-        'Menyelesaikan pembelian',
-      ],
+      conversationExample:
+        'T: いらっしゃいませ。何かお探しですか？\nG: はい、シャツを探しています。\nT: こちらのシャツはいかがですか？いろいろな色がございます。\nG: いいですね。青色はありますか？\nT: はい、ございます。サイズはいかがいたしましょうか？\nG: Mサイズをお願いします。\nT: かしこまりました。試着されますか？\nG: はい、お願いします。',
       estimatedDuration: 20,
       isActive: true,
     },
@@ -86,12 +78,8 @@ async function main() {
         'Memahami deskripsi lokasi',
         'Mengungkapkan rasa terima kasih',
       ],
-      conversationExample: [
-        'Menanyakan arah dengan sopan',
-        'Memahami respons arah dasar',
-        'Mengonfirmasi rute',
-        'Berterima kasih dengan tepat',
-      ],
+      conversationExample:
+        'G: すみません、駅はどこですか？\nT: ああ、駅ですね。まっすぐ行って、二つ目の角を右に曲がってください。\nG: まっすぐ行って、二つ目の角を右ですね？\nT: はい、そうです。5分ぐらい歩きます。\nG: わかりました。ありがとうございます。\nT: どういたしまして。気をつけて。',
       estimatedDuration: 10,
       isActive: true,
     },
@@ -108,12 +96,8 @@ async function main() {
         'Menjelaskan gejala',
         'Memahami penjadwalan janji temu',
       ],
-      conversationExample: [
-        'Menjelaskan alasan kunjungan',
-        'Memberikan ketersediaan waktu',
-        'Mengonfirmasi tanggal dan waktu janji temu',
-        'Memahami instruksi klinik',
-      ],
+      conversationExample:
+        'T: はい、〇〇クリニックです。\nG: あの、予約をお願いしたいんですが。\nT: かしこまりました。どのようなご用件でしょうか？\nG: 頭痛と熱があります。\nT: 分かりました。いつがよろしいですか？\nG: 明日の午後は空いていますか？\nT: 明日の午後2時はいかがでしょうか？\nG: はい、大丈夫です。\nT: では、明日の午後2時でご予約をお取りいたします。保険証をお持ちください。',
       estimatedDuration: 15,
       isActive: true,
     },
@@ -130,12 +114,8 @@ async function main() {
         'Membahas pengalaman kerja',
         'Ekspresi kesopanan profesional',
       ],
-      conversationExample: [
-        'Memberikan perkenalan diri yang komprehensif',
-        'Menjelaskan pengalaman kerja yang relevan',
-        'Menggunakan keigo (bahasa hormat) yang tepat',
-        'Menjawab pertanyaan lanjutan secara profesional',
-      ],
+      conversationExample:
+        'T: それでは、自己紹介をお願いします。\nG: はい、〇〇と申します。大学で経営学を専攻しておりまして、卒業後は海外のIT企業で3年間働いておりました。\nT: なるほど。どのような業務を担当されていましたか？\nG: プロジェクトマネジメントを担当しておりまして、チームメンバーと協力して様々なプロジェクトを成功に導いてまいりました。\nT: チームマネジメントの経験もあるということですね。\nG: はい、そうでございます。御社でもその経験を活かして貢献できればと考えております。',
       estimatedDuration: 25,
       isActive: true,
     },

@@ -16,7 +16,7 @@ export async function GET() {
         learningObjectives:
           'Practice polite requests, Learn food vocabulary, Use appropriate particles',
         conversationExample:
-          'Successfully order items, Use correct particles, Respond to staff questions',
+          'T: いらっしゃいませ。ご注文はお決まりですか？\nG: はい、コーヒーとケーキをください。\nT: かしこまりました。お飲み物は何にしますか？\nG: ホットコーヒーをお願いします。',
         estimatedDuration: '10',
         prerequisites: 'Basic greetings, Numbers 1-10',
         characterId: '',
@@ -92,9 +92,9 @@ export async function GET() {
       },
       {
         Field: 'conversationExample',
-        Description: 'Conversation example (required)',
-        Example: 'Successfully order items, Use correct particles, Respond to staff questions',
-        Notes: 'Comma-separated list of conversation examples',
+        Description: 'Conversation example dialog (required)',
+        Example: 'T: いらっしゃいませ\\nG: はい、コーヒーをください',
+        Notes: 'Dialog format with T: (teacher) and G: (student). Use \\n for line breaks',
       },
       {
         Field: 'estimatedDuration',

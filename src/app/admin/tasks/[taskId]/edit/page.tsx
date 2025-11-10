@@ -12,7 +12,7 @@ interface Task {
   difficulty: string;
   scenario: string;
   learningObjectives: string[];
-  conversationExample: string[];
+  conversationExample: string;
   estimatedDuration: number;
   prerequisites: string;
   characterId: string | null;
