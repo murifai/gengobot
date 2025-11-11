@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { TaskChatInputV2 } from '@/components/task/TaskChatInputV2';
+import TokenizedText from '@/components/vocabulary/TokenizedText';
 
 export interface StreamingChatMessage {
   role: 'user' | 'assistant';
@@ -66,69 +68,12 @@ export default function StreamingChatInterface({
   className,
 }: StreamingChatInterfaceProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(sidebarDefaultOpen);
-  const [inputValue, setInputValue] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const recordingStartTimeRef = useRef<number>(0);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim() || disabled || isStreaming) return;
-
-    onSendMessage(inputValue);
-    setInputValue('');
-  };
-
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-
-      console.log('🎤 Starting recording...');
-
-      mediaRecorder.ondataavailable = event => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const duration = (Date.now() - recordingStartTimeRef.current) / 1000;
-
-        console.log('🛑 Recording stopped, processing audio');
-
-        if (onVoiceRecording) {
-          onVoiceRecording(audioBlob, duration);
-        }
-
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      recordingStartTimeRef.current = Date.now();
-      mediaRecorder.start();
-      setIsRecording(true);
-    } catch (err) {
-      console.error('Failed to start recording:', err);
-      alert('Could not access microphone. Please check your permissions.');
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-    }
-  };
 
   return (
     <div className={cn('flex h-screen bg-gray-50 dark:bg-gray-900', className)}>
@@ -234,7 +179,11 @@ export default function StreamingChatInterface({
                       : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700'
                   )}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  {message.role === 'user' ? (
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  ) : (
+                    <TokenizedText text={message.content} className="text-sm whitespace-pre-wrap" />
+                  )}
                   {message.isStreaming && (
                     <div className="mt-2 flex items-center gap-1">
                       <div className="w-1 h-1 bg-current rounded-full animate-pulse" />
@@ -250,76 +199,23 @@ export default function StreamingChatInterface({
             ))
           )}
 
-          {/* Recording Indicator */}
-          {isRecording && (
-            <div className="flex justify-center">
-              <div className="px-4 py-2 bg-red-500 text-white rounded-full flex items-center gap-2">
-                <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
-                <span className="text-sm font-medium">Recording...</span>
-              </div>
-            </div>
-          )}
-
           <div ref={messagesEndRef} />
         </div>
 
         {/* Input Area */}
         <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
-          <form onSubmit={handleSubmit} className="flex items-center gap-2">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={e => setInputValue(e.target.value)}
-              placeholder={placeholder}
-              disabled={disabled || isStreaming}
-              className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-full border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-            />
-            {enableVoice && onVoiceRecording && (
-              <button
-                type="button"
-                onClick={isRecording ? stopRecording : startRecording}
-                disabled={disabled || isStreaming}
-                className={cn(
-                  'p-3 rounded-full transition-all disabled:opacity-50',
-                  isRecording
-                    ? 'bg-red-500 text-white animate-pulse'
-                    : 'bg-purple-500 hover:bg-purple-600 text-white'
-                )}
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {isRecording ? (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  ) : (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                    />
-                  )}
-                </svg>
-              </button>
-            )}
-            <button
-              type="submit"
-              disabled={disabled || isStreaming || !inputValue.trim()}
-              className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors disabled:opacity-50 disabled:hover:bg-blue-600"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                />
-              </svg>
-            </button>
-          </form>
+          <TaskChatInputV2
+            onSend={onSendMessage}
+            onVoiceRecording={async (blob, duration) => {
+              if (onVoiceRecording) {
+                await onVoiceRecording(blob, duration);
+              }
+            }}
+            placeholder={placeholder}
+            disabled={disabled}
+            loading={isStreaming}
+            enableVoice={enableVoice}
+          />
         </div>
       </div>
 

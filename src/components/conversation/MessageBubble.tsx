@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { convertToRuby, hasFurigana } from '@/lib/utils/furigana';
+import TokenizedText from '@/components/vocabulary/TokenizedText';
 
 export interface MessageBubbleProps {
   content: string;
@@ -135,8 +136,12 @@ export default function MessageBubble({
                   lineHeight: '2.5em', // Extra space for furigana
                 }}
               />
-            ) : (
+            ) : isUser ? (
+              // User messages: plain text
               <p className="whitespace-pre-wrap text-sm">{content}</p>
+            ) : (
+              // AI messages: tokenized with clickable vocabulary
+              <TokenizedText text={content} className="whitespace-pre-wrap text-sm" />
             )}
           </div>
 
