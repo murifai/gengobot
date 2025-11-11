@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -126,6 +127,9 @@ async function main() {
   }
   console.log(`✅ Berhasil membuat ${tasks.length} tugas contoh`);
 
+  // Hash password untuk semua user
+  const hashedPassword = await bcrypt.hash('1234', 10);
+
   // Buat user admin
   console.log('👤 Membuat user admin...');
   await prisma.user.upsert({
@@ -134,11 +138,12 @@ async function main() {
     create: {
       email: 'admin@gengobot.com',
       name: 'Admin User',
+      password: hashedPassword,
       isAdmin: true,
       proficiency: 'N1',
     },
   });
-  console.log('✅ Berhasil membuat user admin: admin@gengobot.com');
+  console.log('✅ Berhasil membuat user admin: admin@gengobot.com (password: 1234)');
 
   // Buat user contoh
   console.log('👤 Membuat user contoh...');
@@ -148,12 +153,29 @@ async function main() {
     create: {
       email: 'student@gengobot.com',
       name: 'Siswa Contoh',
+      password: hashedPassword,
       isAdmin: false,
       proficiency: 'N5',
       preferredTaskCategories: ['Restaurant', 'Shopping', 'Travel'],
     },
   });
-  console.log('✅ Berhasil membuat user contoh: student@gengobot.com');
+  console.log('✅ Berhasil membuat user contoh: student@gengobot.com (password: 1234)');
+
+  // Buat user baru
+  console.log('👤 Membuat user baru...');
+  await prisma.user.upsert({
+    where: { email: 'newuser@gengobot.com' },
+    update: {},
+    create: {
+      email: 'newuser@gengobot.com',
+      name: 'User Baru',
+      password: hashedPassword,
+      isAdmin: false,
+      proficiency: 'N4',
+      preferredTaskCategories: ['Daily Life', 'Education'],
+    },
+  });
+  console.log('✅ Berhasil membuat user baru: newuser@gengobot.com (password: 1234)');
 
   console.log('🎉 Seeding database selesai dengan sukses!');
 }
