@@ -7,8 +7,6 @@ import { Button } from '@/components/ui/Button';
 import FlashcardEditor from '@/components/deck/FlashcardEditor';
 import { CardType } from '@/types/deck';
 
-export const dynamic = 'force-dynamic';
-
 interface DeckViewPageProps {
   params: Promise<{ deckId: string }>;
 }
@@ -71,12 +69,12 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
         setDeck(data);
       } else {
         alert('Failed to load deck');
-        router.push('/study/my-decks');
+        router.push('/admin/decks');
       }
     } catch (error) {
       console.error('Error fetching deck:', error);
       alert('Failed to load deck');
-      router.push('/study/my-decks');
+      router.push('/admin/decks');
     } finally {
       setLoading(false);
     }
@@ -210,10 +208,10 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
           <Button
             variant="ghost"
             className="mb-4 gap-2"
-            onClick={() => router.push('/study/my-decks')}
+            onClick={() => router.push('/admin/decks')}
           >
             <ArrowLeft size={20} />
-            Back to My Decks
+            Back to Decks
           </Button>
 
           <div className="flex items-start justify-between">
@@ -253,7 +251,7 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
               <Button
                 variant="default"
                 className="gap-2"
-                onClick={() => router.push(`/study/decks/${deck.id}/edit`)}
+                onClick={() => router.push(`/admin/decks/${deck.id}/edit`)}
               >
                 <Edit size={20} />
                 Edit Deck
@@ -263,7 +261,7 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
             <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Cards</div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -275,6 +273,12 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
             <div className="text-2xl font-bold text-primary">{deck.studyCount}</div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Created By</div>
+            <div className="text-sm font-medium text-gray-900 dark:text-white">
+              {deck.creator.name || deck.creator.email}
+            </div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
             <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Created</div>
             <div className="text-sm font-medium text-gray-900 dark:text-white">
               {new Date(deck.createdAt).toLocaleDateString()}
@@ -284,8 +288,8 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
 
         {/* Filters */}
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm mb-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex gap-2 flex-wrap">
+          <div className="flex items-center justify-between">
+            <div className="flex gap-2">
               <span className="text-sm text-gray-600 dark:text-gray-400 self-center">
                 Card Type:
               </span>
@@ -323,14 +327,8 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
           </h2>
 
           {filteredCards.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-500 mb-4">
-                No flashcards found. Add some flashcards to get started!
-              </div>
-              <Button variant="default" className="gap-2" onClick={handleCreateCard}>
-                <Plus size={20} />
-                Add Your First Card
-              </Button>
+            <div className="text-center py-12 text-gray-500">
+              No flashcards found. Add some flashcards to get started!
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -377,18 +375,6 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
               ))}
             </div>
           )}
-        </div>
-
-        {/* Help Text */}
-        <div className="mt-6 bg-secondary/10 border border-secondary/30 rounded-lg p-4">
-          <h3 className="font-semibold text-secondary mb-2">Managing Flashcards</h3>
-          <ul className="text-sm text-foreground space-y-1 list-disc list-inside">
-            <li>Click &quot;Add Card&quot; to create new flashcards manually</li>
-            <li>Click the edit icon on any card to modify it</li>
-            <li>Click the delete icon to remove a card (cannot be undone)</li>
-            <li>Use the card type filters to view specific types of cards</li>
-            <li>Export your deck to Excel for backup or sharing</li>
-          </ul>
         </div>
 
         {/* Flashcard Editor Modal */}

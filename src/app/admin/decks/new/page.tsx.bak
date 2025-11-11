@@ -1,62 +1,21 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
-export const dynamic = 'force-dynamic';
-
-interface DeckEditPageProps {
-  params: Promise<{ deckId: string }>;
-}
-
-export default function DeckEditPage({ params }: DeckEditPageProps) {
-  const resolvedParams = use(params);
+export default function NewDeckPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     category: '',
     difficulty: '',
     isPublic: false,
-    isActive: true,
   });
-
-  const fetchDeck = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/decks/${resolvedParams.deckId}`);
-      if (response.ok) {
-        const deck = await response.json();
-        setFormData({
-          name: deck.name,
-          description: deck.description || '',
-          category: deck.category || '',
-          difficulty: deck.difficulty || '',
-          isPublic: deck.isPublic,
-          isActive: deck.isActive,
-        });
-      } else {
-        alert('Failed to load deck');
-        router.push('/admin/decks');
-      }
-    } catch (error) {
-      console.error('Error fetching deck:', error);
-      alert('Failed to load deck');
-      router.push('/admin/decks');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDeck();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resolvedParams.deckId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,11 +25,11 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
       return;
     }
 
-    setSaving(true);
+    setLoading(true);
 
     try {
-      const response = await fetch(`/api/decks/${resolvedParams.deckId}`, {
-        method: 'PUT',
+      const response = await fetch('/api/decks', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -78,58 +37,20 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
       });
 
       if (response.ok) {
-        alert('Deck updated successfully!');
-        router.push(`/admin/decks/${resolvedParams.deckId}`);
+        const deck = await response.json();
+        alert('Deck created successfully!');
+        router.push(`/admin/decks/${deck.id}/edit`);
       } else {
         const data = await response.json();
-        alert(`Failed to update deck: ${data.error}`);
+        alert(`Failed to create deck: ${data.error}`);
       }
     } catch (error) {
-      console.error('Error updating deck:', error);
-      alert('Failed to update deck. Please try again.');
+      console.error('Error creating deck:', error);
+      alert('Failed to create deck. Please try again.');
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
-
-  const handleDelete = async () => {
-    const confirmDelete = window.confirm(
-      `⚠️ WARNING: Delete "${formData.name}"?\n\n` +
-        'This will permanently delete:\n' +
-        '• The deck\n' +
-        '• All flashcards in this deck\n' +
-        '• All study sessions for this deck\n\n' +
-        'This action CANNOT be undone!\n\n' +
-        'Click OK to confirm deletion.'
-    );
-
-    if (!confirmDelete) return;
-
-    try {
-      const response = await fetch(`/api/decks/${resolvedParams.deckId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        alert('Deck deleted successfully');
-        router.push('/admin/decks');
-      } else {
-        const data = await response.json();
-        alert(`Failed to delete deck: ${data.error}`);
-      }
-    } catch (error) {
-      console.error('Error deleting deck:', error);
-      alert('Failed to delete deck. Please try again.');
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -139,13 +60,15 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
           <Button
             variant="ghost"
             className="mb-4 gap-2"
-            onClick={() => router.push(`/admin/decks/${resolvedParams.deckId}`)}
+            onClick={() => router.push('/admin/decks')}
           >
             <ArrowLeft size={20} />
-            Back to Deck
+            Back to Decks
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Edit Deck</h1>
-          <p className="text-gray-600 dark:text-gray-400">Modify deck settings and metadata</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Create New Deck</h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Create a new flashcard deck for studying Japanese
+          </p>
         </div>
 
         {/* Form */}
@@ -234,63 +157,32 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
               </p>
             </div>
 
-            {/* Active/Inactive */}
-            <div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.isActive}
-                  onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
-                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
-                />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Deck is active
-                </span>
-              </label>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-6">
-                Inactive decks are hidden from users
-              </p>
-            </div>
-
             {/* Submit Buttons */}
             <div className="flex gap-4 pt-4">
-              <Button type="submit" variant="default" disabled={saving} className="flex-1">
-                {saving ? 'Saving...' : 'Save Changes'}
+              <Button type="submit" variant="default" disabled={loading} className="flex-1">
+                {loading ? 'Creating...' : 'Create Deck'}
               </Button>
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => router.push(`/admin/decks/${resolvedParams.deckId}`)}
-                disabled={saving}
+                onClick={() => router.push('/admin/decks')}
+                disabled={loading}
               >
                 Cancel
               </Button>
             </div>
           </form>
+        </div>
 
-          {/* Danger Zone */}
-          <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-primary mb-4">Danger Zone</h3>
-            <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h4 className="font-medium text-red-900 dark:text-red-100">Delete this deck</h4>
-                  <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                    Permanently delete this deck and all its flashcards. This action cannot be
-                    undone.
-                  </p>
-                </div>
-                <Button
-                  variant="secondary"
-                  onClick={handleDelete}
-                  className="ml-4 gap-2 bg-primary hover:brightness-90 text-white"
-                >
-                  <Trash2 size={16} />
-                  Delete Deck
-                </Button>
-              </div>
-            </div>
-          </div>
+        {/* Help Text */}
+        <div className="mt-6 bg-secondary/10 border border-secondary/30 rounded-lg p-4">
+          <h3 className="font-semibold text-secondary mb-2">Next Steps</h3>
+          <ul className="text-sm text-foreground space-y-1 list-disc list-inside">
+            <li>After creating the deck, you&apos;ll be redirected to the deck editor</li>
+            <li>Add flashcards manually or import them from an Excel file</li>
+            <li>Supported card types: Kanji, Vocabulary, and Grammar</li>
+            <li>You can mix different card types in one deck</li>
+          </ul>
         </div>
       </div>
     </div>

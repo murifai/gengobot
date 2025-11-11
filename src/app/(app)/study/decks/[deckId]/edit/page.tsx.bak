@@ -2,11 +2,9 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { ArrowLeft, Trash2, Plus, Download } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-
-export const dynamic = 'force-dynamic';
 
 interface DeckEditPageProps {
   params: Promise<{ deckId: string }>;
@@ -23,7 +21,6 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
     category: '',
     difficulty: '',
     isPublic: false,
-    isActive: true,
   });
 
   const fetchDeck = async () => {
@@ -38,16 +35,15 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
           category: deck.category || '',
           difficulty: deck.difficulty || '',
           isPublic: deck.isPublic,
-          isActive: deck.isActive,
         });
       } else {
         alert('Failed to load deck');
-        router.push('/admin/decks');
+        router.push('/study');
       }
     } catch (error) {
       console.error('Error fetching deck:', error);
       alert('Failed to load deck');
-      router.push('/admin/decks');
+      router.push('/study');
     } finally {
       setLoading(false);
     }
@@ -79,7 +75,7 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
 
       if (response.ok) {
         alert('Deck updated successfully!');
-        router.push(`/admin/decks/${resolvedParams.deckId}`);
+        router.push('/study');
       } else {
         const data = await response.json();
         alert(`Failed to update deck: ${data.error}`);
@@ -112,7 +108,7 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
 
       if (response.ok) {
         alert('Deck deleted successfully');
-        router.push('/admin/decks');
+        router.push('/study');
       } else {
         const data = await response.json();
         alert(`Failed to delete deck: ${data.error}`);
@@ -120,6 +116,28 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
     } catch (error) {
       console.error('Error deleting deck:', error);
       alert('Failed to delete deck. Please try again.');
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const response = await fetch(`/api/decks/${resolvedParams.deckId}/export`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${formData.name.replace(/[^a-z0-9]/gi, '_')}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('Failed to export deck');
+      }
+    } catch (error) {
+      console.error('Error exporting deck:', error);
+      alert('Failed to export deck');
     }
   };
 
@@ -136,16 +154,30 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         {/* Header */}
         <div className="mb-8">
-          <Button
-            variant="ghost"
-            className="mb-4 gap-2"
-            onClick={() => router.push(`/admin/decks/${resolvedParams.deckId}`)}
-          >
+          <Button variant="ghost" className="mb-4 gap-2" onClick={() => router.push('/study')}>
             <ArrowLeft size={20} />
-            Back to Deck
+            Back to Study Decks
           </Button>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Edit Deck</h1>
-          <p className="text-gray-600 dark:text-gray-400">Modify deck settings and metadata</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Modify your deck settings and manage flashcards
+          </p>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Button
+            variant="secondary"
+            className="gap-2"
+            onClick={() => router.push(`/study/decks/${resolvedParams.deckId}`)}
+          >
+            <Plus size={16} />
+            Manage Flashcards
+          </Button>
+          <Button variant="secondary" className="gap-2" onClick={handleExport}>
+            <Download size={16} />
+            Export to Excel
+          </Button>
         </div>
 
         {/* Form */}
@@ -160,7 +192,7 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
                 type="text"
                 value={formData.name}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g., JLPT N5 Vocabulary"
+                placeholder="e.g., My JLPT N5 Vocabulary"
                 required
               />
             </div>
@@ -234,24 +266,6 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
               </p>
             </div>
 
-            {/* Active/Inactive */}
-            <div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.isActive}
-                  onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
-                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
-                />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Deck is active
-                </span>
-              </label>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-6">
-                Inactive decks are hidden from users
-              </p>
-            </div>
-
             {/* Submit Buttons */}
             <div className="flex gap-4 pt-4">
               <Button type="submit" variant="default" disabled={saving} className="flex-1">
@@ -260,7 +274,7 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => router.push(`/admin/decks/${resolvedParams.deckId}`)}
+                onClick={() => router.push('/study')}
                 disabled={saving}
               >
                 Cancel
@@ -291,6 +305,17 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Help Text */}
+        <div className="mt-6 bg-secondary/10 border border-secondary/30 rounded-lg p-4">
+          <h3 className="font-semibold text-secondary mb-2">Managing Your Deck</h3>
+          <ul className="text-sm text-foreground space-y-1 list-disc list-inside">
+            <li>Click &quot;Manage Flashcards&quot; to add, edit, or delete cards in this deck</li>
+            <li>Export your deck to Excel format for backup or sharing</li>
+            <li>Supported card types: Kanji, Vocabulary, and Grammar</li>
+            <li>Public decks are visible to all users in the study browser</li>
+          </ul>
         </div>
       </div>
     </div>

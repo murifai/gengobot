@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 
+export const dynamic = 'force-dynamic';
+
 export default function Home() {
   const { user, loading } = useAuth();
 

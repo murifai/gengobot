@@ -5,8 +5,6 @@ import { Search, UserCheck, UserX, Shield, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
-export const dynamic = 'force-dynamic';
-
 interface User {
   id: string;
   email: string;

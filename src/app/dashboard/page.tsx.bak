@@ -5,8 +5,6 @@ import { BookOpen, GraduationCap, MessageSquare, TrendingUp, Users, Settings } f
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 
-export const dynamic = 'force-dynamic';
-
 const dashboardCards = [
   {
     title: 'Pembelajaran Berbasis Tugas',

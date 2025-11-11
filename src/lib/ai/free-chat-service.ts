@@ -1,4 +1,5 @@
 // AI service for free chat conversations
+import 'openai/shims/node';
 import OpenAI from 'openai';
 import { Character, FreeChatMessage } from '@/types/character';
 import { CharacterService } from '@/lib/character/character-service';

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -8,8 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/Card';
 import { ArrowLeft } from 'lucide-react';
-
-export const dynamic = 'force-dynamic';
 
 // OpenAI TTS voices
 const OPENAI_VOICES = [
@@ -46,10 +44,29 @@ const COMMON_TRAITS = [
   'playful',
 ];
 
-export default function NewCharacterPage() {
+interface Character {
+  id: string;
+  name: string;
+  description: string;
+  voice?: string;
+  personality: {
+    type: string;
+    traits: string[];
+    speakingStyle?: string;
+  };
+  speakingStyle?: string;
+  taskSpecific: boolean;
+  assignedTasks?: string[];
+  isUserCreated: boolean;
+}
+
+export default function EditCharacterPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [character, setCharacter] = useState<Character | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -60,10 +77,38 @@ export default function NewCharacterPage() {
     speakingStyle: '',
   });
 
+  useEffect(() => {
+    fetchCharacter();
+  }, [resolvedParams.id]);
+
+  const fetchCharacter = async () => {
+    try {
+      const response = await fetch(`/api/characters/${resolvedParams.id}`);
+      if (!response.ok) throw new Error('Failed to fetch character');
+
+      const data = await response.json();
+      setCharacter(data);
+
+      // Populate form
+      setFormData({
+        name: data.name,
+        description: data.description || '',
+        voice: data.voice || 'alloy',
+        personalityType: data.personality?.type || 'Friend',
+        traits: data.personality?.traits || [],
+        speakingStyle: data.speakingStyle || data.personality?.speakingStyle || '',
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
+    setSaving(true);
 
     try {
       // Validate required fields
@@ -75,8 +120,8 @@ export default function NewCharacterPage() {
         throw new Error('Please select at least one personality trait');
       }
 
-      const response = await fetch('/api/characters', {
-        method: 'POST',
+      const response = await fetch(`/api/characters/${resolvedParams.id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
@@ -89,21 +134,19 @@ export default function NewCharacterPage() {
           },
           speakingStyle: formData.speakingStyle,
           taskSpecific: false, // Dashboard is only for free chat
-          relationshipType: 'friend', // Default relationship type for free chat
-          isUserCreated: true,
         }),
       });
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to create character');
+        throw new Error(data.error || 'Failed to update character');
       }
 
       router.push('/dashboard/characters');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -116,12 +159,36 @@ export default function NewCharacterPage() {
     }));
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading character...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!character) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-primary">{error || 'Character not found'}</p>
+          <Button onClick={() => router.push('/dashboard/characters')} className="mt-4">
+            Back to Characters
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Create Character</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Edit Character</h1>
             <Button onClick={() => router.push('/dashboard/characters')} variant="secondary">
               <ArrowLeft className="mr-2" size={16} />
               Back to Characters
@@ -247,14 +314,14 @@ export default function NewCharacterPage() {
 
             {/* Submit */}
             <div className="flex gap-4 pt-4">
-              <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? 'Creating...' : 'Create Character'}
+              <Button type="submit" disabled={saving} className="flex-1">
+                {saving ? 'Saving...' : 'Save Changes'}
               </Button>
               <Button
                 type="button"
                 variant="secondary"
                 onClick={() => router.push('/dashboard/characters')}
-                disabled={loading}
+                disabled={saving}
               >
                 Cancel
               </Button>

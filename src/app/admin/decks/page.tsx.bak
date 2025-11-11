@@ -2,113 +2,144 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Search, Edit, Trash2, Eye, Download, Upload } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, Download, Upload, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Deck } from '@/types/deck';
 
-export const dynamic = 'force-dynamic';
-
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  difficulty: string;
-  isActive: boolean;
-  usageCount: number;
-  averageScore: number | null;
-  createdAt: string;
-  character?: {
+interface DeckWithDetails extends Deck {
+  creator: {
     id: string;
-    name: string;
+    name: string | null;
+    email: string;
   };
   _count?: {
-    taskAttempts: number;
-    conversations: number;
+    flashcards: number;
   };
 }
 
-export default function AdminTasksPage() {
+export default function AdminDecksPage() {
   const router = useRouter();
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [decks, setDecks] = useState<DeckWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [importing, setImporting] = useState(false);
   const [importResults, setImportResults] = useState<{
-    total: number;
-    success: number;
-    failed: number;
-    errors: Array<{ row: number; error: string }>;
+    success: boolean;
+    deckId?: string;
+    cardsImported: number;
+    errors: Array<{ row: number; message: string }>;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetchTasks();
+    fetchDecks();
   }, []);
 
-  const fetchTasks = async () => {
+  const fetchDecks = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/tasks?limit=100');
+      const response = await fetch('/api/decks?limit=100');
       if (response.ok) {
         const data = await response.json();
-        setTasks(data.tasks || []);
+        setDecks(data.decks || []);
       }
     } catch (error) {
-      console.error('Error fetching tasks:', error);
+      console.error('Error fetching decks:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (taskId: string, taskTitle: string) => {
-    const choice = window.confirm(
-      `Do you want to permanently delete "${taskTitle}"?\n\nOK = Permanently Delete (cannot be undone)\nCancel = Keep task`
-    );
-
-    if (!choice) return;
-
-    // Show second confirmation for permanent deletion
-    const confirmHardDelete = window.confirm(
-      '⚠️ WARNING: This will PERMANENTLY delete:\n\n' +
-        '• The task\n' +
-        '• All task attempts by users\n' +
-        '• All related conversations\n\n' +
+  const handleDelete = async (deckId: string, deckName: string) => {
+    const confirmDelete = window.confirm(
+      `⚠️ WARNING: Delete "${deckName}"?\n\n` +
+        'This will permanently delete:\n' +
+        '• The deck\n' +
+        '• All flashcards in this deck\n' +
+        '• All study sessions for this deck\n\n' +
         'This action CANNOT be undone!\n\n' +
-        'Click OK to confirm permanent deletion.'
+        'Click OK to confirm deletion.'
     );
 
-    if (!confirmHardDelete) return;
+    if (!confirmDelete) return;
 
     try {
-      const response = await fetch(`/api/tasks/${taskId}?deletedBy=admin&hard=true`, {
+      const response = await fetch(`/api/decks/${deckId}`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
-        alert('Task permanently deleted successfully');
-        fetchTasks();
+        alert('Deck deleted successfully');
+        fetchDecks();
       } else {
         const data = await response.json();
-        alert(`Failed to delete task: ${data.error}`);
+        alert(`Failed to delete deck: ${data.error}`);
       }
     } catch (error) {
-      console.error('Error deleting task:', error);
-      alert('Failed to delete task. Please try again.');
+      console.error('Error deleting deck:', error);
+      alert('Failed to delete deck. Please try again.');
     }
   };
 
-  const handleDownloadTemplate = async () => {
+  const handleDuplicate = async (deckId: string, deckName: string) => {
+    const newName = window.prompt(`Enter a name for the duplicated deck:`, `${deckName} (Copy)`);
+
+    if (!newName) return;
+
     try {
-      const response = await fetch('/api/tasks/template');
+      const response = await fetch(`/api/decks/${deckId}/duplicate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: newName }),
+      });
+
+      if (response.ok) {
+        alert('Deck duplicated successfully');
+        fetchDecks();
+      } else {
+        const data = await response.json();
+        alert(`Failed to duplicate deck: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error duplicating deck:', error);
+      alert('Failed to duplicate deck. Please try again.');
+    }
+  };
+
+  const handleExport = async (deckId: string, deckName: string) => {
+    try {
+      const response = await fetch(`/api/decks/${deckId}/export`);
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'task_import_template.xlsx';
+        a.download = `${deckName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('Error exporting deck:', error);
+      alert('Failed to export deck');
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const response = await fetch('/api/decks/template');
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'deck-import-template.xlsx';
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -128,15 +159,18 @@ export default function AdminTasksPage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    const deckName = window.prompt('Enter a name for the imported deck:');
+    if (!deckName) return;
+
     setImporting(true);
     setImportResults(null);
 
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('importedBy', 'admin');
+      formData.append('name', deckName);
 
-      const response = await fetch('/api/tasks/import', {
+      const response = await fetch('/api/decks/import', {
         method: 'POST',
         body: formData,
       });
@@ -144,14 +178,14 @@ export default function AdminTasksPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setImportResults(data.results);
-        fetchTasks();
+        setImportResults(data);
+        fetchDecks();
       } else {
-        alert(`Import failed: ${data.error}\n${data.details || ''}`);
+        alert(`Import failed: ${data.error}`);
       }
     } catch (error) {
-      console.error('Error importing tasks:', error);
-      alert('Failed to import tasks');
+      console.error('Error importing deck:', error);
+      alert('Failed to import deck');
     } finally {
       setImporting(false);
       if (fileInputRef.current) {
@@ -160,16 +194,18 @@ export default function AdminTasksPage() {
     }
   };
 
-  const filteredTasks = tasks.filter(task => {
+  const filteredDecks = decks.filter(deck => {
     const matchesSearch =
-      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesDifficulty = filterDifficulty === 'all' || task.difficulty === filterDifficulty;
-    const matchesCategory = filterCategory === 'all' || task.category === filterCategory;
+      deck.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (deck.description && deck.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesDifficulty = filterDifficulty === 'all' || deck.difficulty === filterDifficulty;
+    const matchesCategory = filterCategory === 'all' || deck.category === filterCategory;
     return matchesSearch && matchesDifficulty && matchesCategory;
   });
 
-  const categories = Array.from(new Set(tasks.map(t => t.category)));
+  const categories = Array.from(
+    new Set(decks.map(d => d.category).filter((c): c is string => Boolean(c)))
+  );
   const difficulties = ['N5', 'N4', 'N3', 'N2', 'N1'];
 
   if (loading) {
@@ -185,38 +221,34 @@ export default function AdminTasksPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Task Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Deck Management</h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Manage conversation tasks for task-based chat mode
+            Manage flashcard decks for vocabulary, kanji, and grammar study
           </p>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Tasks</div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{tasks.length}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Decks</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{decks.length}</div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
             <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Active</div>
             <div className="text-2xl font-bold text-primary">
-              {tasks.filter(t => t.isActive).length}
+              {decks.filter(d => d.isActive).length}
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Attempts</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Cards</div>
             <div className="text-2xl font-bold text-secondary">
-              {tasks.reduce((sum, t) => sum + (t._count?.taskAttempts || 0), 0)}
+              {decks.reduce((sum, d) => sum + d.totalCards, 0)}
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Avg Score</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Public Decks</div>
             <div className="text-2xl font-bold text-tertiary-green">
-              {tasks.length > 0
-                ? (tasks.reduce((sum, t) => sum + (t.averageScore || 0), 0) / tasks.length).toFixed(
-                    1
-                  )
-                : '0'}
+              {decks.filter(d => d.isPublic).length}
             </div>
           </div>
         </div>
@@ -231,7 +263,7 @@ export default function AdminTasksPage() {
               />
               <Input
                 type="text"
-                placeholder="Search tasks..."
+                placeholder="Search decks..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -261,10 +293,10 @@ export default function AdminTasksPage() {
               <Button
                 variant="default"
                 className="gap-2"
-                onClick={() => router.push('/admin/tasks/new')}
+                onClick={() => router.push('/admin/decks/new')}
               >
                 <Plus size={20} />
-                Create Task
+                Create Deck
               </Button>
             </div>
           </div>
@@ -274,18 +306,17 @@ export default function AdminTasksPage() {
             <div className="mb-4 p-4 bg-secondary/10 rounded-lg border border-secondary/30">
               <h3 className="font-semibold text-secondary mb-2">Import Results</h3>
               <div className="text-sm text-foreground space-y-1">
-                <p>Total rows: {importResults.total}</p>
                 <p className="text-tertiary-green">
-                  Successfully imported: {importResults.success}
+                  Successfully imported: {importResults.cardsImported} cards
                 </p>
-                {importResults.failed > 0 && (
+                {importResults.errors.length > 0 && (
                   <>
-                    <p className="text-primary">Failed: {importResults.failed}</p>
+                    <p className="text-primary">Errors: {importResults.errors.length}</p>
                     <div className="mt-2 max-h-40 overflow-y-auto">
-                      <p className="font-semibold mb-1">Errors:</p>
+                      <p className="font-semibold mb-1">Error details:</p>
                       {importResults.errors.map((err, idx) => (
                         <p key={idx} className="text-xs">
-                          Row {err.row}: {err.error}
+                          Row {err.row}: {err.message}
                         </p>
                       ))}
                     </div>
@@ -352,14 +383,14 @@ export default function AdminTasksPage() {
           </div>
         </div>
 
-        {/* Tasks List */}
+        {/* Decks List */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Task
+                    Deck
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Category
@@ -368,10 +399,10 @@ export default function AdminTasksPage() {
                     Difficulty
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Character
+                    Cards
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Attempts
+                    Visibility
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Status
@@ -382,58 +413,76 @@ export default function AdminTasksPage() {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredTasks.length === 0 ? (
+                {filteredDecks.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                      No tasks found
+                      No decks found
                     </td>
                   </tr>
                 ) : (
-                  filteredTasks.map(task => (
-                    <tr key={task.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  filteredDecks.map(deck => (
+                    <tr key={deck.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {task.title}
+                            {deck.name}
                           </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                            {task.description}
-                          </div>
+                          {deck.description && (
+                            <div className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                              {deck.description}
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-secondary/10 text-secondary">
-                          {task.category}
-                        </span>
+                        {deck.category ? (
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-secondary/10 text-secondary">
+                            {deck.category}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {deck.difficulty ? (
+                          <span
+                            className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                              deck.difficulty === 'N5' || deck.difficulty === 'N4'
+                                ? 'bg-tertiary-green/10 text-tertiary-green'
+                                : deck.difficulty === 'N3'
+                                  ? 'bg-tertiary-yellow/10 text-foreground'
+                                  : 'bg-primary/10 text-primary'
+                            }`}
+                          >
+                            {deck.difficulty}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {deck.totalCards}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            task.difficulty === 'N5' || task.difficulty === 'N4'
-                              ? 'bg-tertiary-green/10 text-tertiary-green'
-                              : task.difficulty === 'N3'
-                                ? 'bg-tertiary-yellow/10 text-foreground'
-                                : 'bg-primary/10 text-primary'
+                            deck.isPublic
+                              ? 'bg-secondary/10 text-secondary'
+                              : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                           }`}
                         >
-                          {task.difficulty}
+                          {deck.isPublic ? 'Public' : 'Private'}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {task.character?.name || 'None'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {task._count?.taskAttempts || 0}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            task.isActive
+                            deck.isActive
                               ? 'bg-tertiary-green/10 text-tertiary-green'
                               : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                           }`}
                         >
-                          {task.isActive ? 'Active' : 'Inactive'}
+                          {deck.isActive ? 'Active' : 'Inactive'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -441,21 +490,40 @@ export default function AdminTasksPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => router.push(`/admin/tasks/${task.id}`)}
+                            onClick={() => router.push(`/admin/decks/${deck.id}`)}
+                            title="View"
                           >
                             <Eye size={16} />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => router.push(`/admin/tasks/${task.id}/edit`)}
+                            onClick={() => router.push(`/admin/decks/${deck.id}/edit`)}
+                            title="Edit"
                           >
                             <Edit size={16} />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDelete(task.id, task.title)}
+                            onClick={() => handleDuplicate(deck.id, deck.name)}
+                            title="Duplicate"
+                          >
+                            <Copy size={16} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleExport(deck.id, deck.name)}
+                            title="Export"
+                          >
+                            <Download size={16} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(deck.id, deck.name)}
+                            title="Delete"
                           >
                             <Trash2 size={16} className="text-red-500" />
                           </Button>

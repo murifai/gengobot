@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import { use } from 'react';
 import TaskEditorForm from '@/components/admin/TaskEditorForm';
 
-export const dynamic = 'force-dynamic';
-
 interface Task {
   id: string;
   title: string;

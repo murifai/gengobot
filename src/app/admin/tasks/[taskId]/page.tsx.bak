@@ -6,8 +6,6 @@ import { useRouter } from 'next/navigation';
 import { Edit, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
-export const dynamic = 'force-dynamic';
-
 interface Task {
   id: string;
   title: string;

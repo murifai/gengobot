@@ -6,8 +6,6 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
-export const dynamic = 'force-dynamic';
-
 export default function NewDeckPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -41,7 +39,7 @@ export default function NewDeckPage() {
       if (response.ok) {
         const deck = await response.json();
         alert('Deck created successfully!');
-        router.push(`/admin/decks/${deck.id}/edit`);
+        router.push(`/study/decks/${deck.id}/edit`);
       } else {
         const data = await response.json();
         alert(`Failed to create deck: ${data.error}`);
@@ -59,17 +57,13 @@ export default function NewDeckPage() {
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         {/* Header */}
         <div className="mb-8">
-          <Button
-            variant="ghost"
-            className="mb-4 gap-2"
-            onClick={() => router.push('/admin/decks')}
-          >
+          <Button variant="ghost" className="mb-4 gap-2" onClick={() => router.push('/study')}>
             <ArrowLeft size={20} />
-            Back to Decks
+            Back to Study Decks
           </Button>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Create New Deck</h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Create a new flashcard deck for studying Japanese
+            Create your own flashcard deck for studying Japanese
           </p>
         </div>
 
@@ -85,7 +79,7 @@ export default function NewDeckPage() {
                 type="text"
                 value={formData.name}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g., JLPT N5 Vocabulary"
+                placeholder="e.g., My JLPT N5 Vocabulary"
                 required
               />
             </div>
@@ -167,7 +161,7 @@ export default function NewDeckPage() {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => router.push('/admin/decks')}
+                onClick={() => router.push('/study')}
                 disabled={loading}
               >
                 Cancel

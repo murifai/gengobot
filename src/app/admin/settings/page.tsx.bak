@@ -5,8 +5,6 @@ import { Save, Key, ToggleLeft, ToggleRight, Mail, Shield, Globe } from 'lucide-
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
-export const dynamic = 'force-dynamic';
-
 interface SystemSettings {
   apiKeys: {
     openai: string;

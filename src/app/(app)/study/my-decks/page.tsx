@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { LoadingState } from '@/components/ui/LoadingState';
 
+export const dynamic = 'force-dynamic';
+
 interface Deck {
   id: string;
   name: string;

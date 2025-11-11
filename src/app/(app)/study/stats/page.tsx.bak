@@ -6,8 +6,6 @@ import { LoadingState } from '@/components/ui/LoadingState';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 
-export const dynamic = 'force-dynamic';
-
 interface StudyStats {
   overview: {
     totalSessions: number;

@@ -6,6 +6,8 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
+export const dynamic = 'force-dynamic';
+
 export default function NewDeckPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);

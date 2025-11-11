@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/Button';
 import FlashcardEditor from '@/components/deck/FlashcardEditor';
 import { CardType } from '@/types/deck';
 
+export const dynamic = 'force-dynamic';
+
 interface DeckViewPageProps {
   params: Promise<{ deckId: string }>;
 }

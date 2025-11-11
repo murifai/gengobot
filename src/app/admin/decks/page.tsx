@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Deck } from '@/types/deck';
 
+export const dynamic = 'force-dynamic';
+
 interface DeckWithDetails extends Deck {
   creator: {
     id: string;

@@ -6,8 +6,6 @@ import { Plus, Search, Edit, Trash2, Eye, Download, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
-export const dynamic = 'force-dynamic';
-
 interface Task {
   id: string;
   title: string;

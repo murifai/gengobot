@@ -6,6 +6,8 @@ import { ArrowLeft, Trash2, Plus, Download } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
+export const dynamic = 'force-dynamic';
+
 interface DeckEditPageProps {
   params: Promise<{ deckId: string }>;
 }
