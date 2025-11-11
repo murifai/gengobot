@@ -34,13 +34,21 @@ export default function MessageBubble({
 
   // Debug logging
   useEffect(() => {
+    console.log('[MessageBubble] Rendered:', {
+      isUser,
+      hasAudioUrl: !!audioUrl,
+      audioUrl: audioUrl ? audioUrl.substring(0, 50) + '...' : 'none',
+      autoPlay,
+      contentPreview: content.substring(0, 30),
+    });
+
     if (contentHasFurigana) {
       console.log('[MessageBubble] Message with furigana detected:', {
         content: content.substring(0, 50),
         hasFurigana: contentHasFurigana,
       });
     }
-  }, [content, contentHasFurigana]);
+  }, [content, contentHasFurigana, audioUrl, autoPlay, isUser]);
 
   // Process content for furigana display
   const processedContent = showFurigana && contentHasFurigana ? convertToRuby(content) : content;
@@ -58,34 +66,57 @@ export default function MessageBubble({
   };
 
   useEffect(() => {
-    if (!audioRef.current || !audioUrl) return;
+    console.log('[MessageBubble] Audio effect triggered:', {
+      hasAudioRef: !!audioRef.current,
+      audioUrl,
+      autoPlay,
+      hasAutoPlayed: hasAutoPlayed.current,
+    });
+
+    if (!audioRef.current || !audioUrl) {
+      console.log('[MessageBubble] Skipping audio setup - no ref or URL');
+      return;
+    }
 
     const audio = audioRef.current;
 
-    const handleEnded = () => setIsPlaying(false);
+    const handleEnded = () => {
+      console.log('[MessageBubble] Audio ended');
+      setIsPlaying(false);
+    };
+
     const handleError = (e: Event) => {
       const error = (e.target as HTMLMediaElement).error;
-      console.error('Audio playback error:', {
+      console.error('[MessageBubble] Audio playback error:', {
         code: error?.code,
         message: error?.message,
         audioUrlLength: audioUrl.length,
         audioUrlPrefix: audioUrl.substring(0, 50),
+        audioUrl: audioUrl,
       });
       setIsPlaying(false);
     };
 
     const handleCanPlay = () => {
-      console.log('Audio can play, duration:', audio.duration);
+      console.log('[MessageBubble] Audio can play:', {
+        duration: audio.duration,
+        autoPlay,
+        hasAutoPlayed: hasAutoPlayed.current,
+        willAutoPlay: autoPlay && !hasAutoPlayed.current,
+      });
+
       // Auto-play if enabled and hasn't played yet
       if (autoPlay && !hasAutoPlayed.current) {
+        console.log('[MessageBubble] Starting auto-play...');
         hasAutoPlayed.current = true;
         audio
           .play()
           .then(() => {
+            console.log('[MessageBubble] Auto-play started successfully');
             setIsPlaying(true);
           })
           .catch(err => {
-            console.error('Auto-play failed:', err);
+            console.error('[MessageBubble] Auto-play failed:', err);
           });
       }
     };

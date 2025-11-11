@@ -40,6 +40,7 @@ export default function VoiceRecorder({
   const recorderRef = useRef<AudioRecorder | null>(null);
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const volumeIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isSpacebarPressedRef = useRef<boolean>(false);
 
   // Initialize recorder
   useEffect(() => {
@@ -175,6 +176,40 @@ export default function VoiceRecorder({
     }
   }, [isRecording, isPaused]);
 
+  // Handle spacebar push-to-talk
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !disabled && !isSpacebarPressedRef.current) {
+        // Prevent default spacebar behavior (page scroll)
+        const target = e.target as HTMLElement;
+        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          isSpacebarPressedRef.current = true;
+          if (!isRecording) {
+            startRecording();
+          }
+        }
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && isSpacebarPressedRef.current) {
+        isSpacebarPressedRef.current = false;
+        if (isRecording) {
+          stopRecording();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [disabled, isRecording, startRecording, stopRecording]);
+
   // Format duration
   const formatDuration = (ms: number): string => {
     const seconds = Math.floor(ms / 1000);
@@ -207,6 +242,19 @@ export default function VoiceRecorder({
       {/* Recording Controls */}
       {hasPermission !== false && (
         <div className="recording-controls space-y-4">
+          {/* Push-to-Talk Hint */}
+          {!isRecording && (
+            <div className="text-center mb-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Press and hold{' '}
+                <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs font-mono">
+                  Space
+                </kbd>{' '}
+                for push-to-talk
+              </p>
+            </div>
+          )}
+
           {/* Record Button */}
           <div className="flex items-center justify-center gap-3">
             {!isRecording ? (

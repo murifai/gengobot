@@ -24,6 +24,12 @@ interface TaskAttempt {
       role: string;
       content: string;
       timestamp: string;
+      voiceMetadata?: {
+        audioUrl?: string;
+        audioDuration?: number;
+        voiceActivityDetected?: boolean;
+        transcriptionConfidence?: number;
+      };
     }>;
     startedAt: string;
   };
@@ -316,16 +322,27 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
   }
 
   // Convert conversation messages to Message format
-  const messages = attempt.conversationHistory.messages.map((msg, idx) => ({
-    id: `${attemptId}-${idx}`,
-    content: msg.content,
-    isUser: msg.role === 'user',
-    timestamp: new Date(msg.timestamp),
-    audioUrl:
-      msg.role === 'assistant'
-        ? (msg as { voiceMetadata?: { audioUrl?: string } }).voiceMetadata?.audioUrl
-        : undefined,
-  }));
+  const messages = attempt.conversationHistory.messages.map((msg, idx) => {
+    const message = {
+      id: `${attemptId}-${idx}`,
+      content: msg.content,
+      isUser: msg.role === 'user',
+      timestamp: new Date(msg.timestamp),
+      audioUrl: msg.voiceMetadata?.audioUrl,
+    };
+
+    // Debug: Log messages with audio
+    if (message.audioUrl) {
+      console.log('[TaskAttemptClient] Message with audio:', {
+        id: message.id,
+        isUser: message.isUser,
+        audioUrl: message.audioUrl,
+        hasVoiceMetadata: !!msg.voiceMetadata,
+      });
+    }
+
+    return message;
+  });
 
   // Create sidebar content
   const sidebarContent = (
@@ -537,6 +554,7 @@ export default function TaskAttemptClient({ attemptId }: TaskAttemptClientProps)
       placeholder="Type your message in Japanese..."
       disabled={attempt.isCompleted || sending}
       enableVoice={!attempt.isCompleted}
+      autoPlayVoiceResponses={true}
       sidebar={sidebarContent}
       emptyStateMessage="No messages yet. Start the conversation!"
     />

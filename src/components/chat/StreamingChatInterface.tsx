@@ -10,6 +10,7 @@ export interface StreamingChatMessage {
   content: string;
   timestamp: string;
   isStreaming?: boolean;
+  audioUrl?: string;
 }
 
 export interface StreamingChatInterfaceProps {
@@ -166,37 +167,69 @@ export default function StreamingChatInterface({
               </p>
             </div>
           ) : (
-            messages.map((message, idx) => (
-              <div
-                key={idx}
-                className={cn('flex', message.role === 'user' ? 'justify-end' : 'justify-start')}
-              >
+            messages.map((message, idx) => {
+              const isLatestAI = message.role === 'assistant' && idx === messages.length - 1;
+              const shouldAutoPlay = isLatestAI && !!message.audioUrl && !message.isStreaming;
+
+              return (
                 <div
-                  className={cn(
-                    'max-w-[80%] rounded-2xl px-4 py-3 shadow-sm',
-                    message.role === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700'
-                  )}
+                  key={idx}
+                  className={cn('flex', message.role === 'user' ? 'justify-end' : 'justify-start')}
                 >
-                  {message.role === 'user' ? (
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  ) : (
-                    <TokenizedText text={message.content} className="text-sm whitespace-pre-wrap" />
-                  )}
-                  {message.isStreaming && (
-                    <div className="mt-2 flex items-center gap-1">
-                      <div className="w-1 h-1 bg-current rounded-full animate-pulse" />
-                      <div className="w-1 h-1 bg-current rounded-full animate-pulse delay-75" />
-                      <div className="w-1 h-1 bg-current rounded-full animate-pulse delay-150" />
-                    </div>
-                  )}
-                  <p className="text-xs opacity-70 mt-1">
-                    {new Date(message.timestamp).toLocaleTimeString()}
-                  </p>
+                  <div
+                    className={cn(
+                      'max-w-[80%] rounded-2xl px-4 py-3 shadow-sm',
+                      message.role === 'user'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700'
+                    )}
+                  >
+                    {message.role === 'user' ? (
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    ) : (
+                      <TokenizedText
+                        text={message.content}
+                        className="text-sm whitespace-pre-wrap"
+                      />
+                    )}
+                    {message.isStreaming && (
+                      <div className="mt-2 flex items-center gap-1">
+                        <div className="w-1 h-1 bg-current rounded-full animate-pulse" />
+                        <div className="w-1 h-1 bg-current rounded-full animate-pulse delay-75" />
+                        <div className="w-1 h-1 bg-current rounded-full animate-pulse delay-150" />
+                      </div>
+                    )}
+
+                    {/* Hidden audio player for AI responses - auto-play only */}
+                    {message.role === 'assistant' && message.audioUrl && !message.isStreaming && (
+                      <audio
+                        src={message.audioUrl}
+                        autoPlay={shouldAutoPlay}
+                        onLoadedMetadata={e => {
+                          console.log('[StreamingChatInterface] Audio loaded:', {
+                            idx,
+                            audioUrl: message.audioUrl,
+                            duration: e.currentTarget.duration,
+                            autoPlay: shouldAutoPlay,
+                          });
+                        }}
+                        onError={e => {
+                          console.error('[StreamingChatInterface] Audio error:', {
+                            idx,
+                            audioUrl: message.audioUrl,
+                            error: e.currentTarget.error,
+                          });
+                        }}
+                      />
+                    )}
+
+                    <p className="text-xs opacity-70 mt-1">
+                      {new Date(message.timestamp).toLocaleTimeString()}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
 
           <div ref={messagesEndRef} />

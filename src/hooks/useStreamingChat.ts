@@ -7,6 +7,7 @@ export interface StreamingMessage {
   content: string;
   timestamp: string;
   isStreaming?: boolean;
+  audioUrl?: string;
 }
 
 export interface UseStreamingChatReturn {
@@ -70,10 +71,21 @@ export function useStreamingChat(
         });
 
         if (!response.ok) {
-          const errorData = await response
-            .json()
-            .catch(() => ({ error: 'Failed to send message' }));
-          throw new Error(errorData.error || 'Failed to send message');
+          const errorText = await response.text();
+          console.error('[useStreamingChat] API error:', {
+            status: response.status,
+            statusText: response.statusText,
+            body: errorText,
+          });
+
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { error: errorText || 'Failed to send message' };
+          }
+
+          throw new Error(errorData.error || `Server error: ${response.status}`);
         }
 
         if (!response.body) {
@@ -104,12 +116,22 @@ export function useStreamingChat(
               }
 
               if (data.done) {
-                // Mark streaming as complete
+                // Mark streaming as complete and add audioUrl if present
                 setMessages(prev =>
                   prev.map((msg, idx) =>
-                    idx === prev.length - 1 ? { ...msg, isStreaming: false } : msg
+                    idx === prev.length - 1
+                      ? {
+                          ...msg,
+                          isStreaming: false,
+                          audioUrl: data.audioUrl || msg.audioUrl,
+                        }
+                      : msg
                   )
                 );
+                console.log('[useStreamingChat] Streaming complete with audio:', {
+                  hasAudioUrl: !!data.audioUrl,
+                  audioUrl: data.audioUrl,
+                });
               } else if (data.content) {
                 // Update assistant message with streamed content
                 setMessages(prev =>

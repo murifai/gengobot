@@ -25,6 +25,10 @@ interface TaskAttempt {
       role: string;
       content: string;
       timestamp: string;
+      voiceMetadata?: {
+        audioUrl?: string;
+        audioDuration?: number;
+      };
     }>;
     startedAt: string;
   };
@@ -70,6 +74,7 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
       role: msg.role as 'user' | 'assistant',
       content: msg.content,
       timestamp: msg.timestamp,
+      audioUrl: msg.voiceMetadata?.audioUrl,
     })) || []
   );
 

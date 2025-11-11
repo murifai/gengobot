@@ -99,12 +99,11 @@ export default function ChatInput({
 
           <Button
             onClick={handleSend}
-            disabled={!message.trim() || disabled}
-            loading={loading}
+            disabled={!message.trim() || disabled || loading}
             size="sm"
             className="shrink-0"
           >
-            Send
+            {loading ? 'Sending...' : 'Send'}
           </Button>
         </div>
       ) : (

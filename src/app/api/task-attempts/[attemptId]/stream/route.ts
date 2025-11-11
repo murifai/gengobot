@@ -1,7 +1,11 @@
 // Streaming API for task conversations with optimized token efficiency
+// MUST import OpenAI shims first before any other imports
+import 'openai/shims/node';
+
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import OpenAI from 'openai';
+import { taskVoiceService } from '@/lib/voice/task-voice-service';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -144,10 +148,36 @@ Respond ONLY in Japanese unless explaining a complex grammar point.`;
             timestamp: new Date().toISOString(),
           };
 
+          // Generate TTS audio for AI response (non-blocking)
+          let synthesis = { success: false, audioUrl: undefined, duration: undefined, error: '' };
+          try {
+            console.log('[Streaming] Generating TTS for response...');
+            synthesis = await taskVoiceService.synthesizeResponse(
+              fullResponse,
+              attempt.task.character,
+              attempt.user.proficiency
+            );
+
+            console.log('[Streaming] TTS result:', {
+              success: synthesis.success,
+              audioUrl: synthesis.audioUrl,
+              error: synthesis.error,
+            });
+          } catch (ttsError) {
+            console.error('[Streaming] TTS generation failed (non-blocking):', ttsError);
+            // Continue without audio - TTS failure should not block the chat
+          }
+
           const assistantMessage = {
             role: 'assistant',
             content: fullResponse,
             timestamp: new Date().toISOString(),
+            voiceMetadata: synthesis.success
+              ? {
+                  audioUrl: synthesis.audioUrl,
+                  audioDuration: synthesis.duration || 0,
+                }
+              : undefined,
           };
 
           const updatedMessages = [...messages, userMessage, assistantMessage];
@@ -165,10 +195,11 @@ Respond ONLY in Japanese unless explaining a complex grammar point.`;
             },
           });
 
-          // Send completion event
+          // Send completion event with audioUrl
           const doneData = JSON.stringify({
             content: '',
             done: true,
+            audioUrl: synthesis.success ? synthesis.audioUrl : undefined,
             messageCount: updatedMessages.length,
             progress: {
               completedObjectives: completedObjectives.length,
