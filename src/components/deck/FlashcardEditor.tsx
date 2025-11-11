@@ -158,7 +158,7 @@ export default function FlashcardEditor({
       <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 border-2 border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Card Preview</h3>
-          <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+          <span className="px-2 py-1 text-xs font-semibold rounded bg-secondary/10 text-foreground">
             {cardType}
           </span>
         </div>
@@ -204,9 +204,9 @@ export default function FlashcardEditor({
 
         {/* Additional info */}
         {exampleSentence && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded p-3 text-sm">
-            <div className="font-medium text-blue-900 dark:text-blue-100 mb-1">Example:</div>
-            <div className="text-blue-800 dark:text-blue-200 mb-1">{exampleSentence}</div>
+          <div className="bg-secondary/10 rounded p-3 text-sm">
+            <div className="font-medium text-secondary mb-1">Example:</div>
+            <div className="text-foreground mb-1">{exampleSentence}</div>
             {exampleTranslation && (
               <div className="text-blue-600 dark:text-blue-300 text-xs">{exampleTranslation}</div>
             )}

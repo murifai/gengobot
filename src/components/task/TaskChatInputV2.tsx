@@ -231,8 +231,8 @@ export function TaskChatInputV2({
                 className={cn(
                   'flex-1 h-[60px] px-4 transition-all duration-200',
                   'flex items-center justify-center gap-3',
-                  'bg-red-600 hover:bg-red-700 active:bg-red-800',
-                  'disabled:bg-gray-400 disabled:cursor-not-allowed',
+                  'bg-primary hover:brightness-90 active:brightness-75',
+                  'disabled:opacity-50 disabled:cursor-not-allowed',
                   'select-none text-white font-medium'
                 )}
               >

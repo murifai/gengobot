@@ -197,7 +197,7 @@ export default function CategoriesPage() {
         <h1 className="text-3xl font-bold">Categories & Subcategories</h1>
         <button
           onClick={() => setShowCategoryForm(!showCategoryForm)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="flex items-center gap-2 px-4 py-2 bg-secondary text-white rounded-lg hover:brightness-90"
         >
           {showCategoryForm ? <X size={20} /> : <Plus size={20} />}
           {showCategoryForm ? 'Cancel' : 'Add Category'}
@@ -205,13 +205,13 @@ export default function CategoriesPage() {
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg flex justify-between items-center">
+        <div className="mb-4 p-4 bg-primary/10 text-primary rounded-lg flex justify-between items-center">
           <div>
             <strong>Error:</strong> {error}
           </div>
           <button
             onClick={fetchCategories}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            className="px-4 py-2 bg-primary text-white rounded hover:brightness-90"
           >
             Retry
           </button>
@@ -239,7 +239,7 @@ export default function CategoriesPage() {
             <div className="flex gap-4">
               <button
                 type="submit"
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-6 py-2 bg-secondary text-white rounded-lg hover:brightness-90"
               >
                 {editingCategoryId ? 'Update' : 'Create'} Category
               </button>
@@ -296,7 +296,7 @@ export default function CategoriesPage() {
             <div className="flex gap-4">
               <button
                 type="submit"
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-6 py-2 bg-secondary text-white rounded-lg hover:brightness-90"
               >
                 {editingSubcategoryId ? 'Update' : 'Create'} Subcategory
               </button>
@@ -329,7 +329,7 @@ export default function CategoriesPage() {
                 <div className="flex items-center gap-3 flex-1">
                   <button
                     onClick={() => toggleCategory(category.id)}
-                    className="p-1 hover:bg-blue-100 dark:hover:bg-gray-600 rounded"
+                    className="p-1 hover:bg-secondary/10 rounded"
                   >
                     {expandedCategories.has(category.id) ? (
                       <ChevronDown size={20} />
@@ -345,21 +345,21 @@ export default function CategoriesPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleAddSubcategory(category.id)}
-                    className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                    className="px-3 py-1 text-sm bg-tertiary-green text-white rounded hover:brightness-90"
                     title="Add Subcategory"
                   >
                     <Plus size={16} className="inline" /> Sub
                   </button>
                   <button
                     onClick={() => handleEditCategory(category)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg"
+                    className="p-2 text-blue-600 hover:bg-secondary/10 rounded-lg"
                     title="Edit Category"
                   >
                     <Edit2 size={20} />
                   </button>
                   <button
                     onClick={() => handleDeleteCategory(category.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg"
+                    className="p-2 text-red-600 hover:bg-primary/10 rounded-lg"
                     title="Delete Category"
                   >
                     <Trash2 size={20} />
@@ -377,7 +377,7 @@ export default function CategoriesPage() {
                         className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg ml-8"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <div className="w-2 h-2 bg-secondary rounded-full"></div>
                           <span className="font-medium">{sub.name}</span>
                           {sub._count && (
                             <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -388,14 +388,14 @@ export default function CategoriesPage() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleEditSubcategory(sub)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg"
+                            className="p-2 text-blue-600 hover:bg-secondary/10 rounded-lg"
                             title="Edit"
                           >
                             <Edit2 size={16} />
                           </button>
                           <button
                             onClick={() => handleDeleteSubcategory(sub.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="p-2 text-red-600 hover:bg-primary/10 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={sub._count ? sub._count.tasks > 0 : false}
                             title={
                               sub._count && sub._count.tasks > 0

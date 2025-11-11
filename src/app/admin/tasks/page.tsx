@@ -269,18 +269,16 @@ export default function AdminTasksPage() {
 
           {/* Import Results */}
           {importResults && (
-            <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                Import Results
-              </h3>
-              <div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+            <div className="mb-4 p-4 bg-secondary/10 rounded-lg border border-secondary/30">
+              <h3 className="font-semibold text-secondary mb-2">Import Results</h3>
+              <div className="text-sm text-foreground space-y-1">
                 <p>Total rows: {importResults.total}</p>
-                <p className="text-green-600 dark:text-green-400">
+                <p className="text-tertiary-green">
                   Successfully imported: {importResults.success}
                 </p>
                 {importResults.failed > 0 && (
                   <>
-                    <p className="text-red-600 dark:text-red-400">Failed: {importResults.failed}</p>
+                    <p className="text-primary">Failed: {importResults.failed}</p>
                     <div className="mt-2 max-h-40 overflow-y-auto">
                       <p className="font-semibold mb-1">Errors:</p>
                       {importResults.errors.map((err, idx) => (
@@ -294,7 +292,7 @@ export default function AdminTasksPage() {
               </div>
               <button
                 onClick={() => setImportResults(null)}
-                className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                className="mt-2 text-xs text-secondary hover:underline"
               >
                 Dismiss
               </button>
@@ -402,7 +400,7 @@ export default function AdminTasksPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-secondary/10 text-secondary">
                           {task.category}
                         </span>
                       </td>
@@ -410,10 +408,10 @@ export default function AdminTasksPage() {
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full ${
                             task.difficulty === 'N5' || task.difficulty === 'N4'
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              ? 'bg-tertiary-green/10 text-tertiary-green'
                               : task.difficulty === 'N3'
-                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                ? 'bg-tertiary-yellow/10 text-foreground'
+                                : 'bg-primary/10 text-primary'
                           }`}
                         >
                           {task.difficulty}
@@ -429,7 +427,7 @@ export default function AdminTasksPage() {
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full ${
                             task.isActive
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              ? 'bg-tertiary-green/10 text-tertiary-green'
                               : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                           }`}
                         >

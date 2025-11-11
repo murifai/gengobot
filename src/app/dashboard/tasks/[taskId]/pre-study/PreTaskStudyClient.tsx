@@ -155,7 +155,7 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 dark:text-red-400">{error || 'Task not found'}</p>
+          <p className="text-primary">{error || 'Task not found'}</p>
           <button
             onClick={() => router.push('/dashboard/tasks')}
             className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"

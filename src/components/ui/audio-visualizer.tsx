@@ -102,12 +102,23 @@ export function AudioVisualizer({ stream, isRecording, onClick }: AudioVisualize
     }
   };
 
-  // Calculate the color intensity based on bar height
+  // Calculate the color intensity based on bar height using primary color
   const getBarColor = (normalizedHeight: number) => {
-    const intensity =
-      Math.floor(normalizedHeight * AUDIO_CONFIG.COLOR.INTENSITY_RANGE) +
-      AUDIO_CONFIG.COLOR.MIN_INTENSITY;
-    return `rgb(${intensity}, ${intensity}, ${intensity})`;
+    // Get the primary color from CSS variables
+    const primaryColor = getComputedStyle(document.documentElement)
+      .getPropertyValue('--primary')
+      .trim();
+
+    // Calculate opacity based on normalized height
+    const opacity = 0.3 + normalizedHeight * 0.7;
+
+    // Return color with opacity
+    return primaryColor.startsWith('#')
+      ? primaryColor +
+          Math.round(opacity * 255)
+            .toString(16)
+            .padStart(2, '0')
+      : `color-mix(in srgb, ${primaryColor} ${Math.round(opacity * 100)}%, transparent)`;
   };
 
   // Draw a single bar of the visualizer

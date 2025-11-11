@@ -268,10 +268,8 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
 
           {/* Danger Zone */}
           <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-4">
-              Danger Zone
-            </h3>
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-primary mb-4">Danger Zone</h3>
+            <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
               <div className="flex items-start justify-between">
                 <div>
                   <h4 className="font-medium text-red-900 dark:text-red-100">Delete this deck</h4>
@@ -283,7 +281,7 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
                 <Button
                   variant="secondary"
                   onClick={handleDelete}
-                  className="ml-4 gap-2 bg-red-600 hover:bg-red-700 text-white"
+                  className="ml-4 gap-2 bg-primary hover:brightness-90 text-white"
                 >
                   <Trash2 size={16} />
                   Delete Deck

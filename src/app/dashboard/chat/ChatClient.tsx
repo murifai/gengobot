@@ -83,7 +83,7 @@ export default function ChatClient({ user }: ChatClientProps) {
           </div>
         ) : error ? (
           <div className="text-center py-12">
-            <p className="text-red-600 dark:text-red-400">{error}</p>
+            <p className="text-primary">{error}</p>
             <Button onClick={fetchCharacters} className="mt-4">
               Try Again
             </Button>
@@ -114,13 +114,13 @@ export default function ChatClient({ user }: ChatClientProps) {
                     </h3>
                     <div className="flex gap-1">
                       <span
-                        className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded"
+                        className="text-xs bg-secondary/10 text-foreground px-2 py-1 rounded"
                         title="Text chat enabled"
                       >
                         💬
                       </span>
                       <span
-                        className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded"
+                        className="text-xs bg-tertiary-purple/10 text-tertiary-purple px-2 py-1 rounded"
                         title="Voice chat enabled"
                       >
                         🎙️

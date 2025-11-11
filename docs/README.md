@@ -1,95 +1,100 @@
 # Gengobot Documentation
 
-Complete documentation for the Gengobot Japanese language learning platform.
+Complete documentation for Gengobot - an AI-powered Japanese language learning platform.
 
-## 📚 Documentation Structure
+## 📚 Quick Links
 
-### 🔧 Setup & Configuration
+- [Main README](../README.md) - Project overview and quick start
+- [Setup Guide](./setup/DATABASE_SETUP_COMPLETE.md) - Database and environment setup
+- [Deployment Guide](./deployment/QUICK_START.md) - Production deployment instructions
+- [Security Guidelines](./security/SECURITY.md) - Security best practices
 
-**Location:** `docs/setup/`
+## 🚀 Getting Started
 
-- [Database Setup](./setup/DATABASE_SETUP_COMPLETE.md) - Database configuration and initialization
-- [Get Database URL](./setup/GET_DATABASE_URL.md) - Instructions for obtaining database connection strings
-- [Admin Setup](./setup/ADMIN_SETUP.md) - Admin panel configuration and management
-- [Reseed Guide](./setup/RESEED_GUIDE.md) - Database seeding and data reset procedures
-- [Test Accounts](./setup/TEST_ACCOUNTS.md) - Test user credentials for development
+### For Developers
 
-### 💻 Development
+1. **Initial Setup**
+   - [Database Setup](./setup/DATABASE_SETUP_COMPLETE.md)
+   - [Get Database URL](./setup/GET_DATABASE_URL.md)
+   - [Admin Setup](./setup/ADMIN_SETUP.md)
+   - [Test Accounts](./setup/TEST_ACCOUNTS.md)
 
-**Location:** `docs/development/`
+2. **Development Resources**
+   - [Development Plan](./development/Gengobot-app-dev-plan.md) - Project roadmap
+   - [App Documentation](./development/Gengobot-app-doc.md) - Architecture & features
+   - [Authentication](./development/AUTH_SUMMARY.md) - Auth system overview
+   - [Cost Optimization](./development/COST_OPTIMIZATION.md) - API cost strategies
 
-- [Development Plan](./development/Gengobot-app-dev-plan.md) - Overall project development roadmap
-- [Application Documentation](./development/Gengobot-app-doc.md) - Comprehensive app architecture and features
-- [Authentication Summary](./development/AUTH_SUMMARY.md) - Authentication system overview
+### For Users
 
-### 📊 Phase Completions
+- [Deck Quick Start](./guides/DECK_QUICK_START.md) - Create and study flashcard decks
+- [Task Attempt Guide](./guides/TASK_ATTEMPT_GUIDE.md) - How to complete learning tasks
 
-**Location:** `docs/phases/`
+## 🎯 Core Features
 
-- [Phase 1 Summary](./phases/Phase-1-Summary.md) - Initial setup and core infrastructure
-- [Phase 2.1 Completion](./phases/phase-2.1-completion.md) - Character system implementation
-- [Phase 2.2 Completion](./phases/PHASE-2.2-COMPLETION.md) - Free chat functionality
-- [Phase 2.3 Completion](./phases/PHASE-2.3-COMPLETION.md) - Conversation management
-- [Phase 3.1 Completion](./phases/PHASE-3.1-COMPLETION.md) - Task-based learning system
-- [Phase 3.2 Completion](./phases/PHASE-3.2-COMPLETION.md) - Chat integration
-- [Phase 3.3 Completion](./phases/PHASE-3.3-COMPLETION.md) - Voice interaction system
-- [Phase 4.5 UX Enhancement](./phases/phase-4.5-ux-enhancement-guide.md) - User experience improvements
+### Task-Based Learning
 
-### 🔒 Security
+Structured learning scenarios with AI-powered conversations and automatic assessment based on JLPT criteria.
 
-**Location:** `docs/security/`
+### Flashcard System
 
-- [Security Guidelines](./security/SECURITY.md) - Security best practices and implementation
+Spaced repetition learning with kanji, vocabulary, and grammar cards.
 
-## 🚀 Quick Start
+### Voice Integration
 
-1. **Setup**: Start with [Database Setup](./setup/DATABASE_SETUP_COMPLETE.md)
-2. **Development**: Review [Development Plan](./development/Gengobot-app-dev-plan.md)
-3. **Testing**: Use [Test Accounts](./setup/TEST_ACCOUNTS.md) for development
+- Speech-to-text (OpenAI Whisper)
+- Text-to-speech for Japanese responses
+- Push-to-talk functionality
+- See: [Push-to-Talk Features](./features/PTT_FEATURES.md)
 
-## 📖 Features
+### Character System
 
-### Core Systems
-
-- **Authentication & User Management** - Supabase-based auth with JLPT level tracking
-- **Character System** - AI characters with personalities and relationships
-- **Free Chat** - Real-time conversations with AI characters
-- **Task-Based Learning** - Structured learning with scenarios and objectives
-- **Voice Integration** - Speech-to-text and text-to-speech for immersive learning
-- **Admin Panel** - Character and task management interface
-
-### Recent Additions (Phase 4.5)
-
-- ✅ Voice input/output for task-based chat
-- ✅ Unified chat interface for all conversation types
-- ✅ Enhanced error handling and validation
-- ✅ Auto-play voice responses
-- ✅ Toggle between voice and text modes
+AI characters with personalities for immersive conversations.
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 15, React, TypeScript, Tailwind CSS
+- **Frontend**: Next.js 15, TypeScript, Tailwind CSS
 - **Backend**: Next.js API Routes, Prisma ORM
-- **Database**: PostgreSQL (Supabase)
-- **Authentication**: Supabase Auth
-- **AI Services**: OpenAI GPT-4, Whisper, TTS
-- **Voice Processing**: Web Audio API, MediaRecorder API
+- **Database**: PostgreSQL
+- **Authentication**: NextAuth.js
+- **AI**: OpenAI GPT-4, Whisper, TTS
 
-## 📝 Contributing
+## 📁 Documentation Structure
 
-When updating documentation:
+```
+docs/
+├── README.md                    # This file
+├── setup/                       # Initial setup guides
+├── deployment/                  # Deployment instructions
+├── development/                 # Development documentation
+├── features/                    # Feature-specific docs
+├── guides/                      # User guides
+└── security/                    # Security documentation
+```
+
+## 🔧 Maintenance
+
+### Database Operations
+
+- [Reseed Guide](./setup/RESEED_GUIDE.md) - Reset and seed database
+
+### Deployment
+
+- [Quick Start](./deployment/QUICK_START.md) - Fast deployment
+- [VPS Guide](./deployment/VPS_DEPLOYMENT_GUIDE.md) - Full VPS setup
+
+## 🤝 Contributing
+
+When adding documentation:
 
 1. Place setup guides in `docs/setup/`
 2. Development docs in `docs/development/`
-3. Phase completions in `docs/phases/`
-4. Security docs in `docs/security/`
-5. Update this README.md index
+3. Feature docs in `docs/features/`
+4. User guides in `docs/guides/`
+5. Update this README with links
 
-## 📅 Latest Updates
+## 📝 Notes
 
-**October 2025** - Phase 4.5: Voice Chat Implementation
-
-- Fixed voice input validation (duration conversion)
-- Implemented voice output with audio playback
-- Added auto-play for voice conversations
-- Improved error handling and user feedback
+- Main README is in the project root
+- All environment variables are documented in `.env.example`
+- Test accounts are available in [TEST_ACCOUNTS.md](./setup/TEST_ACCOUNTS.md)

@@ -126,7 +126,7 @@ export default function StudyDeckPage({ params }: { params: Promise<{ deckId: st
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <Card className="max-w-md w-full p-8 text-center">
-          <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+          <p className="text-primary mb-4">{error}</p>
           <Button onClick={() => router.push('/study')}>Back to Decks</Button>
         </Card>
       </div>

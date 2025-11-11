@@ -20,17 +20,17 @@ export default function StudyPage() {
         </div>
         <div className="flex gap-3">
           <Link href="/study/decks/new">
-            <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+            <button className="px-4 py-2 bg-tertiary-green hover:brightness-90 text-white rounded-lg transition-all">
               Buat Dek
             </button>
           </Link>
           <Link href="/study/my-decks">
-            <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
+            <button className="px-4 py-2 bg-tertiary-purple hover:brightness-90 text-white rounded-lg transition-all">
               Dek Saya
             </button>
           </Link>
           <Link href="/study/stats">
-            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+            <button className="px-4 py-2 bg-secondary hover:brightness-90 text-white rounded-lg transition-all">
               Lihat Statistik
             </button>
           </Link>

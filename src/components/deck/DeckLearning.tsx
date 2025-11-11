@@ -91,7 +91,7 @@ export default function DeckLearning({ deck, onComplete, onExit }: DeckLearningP
             {/* Front - Kanji */}
             <div className="mb-8">
               <div className="text-center mb-6">
-                <div className="inline-block px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full text-sm font-medium mb-4">
+                <div className="inline-block px-3 py-1 bg-tertiary-purple/10 text-tertiary-purple rounded-full text-sm font-medium mb-4">
                   Kanji Card
                 </div>
               </div>
@@ -102,7 +102,7 @@ export default function DeckLearning({ deck, onComplete, onExit }: DeckLearningP
 
             {/* Back - Answer */}
             {showAnswer && (
-              <div className="space-y-4 bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg">
+              <div className="space-y-4 bg-secondary/10 p-6 rounded-lg">
                 <div>
                   <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
                     Meaning
@@ -153,7 +153,7 @@ export default function DeckLearning({ deck, onComplete, onExit }: DeckLearningP
             {/* Front - Word */}
             <div className="mb-8">
               <div className="text-center mb-6">
-                <div className="inline-block px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm font-medium mb-4">
+                <div className="inline-block px-3 py-1 bg-tertiary-green/10 text-tertiary-green rounded-full text-sm font-medium mb-4">
                   Vocabulary Card
                 </div>
               </div>
@@ -169,7 +169,7 @@ export default function DeckLearning({ deck, onComplete, onExit }: DeckLearningP
 
             {/* Back - Answer */}
             {showAnswer && (
-              <div className="space-y-4 bg-green-50 dark:bg-green-900/20 p-6 rounded-lg">
+              <div className="space-y-4 bg-tertiary-green/10 p-6 rounded-lg">
                 <div>
                   <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
                     Meaning
@@ -294,7 +294,7 @@ export default function DeckLearning({ deck, onComplete, onExit }: DeckLearningP
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div
-              className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all duration-300"
+              className="bg-secondary h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>

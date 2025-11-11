@@ -150,7 +150,7 @@ export default function TasksClient({}: TasksClientProps) {
           </div>
         ) : error ? (
           <div className="text-center py-12">
-            <p className="text-red-600 dark:text-red-400">{error}</p>
+            <p className="text-primary">{error}</p>
             <Button onClick={fetchTasks} className="mt-4">
               Try Again
             </Button>
@@ -170,7 +170,7 @@ export default function TasksClient({}: TasksClientProps) {
             {filteredTasks.map(task => (
               <Card key={task.id} className="p-6">
                 <div className="mb-4">
-                  <span className="inline-block px-2 py-1 text-xs font-semibold text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300 rounded">
+                  <span className="inline-block px-2 py-1 text-xs font-semibold text-blue-600 bg-secondary/10 dark:text-blue-300 rounded">
                     {task.category}
                   </span>
                   <span className="ml-2 inline-block px-2 py-1 text-xs font-semibold text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 rounded">

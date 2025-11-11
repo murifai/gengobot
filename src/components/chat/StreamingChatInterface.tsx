@@ -109,15 +109,13 @@ export default function StreamingChatInterface({
           </div>
           {/* Streaming Indicator */}
           {isStreaming && (
-            <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 rounded-full">
+            <div className="flex items-center gap-2 px-3 py-1 bg-secondary/10 rounded-full">
               <div className="flex gap-1">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse delay-75" />
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse delay-150" />
+                <div className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
+                <div className="w-2 h-2 bg-secondary rounded-full animate-pulse delay-75" />
+                <div className="w-2 h-2 bg-secondary rounded-full animate-pulse delay-150" />
               </div>
-              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                Responding...
-              </span>
+              <span className="text-xs text-secondary font-medium">Responding...</span>
             </div>
           )}
           {headerActions && <div className="flex items-center gap-2">{headerActions}</div>}
@@ -136,14 +134,11 @@ export default function StreamingChatInterface({
 
         {/* Error Banner */}
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 px-4 py-3">
+          <div className="bg-primary/10 border-b border-primary/30 px-4 py-3">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
+              <p className="text-sm text-primary">{error}</p>
               {onClearError && (
-                <button
-                  onClick={onClearError}
-                  className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                >
+                <button onClick={onClearError} className="text-primary hover:brightness-90">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
@@ -180,7 +175,7 @@ export default function StreamingChatInterface({
                     className={cn(
                       'max-w-[80%] rounded-2xl px-4 py-3 shadow-sm',
                       message.role === 'user'
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-secondary text-white'
                         : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700'
                     )}
                   >

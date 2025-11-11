@@ -174,7 +174,7 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 dark:text-red-400">{error || 'Character not found'}</p>
+          <p className="text-primary">{error || 'Character not found'}</p>
           <Button onClick={() => router.push('/dashboard/characters')} className="mt-4">
             Back to Characters
           </Button>
@@ -307,8 +307,8 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
 
             {/* Error Display */}
             {error && (
-              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-                <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+              <div className="p-4 bg-primary/10 border border-primary/30 rounded-md">
+                <p className="text-primary text-sm">{error}</p>
               </div>
             )}
 

@@ -284,10 +284,8 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
 
           {/* Danger Zone */}
           <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-4">
-              Danger Zone
-            </h3>
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-primary mb-4">Danger Zone</h3>
+            <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
               <div className="flex items-start justify-between">
                 <div>
                   <h4 className="font-medium text-red-900 dark:text-red-100">Delete this deck</h4>
@@ -299,7 +297,7 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
                 <Button
                   variant="secondary"
                   onClick={handleDelete}
-                  className="ml-4 gap-2 bg-red-600 hover:bg-red-700 text-white"
+                  className="ml-4 gap-2 bg-primary hover:brightness-90 text-white"
                 >
                   <Trash2 size={16} />
                   Delete Deck
@@ -310,11 +308,9 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
         </div>
 
         {/* Help Text */}
-        <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-            Managing Your Deck
-          </h3>
-          <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
+        <div className="mt-6 bg-secondary/10 border border-secondary/30 rounded-lg p-4">
+          <h3 className="font-semibold text-secondary mb-2">Managing Your Deck</h3>
+          <ul className="text-sm text-foreground space-y-1 list-disc list-inside">
             <li>Click &quot;Manage Flashcards&quot; to add, edit, or delete cards in this deck</li>
             <li>Export your deck to Excel format for backup or sharing</li>
             <li>Supported card types: Kanji, Vocabulary, and Grammar</li>

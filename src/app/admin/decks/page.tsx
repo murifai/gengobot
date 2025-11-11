@@ -203,7 +203,9 @@ export default function AdminDecksPage() {
     return matchesSearch && matchesDifficulty && matchesCategory;
   });
 
-  const categories = Array.from(new Set(decks.map(d => d.category).filter(Boolean)));
+  const categories = Array.from(
+    new Set(decks.map(d => d.category).filter((c): c is string => Boolean(c)))
+  );
   const difficulties = ['N5', 'N4', 'N3', 'N2', 'N1'];
 
   if (loading) {
@@ -301,19 +303,15 @@ export default function AdminDecksPage() {
 
           {/* Import Results */}
           {importResults && (
-            <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                Import Results
-              </h3>
-              <div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                <p className="text-green-600 dark:text-green-400">
+            <div className="mb-4 p-4 bg-secondary/10 rounded-lg border border-secondary/30">
+              <h3 className="font-semibold text-secondary mb-2">Import Results</h3>
+              <div className="text-sm text-foreground space-y-1">
+                <p className="text-tertiary-green">
                   Successfully imported: {importResults.cardsImported} cards
                 </p>
                 {importResults.errors.length > 0 && (
                   <>
-                    <p className="text-red-600 dark:text-red-400">
-                      Errors: {importResults.errors.length}
-                    </p>
+                    <p className="text-primary">Errors: {importResults.errors.length}</p>
                     <div className="mt-2 max-h-40 overflow-y-auto">
                       <p className="font-semibold mb-1">Error details:</p>
                       {importResults.errors.map((err, idx) => (
@@ -327,7 +325,7 @@ export default function AdminDecksPage() {
               </div>
               <button
                 onClick={() => setImportResults(null)}
-                className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                className="mt-2 text-xs text-secondary hover:underline"
               >
                 Dismiss
               </button>
@@ -438,7 +436,7 @@ export default function AdminDecksPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {deck.category ? (
-                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-secondary/10 text-secondary">
                             {deck.category}
                           </span>
                         ) : (
@@ -450,10 +448,10 @@ export default function AdminDecksPage() {
                           <span
                             className={`px-2 py-1 text-xs font-semibold rounded-full ${
                               deck.difficulty === 'N5' || deck.difficulty === 'N4'
-                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                ? 'bg-tertiary-green/10 text-tertiary-green'
                                 : deck.difficulty === 'N3'
-                                  ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                                  : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                  ? 'bg-tertiary-yellow/10 text-foreground'
+                                  : 'bg-primary/10 text-primary'
                             }`}
                           >
                             {deck.difficulty}
@@ -469,7 +467,7 @@ export default function AdminDecksPage() {
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full ${
                             deck.isPublic
-                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                              ? 'bg-secondary/10 text-secondary'
                               : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                           }`}
                         >
@@ -480,7 +478,7 @@ export default function AdminDecksPage() {
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full ${
                             deck.isActive
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              ? 'bg-tertiary-green/10 text-tertiary-green'
                               : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                           }`}
                         >

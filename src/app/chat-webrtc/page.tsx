@@ -175,10 +175,10 @@ export default function WebRTCChatPage() {
             <div className="border-t border-gray-200 dark:border-gray-700 p-4 space-y-3">
               {/* PTT Status */}
               {isSessionActive && isPushToTalkActive && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-2 text-center">
+                <div className="bg-primary/10 border border-primary/30 rounded-lg p-2 text-center">
                   <div className="flex items-center justify-center gap-2">
-                    <Mic className="h-4 w-4 text-red-600 dark:text-red-400 animate-pulse" />
-                    <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                    <Mic className="h-4 w-4 text-primary animate-pulse" />
+                    <span className="text-sm font-medium text-primary">
                       Recording... Release to send
                     </span>
                   </div>

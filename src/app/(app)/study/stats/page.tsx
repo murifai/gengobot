@@ -82,7 +82,7 @@ export default function StudyStatsPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card className="p-6 text-center">
-          <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+          <p className="text-primary mb-4">{error}</p>
           <Button onClick={fetchStats}>Try Again</Button>
         </Card>
       </div>
@@ -173,7 +173,7 @@ export default function StudyStatsPage() {
         <Card className="p-6">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Study Time</h2>
           <div className="text-center">
-            <p className="text-5xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+            <p className="text-5xl font-bold text-secondary mb-2">
               {stats.overview.totalStudyTime}
             </p>
             <p className="text-gray-600 dark:text-gray-400">minutes</p>
@@ -191,7 +191,7 @@ export default function StudyStatsPage() {
           <div className="space-y-3">
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-red-600 dark:text-red-400">❌ Again</span>
+                <span className="text-primary">❌ Again</span>
                 <span className="text-gray-600 dark:text-gray-400">
                   {stats.ratingDistribution.again} (
                   {totalRatings > 0
@@ -202,7 +202,7 @@ export default function StudyStatsPage() {
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
-                  className="bg-red-600 dark:bg-red-500 h-2 rounded-full"
+                  className="bg-primary h-2 rounded-full"
                   style={{
                     width: `${totalRatings > 0 ? (stats.ratingDistribution.again / totalRatings) * 100 : 0}%`,
                   }}
@@ -233,7 +233,7 @@ export default function StudyStatsPage() {
 
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-green-600 dark:text-green-400">✅ Good</span>
+                <span className="text-tertiary-green">✅ Good</span>
                 <span className="text-gray-600 dark:text-gray-400">
                   {stats.ratingDistribution.good} (
                   {totalRatings > 0
@@ -244,7 +244,7 @@ export default function StudyStatsPage() {
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
-                  className="bg-green-600 dark:bg-green-500 h-2 rounded-full"
+                  className="bg-tertiary-green h-2 rounded-full"
                   style={{
                     width: `${totalRatings > 0 ? (stats.ratingDistribution.good / totalRatings) * 100 : 0}%`,
                   }}
@@ -254,7 +254,7 @@ export default function StudyStatsPage() {
 
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-blue-600 dark:text-blue-400">🎯 Easy</span>
+                <span className="text-secondary">🎯 Easy</span>
                 <span className="text-gray-600 dark:text-gray-400">
                   {stats.ratingDistribution.easy} (
                   {totalRatings > 0
@@ -265,7 +265,7 @@ export default function StudyStatsPage() {
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
-                  className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full"
+                  className="bg-secondary h-2 rounded-full"
                   style={{
                     width: `${totalRatings > 0 ? (stats.ratingDistribution.easy / totalRatings) * 100 : 0}%`,
                   }}
@@ -326,10 +326,10 @@ export default function StudyStatsPage() {
                       <span
                         className={`inline-block px-2 py-1 rounded text-sm font-medium ${
                           deck.accuracy >= 80
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                            ? 'bg-tertiary-green/10 text-tertiary-green'
                             : deck.accuracy >= 60
-                              ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                              ? 'bg-tertiary-yellow/10 text-foreground'
+                              : 'bg-primary/10 text-primary'
                         }`}
                       >
                         {Math.round(deck.accuracy)}%

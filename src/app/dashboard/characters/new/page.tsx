@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select } from '@/components/ui/select';
 import { Card } from '@/components/ui/Card';
 import { ArrowLeft } from 'lucide-react';
 
@@ -239,8 +238,8 @@ export default function NewCharacterPage() {
 
             {/* Error Display */}
             {error && (
-              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-                <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+              <div className="p-4 bg-primary/10 border border-primary/30 rounded-md">
+                <p className="text-primary text-sm">{error}</p>
               </div>
             )}
 

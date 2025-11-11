@@ -120,11 +120,11 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
 
   const typeStyles = {
     success: {
-      bg: 'bg-green-50 dark:bg-green-900/20',
-      border: 'border-green-200 dark:border-green-800',
+      bg: 'bg-tertiary-green/10',
+      border: 'border-tertiary-green/30',
       icon: (
         <svg
-          className="w-5 h-5 text-green-600 dark:text-green-400"
+          className="w-5 h-5 text-tertiary-green"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -132,19 +132,14 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
       ),
-      title: 'text-green-800 dark:text-green-300',
-      message: 'text-green-700 dark:text-green-400',
+      title: 'text-tertiary-green',
+      message: 'text-foreground/80',
     },
     error: {
-      bg: 'bg-red-50 dark:bg-red-900/20',
-      border: 'border-red-200 dark:border-red-800',
+      bg: 'bg-primary/10',
+      border: 'border-primary/30',
       icon: (
-        <svg
-          className="w-5 h-5 text-red-600 dark:text-red-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -153,15 +148,16 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
           />
         </svg>
       ),
-      title: 'text-red-800 dark:text-red-300',
-      message: 'text-red-700 dark:text-red-400',
+      title: 'text-primary',
+      message: 'text-foreground/80',
     },
     warning: {
-      bg: 'bg-yellow-50 dark:bg-yellow-900/20',
-      border: 'border-yellow-200 dark:border-yellow-800',
+      bg: 'bg-tertiary-yellow/10',
+      border: 'border-tertiary-yellow/30',
       icon: (
         <svg
-          className="w-5 h-5 text-yellow-600 dark:text-yellow-400"
+          className="w-5 h-5"
+          style={{ color: 'hsl(48, 50%, 50%)' }}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -174,15 +170,15 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
           />
         </svg>
       ),
-      title: 'text-yellow-800 dark:text-yellow-300',
-      message: 'text-yellow-700 dark:text-yellow-400',
+      title: 'text-foreground',
+      message: 'text-foreground/80',
     },
     info: {
-      bg: 'bg-blue-50 dark:bg-blue-900/20',
-      border: 'border-blue-200 dark:border-blue-800',
+      bg: 'bg-secondary/10',
+      border: 'border-secondary/30',
       icon: (
         <svg
-          className="w-5 h-5 text-blue-600 dark:text-blue-400"
+          className="w-5 h-5 text-secondary"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -195,8 +191,8 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
           />
         </svg>
       ),
-      title: 'text-blue-800 dark:text-blue-300',
-      message: 'text-blue-700 dark:text-blue-400',
+      title: 'text-secondary',
+      message: 'text-foreground/80',
     },
   };
 

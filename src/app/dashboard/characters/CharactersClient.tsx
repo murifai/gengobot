@@ -84,7 +84,7 @@ export default function CharactersClient({}: CharactersClientProps) {
           </div>
         ) : error ? (
           <div className="text-center py-12">
-            <p className="text-red-600 dark:text-red-400">{error}</p>
+            <p className="text-primary">{error}</p>
             <Button onClick={fetchCharacters} className="mt-4">
               Try Again
             </Button>
@@ -107,7 +107,7 @@ export default function CharactersClient({}: CharactersClientProps) {
                     {character.name}
                   </h3>
                   {character.isUserCreated && (
-                    <span className="px-2 py-1 text-xs font-semibold text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-300 rounded">
+                    <span className="px-2 py-1 text-xs font-semibold text-tertiary-green bg-tertiary-green/10 rounded">
                       Custom
                     </span>
                   )}

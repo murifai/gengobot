@@ -91,7 +91,7 @@ export default function PreTaskStudy({
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <Card className="max-w-3xl w-full p-8">
           <div className="mb-6">
-            <div className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium mb-4">
+            <div className="inline-block px-3 py-1 bg-secondary/10 text-foreground rounded-full text-sm font-medium mb-4">
               Step 1: Scenario
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{taskTitle}</h1>
@@ -102,7 +102,7 @@ export default function PreTaskStudy({
               Task Scenario
             </h2>
             {taskScenario ? (
-              <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-500">
+              <div className="p-6 bg-secondary/10 rounded-lg border-l-4 border-secondary">
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                   {taskScenario}
                 </p>
@@ -126,7 +126,7 @@ export default function PreTaskStudy({
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <Card className="max-w-3xl w-full p-8">
           <div className="mb-6">
-            <div className="inline-block px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm font-medium mb-4">
+            <div className="inline-block px-3 py-1 bg-tertiary-green/10 text-tertiary-green rounded-full text-sm font-medium mb-4">
               Step 2: Learning Objectives
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{taskTitle}</h1>
@@ -140,7 +140,7 @@ export default function PreTaskStudy({
               <ul className="space-y-3">
                 {learningObjectives.map((objective, idx) => (
                   <li key={idx} className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300 rounded-full flex items-center justify-center text-sm font-bold">
+                    <span className="flex-shrink-0 w-6 h-6 bg-tertiary-green/10 text-tertiary-green rounded-full flex items-center justify-center text-sm font-bold">
                       {idx + 1}
                     </span>
                     <p className="text-gray-700 dark:text-gray-300 pt-0.5">{objective}</p>
@@ -171,7 +171,7 @@ export default function PreTaskStudy({
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <Card className="max-w-3xl w-full p-8">
           <div className="mb-6">
-            <div className="inline-block px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full text-sm font-medium mb-4">
+            <div className="inline-block px-3 py-1 bg-tertiary-purple/10 text-tertiary-purple rounded-full text-sm font-medium mb-4">
               Step 3: Pre-Task Study (Optional)
             </div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
@@ -189,11 +189,9 @@ export default function PreTaskStudy({
             {decks.length > 0 ? (
               decks.map((deck, index) => {
                 const categoryColors = {
-                  Kanji:
-                    'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800',
-                  Vocabulary: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
-                  Grammar:
-                    'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800',
+                  Kanji: 'bg-tertiary-purple/10 border-purple-200 dark:border-purple-800',
+                  Vocabulary: 'bg-secondary/10 border-blue-200 dark:border-blue-800',
+                  Grammar: 'bg-tertiary-green/10 border-green-200 dark:border-green-800',
                   Mixed:
                     'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800',
                 };
@@ -274,7 +272,7 @@ export default function PreTaskStudy({
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <Card className="max-w-3xl w-full p-8">
           <div className="mb-6">
-            <div className="inline-block px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full text-sm font-medium mb-4">
+            <div className="inline-block px-3 py-1 bg-tertiary-yellow/10 text-foreground rounded-full text-sm font-medium mb-4">
               Step 4: Success Criteria
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{taskTitle}</h1>
@@ -295,7 +293,7 @@ export default function PreTaskStudy({
             )}
           </div>
 
-          <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border-l-4 border-green-500 mb-8">
+          <div className="p-4 bg-tertiary-green/10 rounded-lg border-l-4 border-green-500 mb-8">
             <p className="text-green-800 dark:text-green-200 font-medium">
               Ready to begin? Click &quot;Start Task&quot; when you&apos;re prepared!
             </p>

@@ -20,18 +20,18 @@ interface Deck {
 }
 
 const categoryColors: Record<string, string> = {
-  Kanji: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-  Vocabulary: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+  Kanji: 'bg-tertiary-purple/10 text-tertiary-purple',
+  Vocabulary: 'bg-tertiary-green/10 text-tertiary-green',
   Grammar: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-  Mixed: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  Mixed: 'bg-secondary/10 text-secondary',
 };
 
 const difficultyColors: Record<string, string> = {
-  N5: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800',
-  N4: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800',
-  N3: 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800',
+  N5: 'bg-tertiary-green/10 text-tertiary-green border-tertiary-green/30',
+  N4: 'bg-secondary/10 text-secondary border-secondary/30',
+  N3: 'bg-tertiary-yellow/10 text-foreground border-tertiary-yellow/30',
   N2: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800',
-  N1: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800',
+  N1: 'bg-primary/10 text-primary border-primary/30',
 };
 
 export default function DeckBrowser() {
@@ -85,7 +85,7 @@ export default function DeckBrowser() {
   if (error) {
     return (
       <Card className="p-6 text-center">
-        <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+        <p className="text-primary mb-4">{error}</p>
         <Button onClick={fetchDecks}>Try Again</Button>
       </Card>
     );
@@ -211,19 +211,19 @@ export default function DeckBrowser() {
 
               {/* Statistics Grid */}
               <div className="grid grid-cols-4 gap-2 mb-4">
-                <div className="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="text-xs text-blue-600 dark:text-blue-400 mb-1">Due</div>
+                <div className="text-center p-2 bg-secondary/10 rounded-lg">
+                  <div className="text-xs text-secondary mb-1">Due</div>
                   <div className="text-lg font-semibold text-blue-700 dark:text-blue-300">
                     {deck.dueCards}
                   </div>
                 </div>
-                <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <div className="text-xs text-green-600 dark:text-green-400 mb-1">New</div>
+                <div className="text-center p-2 bg-tertiary-green/10 rounded-lg">
+                  <div className="text-xs text-tertiary-green mb-1">New</div>
                   <div className="text-lg font-semibold text-green-700 dark:text-green-300">
                     {deck.newCards}
                   </div>
                 </div>
-                <div className="text-center p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                <div className="text-center p-2 bg-tertiary-purple/10 rounded-lg">
                   <div className="text-xs text-purple-600 dark:text-purple-400 mb-1">Total</div>
                   <div className="text-lg font-semibold text-purple-700 dark:text-purple-300">
                     {deck.totalCards}

@@ -175,9 +175,9 @@ export default function NewDeckPage() {
         </div>
 
         {/* Help Text */}
-        <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Next Steps</h3>
-          <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
+        <div className="mt-6 bg-secondary/10 border border-secondary/30 rounded-lg p-4">
+          <h3 className="font-semibold text-secondary mb-2">Next Steps</h3>
+          <ul className="text-sm text-foreground space-y-1 list-disc list-inside">
             <li>After creating the deck, you&apos;ll be redirected to the deck editor</li>
             <li>Add flashcards manually or import them from an Excel file</li>
             <li>Supported card types: Kanji, Vocabulary, and Grammar</li>

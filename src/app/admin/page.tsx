@@ -98,11 +98,11 @@ export default function AdminHomePage() {
               <div className="text-sm text-muted-foreground">Total Users</div>
             </div>
             <div className="flex flex-col items-center justify-center p-4 text-center">
-              <div className="text-3xl font-bold text-green-600 dark:text-green-400">0</div>
+              <div className="text-3xl font-bold text-tertiary-green">0</div>
               <div className="text-sm text-muted-foreground">Active Users</div>
             </div>
             <div className="flex flex-col items-center justify-center p-4 text-center">
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">0</div>
+              <div className="text-3xl font-bold text-secondary">0</div>
               <div className="text-sm text-muted-foreground">Total Tasks</div>
             </div>
             <div className="flex flex-col items-center justify-center p-4 text-center">

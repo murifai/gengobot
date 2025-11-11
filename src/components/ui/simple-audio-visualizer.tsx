@@ -68,6 +68,11 @@ export function SimpleAudioVisualizer({
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
+    // Get the primary color from CSS variables
+    const primaryColor = getComputedStyle(document.documentElement)
+      .getPropertyValue('--primary')
+      .trim();
+
     const drawFrame = () => {
       if (!isRecording) return;
 
@@ -75,8 +80,11 @@ export function SimpleAudioVisualizer({
 
       analyser.getByteFrequencyData(dataArray);
 
-      // Clear canvas with white background
-      ctx.fillStyle = 'rgb(255, 255, 255)';
+      // Clear canvas with background color
+      const bgColor = getComputedStyle(document.documentElement)
+        .getPropertyValue('--background')
+        .trim();
+      ctx.fillStyle = `hsl(${bgColor})`;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const barWidth = canvas.width / bufferLength;
@@ -88,7 +96,12 @@ export function SimpleAudioVisualizer({
 
         // Primary color with opacity based on amplitude
         const opacity = 0.3 + (dataArray[i] / 255) * 0.7;
-        ctx.fillStyle = `rgba(0, 122, 255, ${opacity})`; // iOS-style primary blue
+        ctx.fillStyle = primaryColor.startsWith('#')
+          ? primaryColor +
+            Math.round(opacity * 255)
+              .toString(16)
+              .padStart(2, '0')
+          : `${primaryColor}${opacity}`;
 
         // Draw mirrored bars
         ctx.fillRect(x, centerY - barHeight, barWidth - 1, barHeight);

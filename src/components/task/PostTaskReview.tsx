@@ -51,7 +51,7 @@ export default function PostTaskReview({
             {vocabularyUsed.map((vocab, idx) => (
               <div
                 key={idx}
-                className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border-l-4 border-green-500"
+                className="p-3 bg-tertiary-green/10 rounded-lg border-l-4 border-green-500"
               >
                 <div className="flex justify-between items-start">
                   <div>
@@ -66,7 +66,7 @@ export default function PostTaskReview({
                     <p className="text-sm text-gray-700 dark:text-gray-300">{vocab.meaning}</p>
                   </div>
                   {vocab.timesUsed && vocab.timesUsed > 1 && (
-                    <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 px-2 py-1 rounded">
+                    <span className="text-xs bg-tertiary-green/10 text-tertiary-green px-2 py-1 rounded">
                       Used {vocab.timesUsed}x
                     </span>
                   )}
@@ -91,7 +91,7 @@ export default function PostTaskReview({
             {missedOpportunities.map((vocab, idx) => (
               <div
                 key={idx}
-                className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border-l-4 border-yellow-500"
+                className="p-3 bg-tertiary-yellow/10 rounded-lg border-l-4 border-yellow-500"
               >
                 <div className="flex items-baseline gap-2">
                   <span className="font-bold text-gray-900 dark:text-white">{vocab.word}</span>
@@ -122,7 +122,7 @@ export default function PostTaskReview({
             {newWordsEncountered.map((word, idx) => (
               <span
                 key={idx}
-                className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-300 rounded-full text-sm"
+                className="px-3 py-1 bg-secondary/10 text-blue-900 dark:text-blue-300 rounded-full text-sm"
               >
                 {word}
               </span>

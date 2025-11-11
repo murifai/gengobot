@@ -5,25 +5,25 @@ Aplikasi pembelajaran bahasa Jepang berbasis AI yang meningkatkan kemampuan berb
 ## 🌟 Fitur Utama
 
 - **Task-Based Chat**: Skenario pembelajaran terstruktur dengan manajemen tugas komprehensif
-- **Free Chat**: Percakapan terbuka dengan karakter AI (fitur sekunder)
-- **Voice Processing**: Integrasi OpenAI Whisper untuk speech-to-text dan TTS
+- **Flashcard System**: Sistem SRS dengan kartu kanji, kosakata, dan tata bahasa
+- **Voice Processing**: Integrasi OpenAI Whisper untuk speech-to-text dan TTS dengan push-to-talk
 - **Japanese Learning Assessment**: Evaluasi berdasarkan 4 kriteria (タスク達成度, 流暢さ, 語彙・文法的正確さ, 丁寧さ)
 - **JLPT Level Tracking**: Pelacakan kemajuan dari N5 hingga N1
+- **Character System**: Karakter AI dengan personalitas untuk percakapan imersif
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: Next.js 15, TypeScript, Tailwind CSS
 - **Backend**: Next.js API Routes, Prisma ORM
-- **Database**: PostgreSQL (via Supabase)
-- **Authentication**: Supabase Auth
-- **AI**: OpenAI GPT-4, Whisper
-- **Testing**: Jest, Playwright, Testing Library
+- **Database**: PostgreSQL
+- **Authentication**: NextAuth.js
+- **AI**: OpenAI GPT-4, Whisper, TTS
+- **Testing**: Jest, Playwright
 
 ## 📋 Prerequisites
 
 - Node.js 22+
 - PostgreSQL
-- Akun Supabase
 - OpenAI API Key
 
 ## 🚀 Getting Started
@@ -45,11 +45,10 @@ cp .env.example .env.local
 Edit `.env.local` dengan kredensial Anda:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-OPENAI_API_KEY=your_openai_key
 DATABASE_URL=your_postgresql_url
+OPENAI_API_KEY=your_openai_key
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_URL=http://localhost:3000
 ```
 
 ### 3. Setup Database
@@ -160,11 +159,14 @@ gengobot/
 --dark: #0c1231;
 ```
 
-## 📖 Development Plan
+## 📖 Documentation
 
-Lihat [Gengobot-app-dev-plan.md](./docs/Gengobot-app-dev-plan.md) untuk roadmap lengkap pengembangan.
+Lihat [Documentation](./docs/README.md) untuk panduan lengkap:
 
-**Current Status**: Phase 1 - Project Setup & Foundation ✅
+- [Setup Guide](./docs/setup/DATABASE_SETUP_COMPLETE.md) - Database dan environment setup
+- [Development Plan](./docs/development/Gengobot-app-dev-plan.md) - Roadmap pengembangan
+- [Deployment Guide](./docs/deployment/QUICK_START.md) - Panduan deployment
+- [User Guides](./docs/guides/) - Panduan penggunaan
 
 ## 🤝 Contributing
 

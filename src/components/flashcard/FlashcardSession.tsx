@@ -139,9 +139,9 @@ export default function FlashcardSession({
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <Card className="max-w-2xl w-full p-8">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-tertiary-green/10 rounded-full mb-4">
               <svg
-                className="w-8 h-8 text-green-600 dark:text-green-400"
+                className="w-8 h-8 text-tertiary-green"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -163,13 +163,13 @@ export default function FlashcardSession({
           <div className="space-y-6 mb-8">
             {/* Summary Stats */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              <div className="p-4 bg-secondary/10 rounded-lg">
+                <div className="text-3xl font-bold text-secondary">
                   {sessionStats.cardsReviewed}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Cards Reviewed</div>
               </div>
-              <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+              <div className="p-4 bg-tertiary-purple/10 rounded-lg">
                 <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
                   {minutes}:{seconds.toString().padStart(2, '0')}
                 </div>
@@ -189,7 +189,7 @@ export default function FlashcardSession({
                     <div className="flex items-center gap-2">
                       <div className="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-red-500"
+                          className="h-full bg-primary"
                           style={{
                             width: `${
                               sessionStats.cardsReviewed > 0
@@ -209,7 +209,7 @@ export default function FlashcardSession({
                     <div className="flex items-center gap-2">
                       <div className="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-orange-500"
+                          className="h-full bg-tertiary-yellow"
                           style={{
                             width: `${
                               sessionStats.cardsReviewed > 0
@@ -229,7 +229,7 @@ export default function FlashcardSession({
                     <div className="flex items-center gap-2">
                       <div className="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-green-500"
+                          className="h-full bg-tertiary-green"
                           style={{
                             width: `${
                               sessionStats.cardsReviewed > 0
@@ -249,7 +249,7 @@ export default function FlashcardSession({
                     <div className="flex items-center gap-2">
                       <div className="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-blue-500"
+                          className="h-full bg-secondary"
                           style={{
                             width: `${
                               sessionStats.cardsReviewed > 0
@@ -270,7 +270,7 @@ export default function FlashcardSession({
 
             {/* Next Review Info */}
             {showRatingButtons && (
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
+              <div className="p-4 bg-secondary/10 rounded-lg text-center">
                 <p className="text-sm text-gray-700 dark:text-gray-300">
                   Cards will be scheduled for review based on your performance.
                   <br />
@@ -360,7 +360,7 @@ export default function FlashcardSession({
               <>
                 <p className="text-3xl text-gray-900 dark:text-white mb-4">{currentCard.back}</p>
                 {currentCard.example && (
-                  <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="mt-6 p-4 bg-secondary/10 rounded-lg">
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Example:</p>
                     <p className="text-base text-gray-800 dark:text-gray-200">
                       {currentCard.example}
@@ -398,7 +398,7 @@ export default function FlashcardSession({
                   <Button
                     onClick={() => handleRating('again')}
                     variant="secondary"
-                    className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800"
+                    className="bg-primary/10 hover:brightness-95 text-primary border-primary/30"
                   >
                     <span className="mr-2">🔴</span>
                     Again
@@ -406,7 +406,7 @@ export default function FlashcardSession({
                   <Button
                     onClick={() => handleRating('hard')}
                     variant="secondary"
-                    className="bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/20 dark:hover:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800"
+                    className="bg-tertiary-yellow/10 hover:brightness-95 text-foreground border-tertiary-yellow/30"
                   >
                     <span className="mr-2">🟠</span>
                     Hard
@@ -414,7 +414,7 @@ export default function FlashcardSession({
                   <Button
                     onClick={() => handleRating('good')}
                     variant="secondary"
-                    className="bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800"
+                    className="bg-tertiary-green/10 hover:brightness-95 text-tertiary-green border-tertiary-green/30"
                   >
                     <span className="mr-2">🟢</span>
                     Good
@@ -422,7 +422,7 @@ export default function FlashcardSession({
                   <Button
                     onClick={() => handleRating('easy')}
                     variant="secondary"
-                    className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800"
+                    className="bg-secondary/10 hover:brightness-95 text-secondary border-secondary/30"
                   >
                     <span className="mr-2">🔵</span>
                     Easy

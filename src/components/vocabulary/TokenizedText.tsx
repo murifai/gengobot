@@ -83,7 +83,7 @@ export default function TokenizedText({ text, className = '' }: TokenizedTextPro
               onClick={e => handleTokenClick(vocab, e)}
               className={
                 isClickable
-                  ? 'cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-700 dark:hover:text-blue-300 rounded px-0.5 transition-colors duration-150 underline decoration-primary/50 decoration-1 underline-offset-2'
+                  ? 'cursor-pointer hover:bg-secondary/10 hover:text-secondary rounded px-0.5 transition-colors duration-150 underline decoration-primary/50 decoration-1 underline-offset-2'
                   : ''
               }
               style={{ display: 'inline' }}

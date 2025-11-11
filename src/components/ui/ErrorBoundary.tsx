@@ -103,9 +103,9 @@ function ErrorFallback({ error, onReset }: ErrorFallbackProps) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-        <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-900/20 rounded-full mb-4">
+        <div className="flex items-center justify-center w-12 h-12 mx-auto bg-primary/10 rounded-full mb-4">
           <svg
-            className="w-6 h-6 text-red-600 dark:text-red-400"
+            className="w-6 h-6 text-primary"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -127,7 +127,7 @@ function ErrorFallback({ error, onReset }: ErrorFallbackProps) {
         </p>
 
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-md p-4 mb-6">
+          <div className="bg-primary/10 border border-primary/30 rounded-md p-4 mb-6">
             <p className="text-sm font-mono text-red-800 dark:text-red-300 break-all">
               {error.message}
             </p>
@@ -179,11 +179,11 @@ export function TaskError({
   onCancel,
 }: TaskErrorProps) {
   return (
-    <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg p-6">
+    <div className="bg-primary/10 border border-primary/30 rounded-lg p-6">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0">
           <svg
-            className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5"
+            className="w-5 h-5 text-primary mt-0.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -211,7 +211,7 @@ export function TaskError({
             {onRetry && (
               <button
                 onClick={onRetry}
-                className="px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                className="px-3 py-1.5 text-sm bg-primary text-white rounded hover:brightness-90 transition-all"
               >
                 再試行 (Retry)
               </button>

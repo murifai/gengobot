@@ -160,13 +160,13 @@ export default function MyDecksPage() {
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
             <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Public Decks</div>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            <div className="text-2xl font-bold text-secondary">
               {decks.filter(d => d.isPublic).length}
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
             <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Cards</div>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+            <div className="text-2xl font-bold text-tertiary-green">
               {decks.reduce((sum, d) => sum + d.totalCards, 0)}
             </div>
           </div>
@@ -320,7 +320,7 @@ export default function MyDecksPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {deck.category ? (
-                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-secondary/10 text-secondary">
                             {deck.category}
                           </span>
                         ) : (
@@ -332,10 +332,10 @@ export default function MyDecksPage() {
                           <span
                             className={`px-2 py-1 text-xs font-semibold rounded-full ${
                               deck.difficulty === 'N5' || deck.difficulty === 'N4'
-                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                ? 'bg-tertiary-green/10 text-tertiary-green'
                                 : deck.difficulty === 'N3'
-                                  ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                                  : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                  ? 'bg-tertiary-yellow/10 text-foreground'
+                                  : 'bg-primary/10 text-primary'
                             }`}
                           >
                             {deck.difficulty}
@@ -349,18 +349,16 @@ export default function MyDecksPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex gap-2">
-                          <span className="text-blue-600 dark:text-blue-400">{deck.dueCards}</span>
+                          <span className="text-secondary">{deck.dueCards}</span>
                           <span className="text-gray-400">/</span>
-                          <span className="text-green-600 dark:text-green-400">
-                            {deck.newCards}
-                          </span>
+                          <span className="text-tertiary-green">{deck.newCards}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full ${
                             deck.isPublic
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              ? 'bg-tertiary-green/10 text-tertiary-green'
                               : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                           }`}
                         >
@@ -414,11 +412,9 @@ export default function MyDecksPage() {
 
         {/* Help Text */}
         {filteredDecks.length > 0 && (
-          <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-              Managing Your Decks
-            </h3>
-            <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
+          <div className="mt-6 bg-secondary/10 border border-secondary/30 rounded-lg p-4">
+            <h3 className="font-semibold text-secondary mb-2">Managing Your Decks</h3>
+            <ul className="text-sm text-foreground space-y-1 list-disc list-inside">
               <li>Click the eye icon to view and manage flashcards</li>
               <li>Click the edit icon to modify deck settings and metadata</li>
               <li>Click the download icon to export your deck as an Excel file</li>

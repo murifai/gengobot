@@ -32,10 +32,7 @@ export default function VocabularyHints({ hints }: VocabularyHintsProps) {
       </h3>
       <div className="space-y-2 max-h-96 overflow-y-auto">
         {hints.map(hint => (
-          <Card
-            key={hint.id}
-            className="p-3 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500"
-          >
+          <Card key={hint.id} className="p-3 bg-secondary/10 border-l-4 border-secondary">
             <div className="flex flex-col gap-1">
               <div className="flex items-baseline gap-2">
                 <span className="text-lg font-bold text-gray-900 dark:text-white">{hint.word}</span>
@@ -53,7 +50,7 @@ export default function VocabularyHints({ hints }: VocabularyHintsProps) {
           </Card>
         ))}
       </div>
-      <div className="mt-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded text-xs text-gray-600 dark:text-gray-400">
+      <div className="mt-3 p-2 bg-tertiary-yellow/10 rounded text-xs text-gray-600 dark:text-gray-400">
         💡 Tip: Try to use these words in your conversation!
       </div>
     </div>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Edit, Download, Plus, Trash2, Edit2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import FlashcardEditor from '@/components/deck/FlashcardEditor';
+import { CardType } from '@/types/deck';
 
 interface DeckViewPageProps {
   params: Promise<{ deckId: string }>;
@@ -12,7 +13,7 @@ interface DeckViewPageProps {
 
 interface Flashcard {
   id: string;
-  cardType: string;
+  cardType: CardType;
   kanji?: string;
   kanjiMeaning?: string;
   onyomi?: string;
@@ -221,19 +222,19 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
               )}
               <div className="flex flex-wrap gap-2">
                 {deck.category && (
-                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-secondary/10 text-secondary">
                     {deck.category}
                   </span>
                 )}
                 {deck.difficulty && (
-                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-tertiary-green/10 text-tertiary-green">
                     {deck.difficulty}
                   </span>
                 )}
                 <span
                   className={`px-2 py-1 text-xs font-semibold rounded-full ${
                     deck.isPublic
-                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                      ? 'bg-secondary/10 text-secondary'
                       : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                   }`}
                 >

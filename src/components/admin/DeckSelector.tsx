@@ -128,7 +128,7 @@ export default function DeckSelector({ selectedDeckIds, onChange }: DeckSelector
             {selectedDecks.map((deck, index) => (
               <div
                 key={deck.id}
-                className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800"
+                className="flex items-center gap-2 p-3 bg-secondary/10 rounded-lg border border-secondary/30"
               >
                 <div className="flex-1">
                   <div className="font-medium text-gray-900 dark:text-white">{deck.name}</div>
@@ -160,7 +160,7 @@ export default function DeckSelector({ selectedDeckIds, onChange }: DeckSelector
                   <button
                     type="button"
                     onClick={() => handleRemoveDeck(deck.id)}
-                    className="p-1 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                    className="p-1 text-primary hover:text-red-700 dark:hover:text-red-300"
                     title="Remove"
                   >
                     ✕
@@ -225,15 +225,13 @@ export default function DeckSelector({ selectedDeckIds, onChange }: DeckSelector
                       className={`w-full text-left p-3 rounded-lg border transition-colors ${
                         isSelected
                           ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 opacity-50 cursor-not-allowed'
-                          : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+                          : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-secondary/10/20'
                       }`}
                     >
                       <div className="font-medium text-gray-900 dark:text-white">
                         {deck.name}
                         {isSelected && (
-                          <span className="ml-2 text-sm text-green-600 dark:text-green-400">
-                            ✓ Selected
-                          </span>
+                          <span className="ml-2 text-sm text-tertiary-green">✓ Selected</span>
                         )}
                       </div>
                       {deck.description && (

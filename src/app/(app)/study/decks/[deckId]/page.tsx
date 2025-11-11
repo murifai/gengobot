@@ -222,19 +222,19 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
               )}
               <div className="flex flex-wrap gap-2">
                 {deck.category && (
-                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-secondary/10 text-secondary">
                     {deck.category}
                   </span>
                 )}
                 {deck.difficulty && (
-                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-tertiary-green/10 text-tertiary-green">
                     {deck.difficulty}
                   </span>
                 )}
                 <span
                   className={`px-2 py-1 text-xs font-semibold rounded-full ${
                     deck.isPublic
-                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                      ? 'bg-secondary/10 text-secondary'
                       : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                   }`}
                 >
@@ -378,11 +378,9 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
         </div>
 
         {/* Help Text */}
-        <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-            Managing Flashcards
-          </h3>
-          <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
+        <div className="mt-6 bg-secondary/10 border border-secondary/30 rounded-lg p-4">
+          <h3 className="font-semibold text-secondary mb-2">Managing Flashcards</h3>
+          <ul className="text-sm text-foreground space-y-1 list-disc list-inside">
             <li>Click &quot;Add Card&quot; to create new flashcards manually</li>
             <li>Click the edit icon on any card to modify it</li>
             <li>Click the delete icon to remove a card (cannot be undone)</li>

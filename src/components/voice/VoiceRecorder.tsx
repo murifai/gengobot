@@ -227,12 +227,12 @@ export default function VoiceRecorder({
       {/* Permission Request */}
       {hasPermission === false && (
         <div className="permission-denied">
-          <p className="text-red-600 text-sm mb-2">
+          <p className="text-primary text-sm mb-2">
             Microphone permission denied. Please allow microphone access to record audio.
           </p>
           <button
             onClick={requestPermission}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-4 py-2 bg-secondary text-white rounded hover:brightness-90 transition-all"
           >
             Request Permission
           </button>
@@ -261,7 +261,7 @@ export default function VoiceRecorder({
               <button
                 onClick={startRecording}
                 disabled={disabled}
-                className="w-16 h-16 rounded-full bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white flex items-center justify-center transition-colors"
+                className="w-16 h-16 rounded-full bg-primary hover:brightness-90 disabled:opacity-50 disabled:cursor-not-allowed text-white flex items-center justify-center transition-all"
                 aria-label="Start recording"
               >
                 <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
@@ -284,7 +284,7 @@ export default function VoiceRecorder({
 
                 <button
                   onClick={isPaused ? resumeRecording : pauseRecording}
-                  className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center"
+                  className="w-12 h-12 rounded-full bg-secondary hover:brightness-90 text-white flex items-center justify-center transition-all"
                   aria-label={isPaused ? 'Resume recording' : 'Pause recording'}
                 >
                   {isPaused ? (
@@ -318,9 +318,9 @@ export default function VoiceRecorder({
                 <span className="text-gray-400">{formatDuration(remainingTime)}</span>
               </div>
 
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
-                  className="bg-red-600 h-2 rounded-full transition-all"
+                  className="bg-primary h-2 rounded-full transition-all"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -329,10 +329,10 @@ export default function VoiceRecorder({
               <div className="volume-indicator">
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-500">Volume:</span>
-                  <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                  <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
                     <div
                       className={`h-1.5 rounded-full transition-all ${
-                        isVoiceActive ? 'bg-green-500' : 'bg-gray-400'
+                        isVoiceActive ? 'bg-tertiary-green' : 'bg-gray-400'
                       }`}
                       style={{ width: `${volumeLevel * 100}%` }}
                     />
@@ -345,10 +345,10 @@ export default function VoiceRecorder({
                 <div className="flex items-center gap-2 text-xs">
                   <div
                     className={`w-2 h-2 rounded-full ${
-                      isVoiceActive ? 'bg-green-500' : 'bg-gray-400'
+                      isVoiceActive ? 'bg-tertiary-green' : 'bg-gray-400'
                     }`}
                   />
-                  <span className="text-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">
                     {isVoiceActive ? 'Voice detected' : 'Listening...'}
                   </span>
                 </div>
@@ -356,7 +356,9 @@ export default function VoiceRecorder({
 
               {/* Pause Indicator */}
               {isPaused && (
-                <div className="text-center text-sm text-yellow-600">Recording paused</div>
+                <div className="text-center text-sm" style={{ color: 'hsl(48, 50%, 50%)' }}>
+                  Recording paused
+                </div>
               )}
             </div>
           )}

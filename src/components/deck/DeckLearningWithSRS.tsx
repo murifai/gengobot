@@ -357,27 +357,45 @@ export default function DeckLearningWithSRS({
         {/* Statistics Bar */}
         {reviewStats && (
           <div className="mb-4 grid grid-cols-3 gap-3">
-            <Card className="p-3" style={{ backgroundColor: '#1dcddc20', borderColor: '#1dcddc' }}>
-              <div className="text-xs mb-1" style={{ color: '#1dcddc' }}>
+            <Card
+              className="p-3"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--secondary) 12%, transparent)',
+                borderColor: 'var(--secondary)',
+              }}
+            >
+              <div className="text-xs mb-1" style={{ color: 'var(--secondary)' }}>
                 Diriviw
               </div>
-              <div className="text-2xl font-bold" style={{ color: '#1dcddc' }}>
+              <div className="text-2xl font-bold" style={{ color: 'var(--secondary)' }}>
                 {reviewStats.dueToday}
               </div>
             </Card>
-            <Card className="p-3" style={{ backgroundColor: '#8bd17b20', borderColor: '#8bd17b' }}>
-              <div className="text-xs mb-1" style={{ color: '#8bd17b' }}>
+            <Card
+              className="p-3"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--tertiary-green) 12%, transparent)',
+                borderColor: 'var(--tertiary-green)',
+              }}
+            >
+              <div className="text-xs mb-1" style={{ color: 'var(--tertiary-green)' }}>
                 Baru
               </div>
-              <div className="text-2xl font-bold" style={{ color: '#8bd17b' }}>
+              <div className="text-2xl font-bold" style={{ color: 'var(--tertiary-green)' }}>
                 {reviewStats.newCards}
               </div>
             </Card>
-            <Card className="p-3" style={{ backgroundColor: '#4a3e7220', borderColor: '#4a3e72' }}>
-              <div className="text-xs mb-1" style={{ color: '#4a3e72' }}>
+            <Card
+              className="p-3"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--tertiary-purple) 12%, transparent)',
+                borderColor: 'var(--tertiary-purple)',
+              }}
+            >
+              <div className="text-xs mb-1" style={{ color: 'var(--tertiary-purple)' }}>
                 Total
               </div>
-              <div className="text-2xl font-bold" style={{ color: '#4a3e72' }}>
+              <div className="text-2xl font-bold" style={{ color: 'var(--tertiary-purple)' }}>
                 {reviewStats.totalCards}
               </div>
             </Card>
@@ -386,35 +404,51 @@ export default function DeckLearningWithSRS({
 
         {/* Session Stats */}
         <div className="mb-4 grid grid-cols-4 gap-2">
-          <div className="text-center p-2 rounded-lg" style={{ backgroundColor: '#ff5e7520' }}>
-            <div className="text-xs" style={{ color: '#ff5e75' }}>
+          <div
+            className="text-center p-2 rounded-lg"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--primary) 12%, transparent)' }}
+          >
+            <div className="text-xs" style={{ color: 'var(--primary)' }}>
               Baru
             </div>
-            <div className="text-lg font-semibold" style={{ color: '#ff5e75' }}>
+            <div className="text-lg font-semibold" style={{ color: 'var(--primary)' }}>
               {sessionStats.againCount}
             </div>
           </div>
-          <div className="text-center p-2 rounded-lg" style={{ backgroundColor: '#fdf29d20' }}>
-            <div className="text-xs" style={{ color: '#b8a24a' }}>
+          <div
+            className="text-center p-2 rounded-lg"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--tertiary-yellow) 12%, transparent)',
+            }}
+          >
+            <div className="text-xs" style={{ color: 'hsl(48, 50%, 50%)' }}>
               Susah
             </div>
-            <div className="text-lg font-semibold" style={{ color: '#b8a24a' }}>
+            <div className="text-lg font-semibold" style={{ color: 'hsl(48, 50%, 50%)' }}>
               {sessionStats.hardCount}
             </div>
           </div>
-          <div className="text-center p-2 rounded-lg" style={{ backgroundColor: '#8bd17b20' }}>
-            <div className="text-xs" style={{ color: '#8bd17b' }}>
+          <div
+            className="text-center p-2 rounded-lg"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--tertiary-green) 12%, transparent)',
+            }}
+          >
+            <div className="text-xs" style={{ color: 'var(--tertiary-green)' }}>
               Oke
             </div>
-            <div className="text-lg font-semibold" style={{ color: '#8bd17b' }}>
+            <div className="text-lg font-semibold" style={{ color: 'var(--tertiary-green)' }}>
               {sessionStats.goodCount}
             </div>
           </div>
-          <div className="text-center p-2 rounded-lg" style={{ backgroundColor: '#1dcddc20' }}>
-            <div className="text-xs" style={{ color: '#1dcddc' }}>
+          <div
+            className="text-center p-2 rounded-lg"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--secondary) 12%, transparent)' }}
+          >
+            <div className="text-xs" style={{ color: 'var(--secondary)' }}>
               Gampang
             </div>
-            <div className="text-lg font-semibold" style={{ color: '#1dcddc' }}>
+            <div className="text-lg font-semibold" style={{ color: 'var(--secondary)' }}>
               {sessionStats.easyCount}
             </div>
           </div>
@@ -431,7 +465,7 @@ export default function DeckLearningWithSRS({
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div
               className="h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%`, backgroundColor: '#1dcddc' }}
+              style={{ width: `${progress}%`, backgroundColor: 'var(--secondary)' }}
             />
           </div>
         </div>
@@ -453,7 +487,7 @@ export default function DeckLearningWithSRS({
               className="absolute inset-0 backface-hidden overflow-hidden rounded-2xl shadow-xl"
               style={{
                 backfaceVisibility: 'hidden',
-                backgroundColor: '#1dcddc',
+                backgroundColor: 'var(--secondary)',
               }}
             >
               {renderCardFront()}
@@ -465,7 +499,7 @@ export default function DeckLearningWithSRS({
               style={{
                 backfaceVisibility: 'hidden',
                 transform: 'rotateY(180deg)',
-                backgroundColor: '#fafafa',
+                backgroundColor: 'hsl(var(--card))',
               }}
             >
               {renderCardBack()}
@@ -493,10 +527,8 @@ export default function DeckLearningWithSRS({
         <div className="max-w-sm mx-auto space-y-4">
           <button
             onClick={handleFlipCard}
-            className="w-full p-4 rounded-lg text-white transition-colors flex items-center justify-center shadow-lg"
-            style={{ backgroundColor: '#ff5e75' }}
-            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#e54d66')}
-            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#ff5e75')}
+            className="w-full p-4 rounded-lg text-white transition-colors flex items-center justify-center shadow-lg hover:brightness-90"
+            style={{ backgroundColor: 'var(--primary)' }}
             title={showAnswer ? 'Flip to front' : 'Turn over'}
           >
             <svg
@@ -520,18 +552,11 @@ export default function DeckLearningWithSRS({
             <button
               onClick={() => handleRating('again')}
               disabled={submittingRating || !showAnswer}
-              className="flex items-center justify-center py-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex items-center justify-center py-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:brightness-90"
               style={{
-                backgroundColor: submittingRating || !showAnswer ? '#f5f5f5' : '#ff5e75',
-                color: submittingRating || !showAnswer ? '#999' : '#fff',
-              }}
-              onMouseEnter={e => {
-                if (!submittingRating && showAnswer)
-                  e.currentTarget.style.backgroundColor = '#e54d66';
-              }}
-              onMouseLeave={e => {
-                if (!submittingRating && showAnswer)
-                  e.currentTarget.style.backgroundColor = '#ff5e75';
+                backgroundColor:
+                  submittingRating || !showAnswer ? 'hsl(var(--muted))' : 'var(--primary)',
+                color: submittingRating || !showAnswer ? 'hsl(var(--muted-foreground))' : '#fff',
               }}
             >
               <span className="text-sm font-semibold">Baru</span>
@@ -540,18 +565,14 @@ export default function DeckLearningWithSRS({
             <button
               onClick={() => handleRating('hard')}
               disabled={submittingRating || !showAnswer}
-              className="flex items-center justify-center py-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex items-center justify-center py-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:brightness-90"
               style={{
-                backgroundColor: submittingRating || !showAnswer ? '#f5f5f5' : '#fdf29d',
-                color: submittingRating || !showAnswer ? '#999' : '#333',
-              }}
-              onMouseEnter={e => {
-                if (!submittingRating && showAnswer)
-                  e.currentTarget.style.backgroundColor = '#fcee7a';
-              }}
-              onMouseLeave={e => {
-                if (!submittingRating && showAnswer)
-                  e.currentTarget.style.backgroundColor = '#fdf29d';
+                backgroundColor:
+                  submittingRating || !showAnswer ? 'hsl(var(--muted))' : 'var(--tertiary-yellow)',
+                color:
+                  submittingRating || !showAnswer
+                    ? 'hsl(var(--muted-foreground))'
+                    : 'hsl(48, 50%, 30%)',
               }}
             >
               <span className="text-sm font-semibold">Susah</span>
@@ -560,18 +581,11 @@ export default function DeckLearningWithSRS({
             <button
               onClick={() => handleRating('good')}
               disabled={submittingRating || !showAnswer}
-              className="flex items-center justify-center py-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex items-center justify-center py-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:brightness-90"
               style={{
-                backgroundColor: submittingRating || !showAnswer ? '#f5f5f5' : '#8bd17b',
-                color: submittingRating || !showAnswer ? '#999' : '#fff',
-              }}
-              onMouseEnter={e => {
-                if (!submittingRating && showAnswer)
-                  e.currentTarget.style.backgroundColor = '#7bc169';
-              }}
-              onMouseLeave={e => {
-                if (!submittingRating && showAnswer)
-                  e.currentTarget.style.backgroundColor = '#8bd17b';
+                backgroundColor:
+                  submittingRating || !showAnswer ? 'hsl(var(--muted))' : 'var(--tertiary-green)',
+                color: submittingRating || !showAnswer ? 'hsl(var(--muted-foreground))' : '#fff',
               }}
             >
               <span className="text-sm font-semibold">Oke</span>
@@ -580,18 +594,11 @@ export default function DeckLearningWithSRS({
             <button
               onClick={() => handleRating('easy')}
               disabled={submittingRating || !showAnswer}
-              className="flex items-center justify-center py-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex items-center justify-center py-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:brightness-90"
               style={{
-                backgroundColor: submittingRating || !showAnswer ? '#f5f5f5' : '#1dcddc',
-                color: submittingRating || !showAnswer ? '#999' : '#fff',
-              }}
-              onMouseEnter={e => {
-                if (!submittingRating && showAnswer)
-                  e.currentTarget.style.backgroundColor = '#18b8c6';
-              }}
-              onMouseLeave={e => {
-                if (!submittingRating && showAnswer)
-                  e.currentTarget.style.backgroundColor = '#1dcddc';
+                backgroundColor:
+                  submittingRating || !showAnswer ? 'hsl(var(--muted))' : 'var(--secondary)',
+                color: submittingRating || !showAnswer ? 'hsl(var(--muted-foreground))' : '#fff',
               }}
             >
               <span className="text-sm font-semibold">Gampang</span>

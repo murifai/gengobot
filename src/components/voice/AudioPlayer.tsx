@@ -239,7 +239,8 @@ export default function AudioPlayer({
             <button
               onClick={togglePlay}
               disabled={isLoading || !!error}
-              className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white flex items-center justify-center transition-colors"
+              className="w-12 h-12 rounded-full disabled:opacity-50 text-white flex items-center justify-center transition-colors hover:brightness-90"
+              style={{ backgroundColor: 'var(--primary)' }}
               aria-label={isPlaying ? 'Pause' : 'Play'}
             >
               {isLoading ? (
@@ -292,9 +293,9 @@ export default function AudioPlayer({
                 value={currentTime}
                 onChange={handleSeek}
                 disabled={isLoading || !!error}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed"
+                className="w-full h-2 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed"
                 style={{
-                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${progress}%, #e5e7eb ${progress}%, #e5e7eb 100%)`,
+                  background: `linear-gradient(to right, var(--primary) 0%, var(--primary) ${progress}%, hsl(var(--muted)) ${progress}%, hsl(var(--muted)) 100%)`,
                 }}
               />
             </div>
