@@ -128,7 +128,7 @@ async function main() {
   console.log(`✅ Berhasil membuat ${tasks.length} tugas contoh`);
 
   // Hash password untuk semua user
-  const hashedPassword = await bcrypt.hash('1234', 10);
+  const hashedPassword = await bcrypt.hash('test123', 10);
 
   // Buat user admin
   console.log('👤 Membuat user admin...');
