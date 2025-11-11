@@ -11,9 +11,22 @@ export default async function PreTaskStudyPage({
   const session = await auth();
   const user = session?.user;
 
-  if (!user) {
+  if (!user || !user.email) {
     redirect('/login');
   }
 
-  return <PreTaskStudyClient user={user} taskId={taskId} />;
+  return (
+    <PreTaskStudyClient
+      user={
+        user as {
+          id: string;
+          email: string;
+          name?: string | null;
+          image?: string | null;
+          isAdmin: boolean;
+        }
+      }
+      taskId={taskId}
+    />
+  );
 }

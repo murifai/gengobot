@@ -25,5 +25,13 @@ export default async function SettingsPage() {
     },
   });
 
-  return <SettingsClient user={user} dbUser={dbUser} />;
+  const typedUser = user as {
+    id: string;
+    email: string;
+    name?: string | null;
+    image?: string | null;
+    isAdmin: boolean;
+  };
+
+  return <SettingsClient user={typedUser} dbUser={dbUser} />;
 }

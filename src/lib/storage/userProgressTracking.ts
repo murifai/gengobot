@@ -65,9 +65,10 @@ export async function getUserProgress(
   // Build filter for task attempts
   const attemptWhere: Record<string, unknown> = { userId };
   if (filter?.startDate || filter?.endDate) {
-    attemptWhere.startTime = {};
-    if (filter.startDate) attemptWhere.startTime.gte = filter.startDate;
-    if (filter.endDate) attemptWhere.startTime.lte = filter.endDate;
+    const startTimeFilter: Record<string, Date> = {};
+    if (filter.startDate) startTimeFilter.gte = filter.startDate;
+    if (filter.endDate) startTimeFilter.lte = filter.endDate;
+    attemptWhere.startTime = startTimeFilter;
   }
 
   // Get task attempts with task details

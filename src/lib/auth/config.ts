@@ -4,6 +4,8 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 
 export const authConfig: NextAuthConfig = {
+  trustHost: true,
+  basePath: '/api/auth',
   providers: [
     Credentials({
       name: 'credentials',
@@ -45,8 +47,8 @@ export const authConfig: NextAuthConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.isAdmin = (user as { id: string; isAdmin?: boolean }).isAdmin;
+        token.id = user.id ?? '';
+        token.isAdmin = (user as { id: string; isAdmin?: boolean }).isAdmin ?? false;
       }
       return token;
     },
@@ -61,7 +63,6 @@ export const authConfig: NextAuthConfig = {
   pages: {
     signIn: '/login',
     signOut: '/logout',
-    error: '/auth/error',
   },
   session: {
     strategy: 'jwt',

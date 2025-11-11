@@ -96,7 +96,7 @@ export class TaskBasedAIService {
    * Validate if task objectives are completed
    */
   async validateObjectiveCompletion(context: TaskConversationContext): Promise<boolean> {
-    const objectives = context.task.conversationExample as string[];
+    const objectives = context.task.conversationExample as unknown as string[];
     const completedCount = context.completedObjectives.length;
 
     // All objectives must be completed
@@ -107,7 +107,7 @@ export class TaskBasedAIService {
    * Generate hints when student is struggling
    */
   async generateTaskHints(context: TaskConversationContext): Promise<string[]> {
-    const objectives = context.task.conversationExample as string[];
+    const objectives = context.task.conversationExample as unknown as string[];
     const currentObj = objectives[context.currentObjective];
 
     if (!currentObj) return [];
@@ -140,7 +140,8 @@ export class TaskBasedAIService {
    */
   async evaluateTaskAchievement(context: TaskConversationContext): Promise<number> {
     const completionRate =
-      (context.completedObjectives.length / (context.task.conversationExample as string[]).length) *
+      (context.completedObjectives.length /
+        (context.task.conversationExample as unknown as string[]).length) *
       100;
     return Math.min(completionRate, 100);
   }
@@ -272,7 +273,7 @@ export class TaskBasedAIService {
   private evaluateObjectiveCompletion(context: TaskConversationContext): {
     [objective: string]: boolean;
   } {
-    const objectives = context.task.conversationExample as string[];
+    const objectives = context.task.conversationExample as unknown as string[];
     const completion: { [objective: string]: boolean } = {};
 
     objectives.forEach((obj, index) => {

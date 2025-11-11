@@ -11,9 +11,23 @@ export default async function TaskAttemptPage({
   const session = await auth();
   const user = session?.user;
 
-  if (!user) {
+  if (!user || !user.email) {
     redirect('/login');
   }
 
-  return <TaskAttemptClientStreaming user={user} taskId={taskId} attemptId={attemptId} />;
+  return (
+    <TaskAttemptClientStreaming
+      user={
+        user as {
+          id: string;
+          email: string;
+          name?: string | null;
+          image?: string | null;
+          isAdmin: boolean;
+        }
+      }
+      taskId={taskId}
+      attemptId={attemptId}
+    />
+  );
 }

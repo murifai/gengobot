@@ -3,6 +3,7 @@
  * Manages storage and retrieval of task attempts and performance data
  */
 
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 export interface TaskAttemptData {
   id: string;
@@ -66,7 +67,7 @@ export async function createTaskAttempt(data: CreateAttemptData): Promise<TaskAt
     data: {
       userId: data.userId,
       taskId: data.taskId,
-      conversationHistory: data.conversationHistory || {},
+      conversationHistory: (data.conversationHistory || {}) as unknown as Prisma.InputJsonValue,
       retryCount: previousAttempts,
     },
   });
@@ -81,9 +82,24 @@ export async function updateTaskAttempt(
   attemptId: string,
   data: UpdateAttemptData
 ): Promise<TaskAttemptData> {
+  const updateData: Record<string, unknown> = {
+    endTime: data.endTime,
+    taskAchievement: data.taskAchievement,
+    fluency: data.fluency,
+    vocabularyGrammarAccuracy: data.vocabularyGrammarAccuracy,
+    politeness: data.politeness,
+    overallScore: data.overallScore,
+    feedback: data.feedback,
+    isCompleted: data.isCompleted,
+  };
+
+  if (data.conversationHistory) {
+    updateData.conversationHistory = data.conversationHistory as unknown as Prisma.InputJsonValue;
+  }
+
   const updated = await prisma.taskAttempt.update({
     where: { id: attemptId },
-    data,
+    data: updateData,
   });
 
   // If completed, update task usage stats
@@ -118,9 +134,10 @@ export async function getTaskAttempts(filter: AttemptFilter): Promise<TaskAttemp
     where.overallScore = { gte: filter.minScore };
   }
   if (filter.startDate || filter.endDate) {
-    where.startTime = {};
-    if (filter.startDate) where.startTime.gte = filter.startDate;
-    if (filter.endDate) where.startTime.lte = filter.endDate;
+    const startTimeFilter: Record<string, Date> = {};
+    if (filter.startDate) startTimeFilter.gte = filter.startDate;
+    if (filter.endDate) startTimeFilter.lte = filter.endDate;
+    where.startTime = startTimeFilter;
   }
 
   const attempts = await prisma.taskAttempt.findMany({

@@ -95,8 +95,8 @@ export async function POST(request: NextRequest) {
           isActive = activeStr === 'TRUE' || activeStr === '1' || activeStr === 'YES';
         }
 
-        // Parse estimatedDuration
-        let estimatedDuration = null;
+        // Parse estimatedDuration (default to 10 minutes if not provided)
+        let estimatedDuration = 10;
         if (row.estimatedDuration) {
           const duration = parseInt(String(row.estimatedDuration), 10);
           if (!isNaN(duration) && duration > 0) {
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
 
         // Note: subcategoryId validation skipped - will be validated by database constraints
 
-        // Create the task
+        // Create the task using relation connect syntax
         await prisma.task.create({
           data: {
             title: row.title.trim(),
@@ -126,16 +126,16 @@ export async function POST(request: NextRequest) {
             scenario: row.scenario.trim(),
             learningObjectives,
             conversationExample,
+            estimatedDuration,
             isActive,
-            ...(row.subcategoryId && row.subcategoryId.trim() !== ''
-              ? { subcategoryId: row.subcategoryId.trim() }
-              : {}),
-            ...(estimatedDuration !== null ? { estimatedDuration } : {}),
             ...(row.prerequisites && row.prerequisites.trim() !== ''
               ? { prerequisites: row.prerequisites.trim() }
               : {}),
             ...(row.characterId && row.characterId.trim() !== ''
-              ? { characterId: row.characterId.trim() }
+              ? { character: { connect: { id: row.characterId.trim() } } }
+              : {}),
+            ...(row.subcategoryId && row.subcategoryId.trim() !== ''
+              ? { subcategory: { connect: { id: row.subcategoryId.trim() } } }
               : {}),
           },
         });

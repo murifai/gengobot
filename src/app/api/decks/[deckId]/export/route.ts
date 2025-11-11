@@ -45,7 +45,13 @@ export async function GET(
     }
 
     // Generate Excel file
-    const excelBuffer = exportDeckToExcel(deck.name, deck.flashcards);
+    const excelBuffer = exportDeckToExcel(
+      deck.name,
+      deck.flashcards.map(card => ({
+        ...card,
+        cardType: card.cardType as 'kanji' | 'vocabulary' | 'grammar',
+      }))
+    );
 
     const filename = `${deck.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.xlsx`;
 

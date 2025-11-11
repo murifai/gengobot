@@ -170,7 +170,7 @@ export async function GET(
     const messages = conversationHistory?.messages || [];
     const completedObjectives = conversationHistory?.completedObjectives || [];
     const learningObjectives = (attempt.task.learningObjectives as string[]) || [];
-    const conversationExample = (attempt.task.conversationExample as string[]) || [];
+    const conversationExample = attempt.task.conversationExample;
 
     // Calculate readiness
     const hasMessages = messages.length >= 5; // Minimum 5 messages

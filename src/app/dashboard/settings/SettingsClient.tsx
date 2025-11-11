@@ -133,14 +133,8 @@ export default function SettingsClient({ user, dbUser }: SettingsClientProps) {
             </div>
 
             <div className="pt-4">
-              <Button
-                onClick={handleSave}
-                loading={loading}
-                disabled={loading}
-                size="lg"
-                className="w-full"
-              >
-                Save Settings
+              <Button onClick={handleSave} disabled={loading} size="lg" className="w-full">
+                {loading ? 'Saving...' : 'Save Settings'}
               </Button>
             </div>
           </div>

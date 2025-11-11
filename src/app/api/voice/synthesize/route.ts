@@ -1,7 +1,11 @@
 // API Route: Text-to-Speech using OpenAI TTS
+// MUST import OpenAI shims first before any other imports
+import 'openai/shims/node';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { ttsService, TTSVoice } from '@/lib/voice/tts-service';
 
+export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 

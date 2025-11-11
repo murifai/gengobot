@@ -173,7 +173,11 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
       taskTitle={task.title}
       taskScenario={task.scenario}
       learningObjectives={task.learningObjectives}
-      conversationExample={task.conversationExample}
+      conversationExample={
+        Array.isArray(task.conversationExample)
+          ? task.conversationExample.join('\n')
+          : task.conversationExample
+      }
       decks={decks}
       onSkip={handleSkip}
       onComplete={handleComplete}

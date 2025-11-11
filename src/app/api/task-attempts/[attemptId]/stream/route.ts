@@ -149,7 +149,18 @@ Respond ONLY in Japanese unless explaining a complex grammar point.`;
           };
 
           // Generate TTS audio for AI response (non-blocking)
-          let synthesis = { success: false, audioUrl: undefined, duration: undefined, error: '' };
+          let synthesis: {
+            success: boolean;
+            audioUrl?: string;
+            duration?: number;
+            error?: string;
+          } = {
+            success: false,
+            audioUrl: undefined,
+            duration: undefined,
+            error: '',
+          };
+
           try {
             console.log('[Streaming] Generating TTS for response...');
             synthesis = await taskVoiceService.synthesizeResponse(
@@ -165,7 +176,6 @@ Respond ONLY in Japanese unless explaining a complex grammar point.`;
             });
           } catch (ttsError) {
             console.error('[Streaming] TTS generation failed (non-blocking):', ttsError);
-            // Continue without audio - TTS failure should not block the chat
           }
 
           const assistantMessage = {

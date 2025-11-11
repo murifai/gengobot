@@ -7,6 +7,9 @@ import 'openai/shims/node';
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -42,7 +45,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       transcript: transcription.text,
-      duration: transcription.duration,
     });
   } catch (error) {
     console.error('[Whisper Transcribe] Error:', error);

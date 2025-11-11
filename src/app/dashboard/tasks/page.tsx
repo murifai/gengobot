@@ -6,9 +6,21 @@ export default async function TasksPage() {
   const session = await auth();
   const user = session?.user;
 
-  if (!user) {
+  if (!user || !user.email) {
     redirect('/login');
   }
 
-  return <TasksClient user={user} />;
+  return (
+    <TasksClient
+      user={
+        user as {
+          id: string;
+          email: string;
+          name?: string | null;
+          image?: string | null;
+          isAdmin: boolean;
+        }
+      }
+    />
+  );
 }

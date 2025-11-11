@@ -6,7 +6,7 @@ export async function GET() {
   try {
     const categories = await prisma.taskCategory.findMany({
       orderBy: {
-        sortOrder: 'asc',
+        name: 'asc',
       },
     });
 
@@ -59,9 +59,6 @@ export async function POST(request: NextRequest) {
     const category = await prisma.taskCategory.create({
       data: {
         name: body.name,
-        description: body.description,
-        icon: body.icon || null,
-        sortOrder: body.sortOrder !== undefined ? body.sortOrder : 0,
       },
     });
 

@@ -4,19 +4,29 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/dashboard/app-sidebar';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   const user = session?.user;
 
-  if (!user) {
+  if (!user || !user.email) {
     redirect('/login');
   }
 
+  const typedUser = user as {
+    id: string;
+    email: string;
+    name?: string | null;
+    image?: string | null;
+    isAdmin: boolean;
+  };
+
   return (
     <SidebarProvider defaultOpen={true}>
-      <AppSidebar user={user} />
+      <AppSidebar user={typedUser} />
       <SidebarInset>
-        <DashboardHeader user={user} />
+        <DashboardHeader user={typedUser} />
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
       </SidebarInset>
     </SidebarProvider>

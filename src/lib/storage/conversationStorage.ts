@@ -3,7 +3,8 @@
  * Handles task-based conversation history persistence and retrieval
  */
 
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 export interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -50,7 +51,9 @@ export async function createConversation(data: {
       type: data.type,
       taskId: data.taskId,
       characterId: data.characterId,
-      messages: (data.initialMessage ? [data.initialMessage] : []) as unknown as Prisma.InputJsonValue,
+      messages: (data.initialMessage
+        ? [data.initialMessage]
+        : []) as unknown as Prisma.InputJsonValue,
     },
   });
 

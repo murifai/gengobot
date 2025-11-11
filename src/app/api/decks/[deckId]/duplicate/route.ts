@@ -81,7 +81,7 @@ export async function POST(
             exampleSentence: card.exampleSentence,
             exampleTranslation: card.exampleTranslation,
             notes: card.notes,
-            tags: card.tags,
+            tags: card.tags ?? undefined,
             position: card.position,
             // Reset spaced repetition data for new deck
             easeFactor: 2.5,

@@ -160,9 +160,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                 <AvatarFallback className="rounded-lg">{userInitial}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">
-                  {user?.user_metadata?.full_name || 'Pengguna'}
-                </span>
+                <span className="truncate font-semibold">{user?.name || 'Pengguna'}</span>
                 <span className="truncate text-xs">{user?.email}</span>
               </div>
             </SidebarMenuButton>

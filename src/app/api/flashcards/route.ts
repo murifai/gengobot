@@ -116,11 +116,19 @@ export async function POST(request: NextRequest) {
 
     // Validate card type specific fields
     const cardType = body.cardType as CardType;
-    let cardData: Record<string, unknown> = {
+
+    // Base card data
+    const baseCardData = {
       deckId: body.deckId,
       cardType: body.cardType,
       position: body.position ?? 0,
+      exampleSentence: body.exampleSentence || null,
+      exampleTranslation: body.exampleTranslation || null,
+      notes: body.notes || null,
+      tags: body.tags ?? undefined,
     };
+
+    let cardData;
 
     switch (cardType) {
       case 'kanji':
@@ -131,7 +139,7 @@ export async function POST(request: NextRequest) {
           );
         }
         cardData = {
-          ...cardData,
+          ...baseCardData,
           kanji: body.kanji,
           kanjiMeaning: body.kanjiMeaning,
           onyomi: body.onyomi || null,
@@ -147,7 +155,7 @@ export async function POST(request: NextRequest) {
           );
         }
         cardData = {
-          ...cardData,
+          ...baseCardData,
           word: body.word,
           wordMeaning: body.wordMeaning,
           reading: body.reading,
@@ -163,7 +171,7 @@ export async function POST(request: NextRequest) {
           );
         }
         cardData = {
-          ...cardData,
+          ...baseCardData,
           grammarPoint: body.grammarPoint,
           grammarMeaning: body.grammarMeaning,
           usageNote: body.usageNote || null,
@@ -173,15 +181,6 @@ export async function POST(request: NextRequest) {
       default:
         return NextResponse.json({ error: 'Invalid card type' }, { status: 400 });
     }
-
-    // Add common fields
-    cardData = {
-      ...cardData,
-      exampleSentence: body.exampleSentence || null,
-      exampleTranslation: body.exampleTranslation || null,
-      notes: body.notes || null,
-      tags: body.tags || null,
-    };
 
     // Create flashcard and update deck totalCards in a transaction
     const result = await prisma.$transaction(async tx => {

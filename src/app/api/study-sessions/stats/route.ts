@@ -75,7 +75,7 @@ export async function GET() {
     const cardsDueToday = await prisma.flashcard.count({
       where: {
         deck: {
-          OR: [{ isPublic: true }, { creatorId: dbUser.id }],
+          OR: [{ isPublic: true }, { createdBy: dbUser.id }],
         },
         nextReviewDate: {
           lte: new Date(),
