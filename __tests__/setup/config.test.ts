@@ -13,7 +13,8 @@ describe('Konfigurasi Proyek', () => {
     expect(pkg.dependencies).toHaveProperty('react');
     expect(pkg.dependencies).toHaveProperty('prisma');
     expect(pkg.dependencies).toHaveProperty('openai');
-    expect(pkg.dependencies).toHaveProperty('@supabase/supabase-js');
+    expect(pkg.dependencies).toHaveProperty('next-auth');
+    expect(pkg.dependencies).toHaveProperty('@prisma/client');
   });
 
   it('harus memiliki scripts yang diperlukan', () => {
