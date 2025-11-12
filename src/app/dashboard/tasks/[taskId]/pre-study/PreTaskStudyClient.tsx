@@ -4,6 +4,7 @@ import { User } from '@/types/user';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import PreTaskStudy from '@/components/task/PreTaskStudy';
+import TaskResumeDialog from '@/components/task/TaskResumeDialog';
 
 interface Task {
   id: string;
@@ -54,12 +55,21 @@ interface PreTaskStudyClientProps {
   taskId: string;
 }
 
+interface ExistingAttempt {
+  id: string;
+  conversationHistory: {
+    messages: unknown[];
+  };
+}
+
 export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientProps) {
   const router = useRouter();
   const [task, setTask] = useState<Task | null>(null);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [existingAttempt, setExistingAttempt] = useState<ExistingAttempt | null>(null);
+  const [showResumeDialog, setShowResumeDialog] = useState(false);
 
   useEffect(() => {
     fetchTaskAndDecks();
@@ -79,6 +89,9 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
       if (!decksResponse.ok) throw new Error('Failed to fetch decks');
       const decksData = await decksResponse.json();
       setDecks(decksData.decks || []);
+
+      // Check for existing incomplete attempt
+      await checkExistingAttempt();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -86,22 +99,84 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
     }
   };
 
+  const checkExistingAttempt = async () => {
+    try {
+      const response = await fetch(
+        `/api/task-attempts?userId=${user.id}&taskId=${taskId}&incomplete=true`
+      );
+      if (!response.ok) return;
+
+      const data = await response.json();
+      if (data.attempts && data.attempts.length > 0) {
+        const attempt = data.attempts[0];
+        const messageCount = attempt.conversationHistory?.messages?.length || 0;
+
+        // Only show dialog if there are messages (actual progress)
+        if (messageCount > 0) {
+          setExistingAttempt(attempt);
+          setShowResumeDialog(true);
+        }
+      }
+    } catch (err) {
+      console.error('[PreTaskStudy] Error checking existing attempt:', err);
+      // Don't block the flow if this fails
+    }
+  };
+
+  const handleContinueExisting = () => {
+    if (existingAttempt) {
+      console.log('[PreTaskStudy] Continuing existing attempt:', existingAttempt.id);
+      router.push(`/dashboard/tasks/${taskId}/attempt/${existingAttempt.id}`);
+    }
+  };
+
+  const handleStartNew = () => {
+    // Clear localStorage for the old attempt before starting new
+    if (existingAttempt) {
+      const storageKey = `chat_messages_${existingAttempt.id}`;
+      try {
+        localStorage.removeItem(storageKey);
+        console.log('[PreTaskStudy] Cleared localStorage for old attempt:', existingAttempt.id);
+      } catch (error) {
+        console.error('[PreTaskStudy] Failed to clear localStorage:', error);
+      }
+    }
+
+    setShowResumeDialog(false);
+    setExistingAttempt(null);
+    // User will go through pre-task steps and then create new attempt
+  };
+
+  const handleCancelResume = () => {
+    router.push('/dashboard/tasks');
+  };
+
   const handleSkip = async () => {
-    await startTaskAttempt();
+    // Pass forceNew=true if user chose to start new from dialog
+    await startTaskAttempt(existingAttempt === null);
   };
 
   const handleComplete = async () => {
-    await startTaskAttempt();
+    // Pass forceNew=true if user chose to start new from dialog
+    await startTaskAttempt(existingAttempt === null);
   };
 
-  const startTaskAttempt = async () => {
+  const startTaskAttempt = async (forceNew = false) => {
     try {
-      console.log('[PreTaskStudy] Starting task attempt:', { taskId, userId: user.id });
+      console.log('[PreTaskStudy] Starting task attempt:', {
+        taskId,
+        userId: user.id,
+        forceNew,
+      });
 
       const response = await fetch('/api/task-attempts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ taskId, userId: user.id }),
+        body: JSON.stringify({
+          taskId,
+          userId: user.id,
+          forceNew,
+        }),
       });
 
       if (!response.ok) {
@@ -168,19 +243,33 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
   }
 
   return (
-    <PreTaskStudy
-      taskId={taskId}
-      taskTitle={task.title}
-      taskScenario={task.scenario}
-      learningObjectives={task.learningObjectives}
-      conversationExample={
-        Array.isArray(task.conversationExample)
-          ? task.conversationExample.join('\n')
-          : task.conversationExample
-      }
-      decks={decks}
-      onSkip={handleSkip}
-      onComplete={handleComplete}
-    />
+    <>
+      {/* Resume Dialog */}
+      {existingAttempt && (
+        <TaskResumeDialog
+          isOpen={showResumeDialog}
+          taskTitle={task?.title || 'Task'}
+          onContinue={handleContinueExisting}
+          onStartNew={handleStartNew}
+          onCancel={handleCancelResume}
+        />
+      )}
+
+      {/* Pre-Task Study Steps */}
+      <PreTaskStudy
+        taskId={taskId}
+        taskTitle={task.title}
+        taskScenario={task.scenario}
+        learningObjectives={task.learningObjectives}
+        conversationExample={
+          Array.isArray(task.conversationExample)
+            ? task.conversationExample.join('\n')
+            : task.conversationExample
+        }
+        decks={decks}
+        onSkip={handleSkip}
+        onComplete={handleComplete}
+      />
+    </>
   );
 }

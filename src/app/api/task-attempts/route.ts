@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId');
     const taskId = searchParams.get('taskId');
     const isCompleted = searchParams.get('isCompleted');
+    const incomplete = searchParams.get('incomplete');
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = parseInt(searchParams.get('offset') || '0');
 
@@ -27,7 +28,11 @@ export async function GET(request: NextRequest) {
     const where: Record<string, unknown> = {};
     if (userId) where.userId = userId;
     if (taskId) where.taskId = taskId;
-    if (isCompleted !== null) {
+
+    // Handle completion status filters
+    if (incomplete === 'true') {
+      where.isCompleted = false;
+    } else if (isCompleted !== null) {
       where.isCompleted = isCompleted === 'true';
     }
 
@@ -83,9 +88,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, taskId } = body;
+    const { userId, taskId, forceNew = false } = body;
 
-    console.log('[Task Attempt POST] Request:', { userId, taskId });
+    console.log('[Task Attempt POST] Request:', { userId, taskId, forceNew });
 
     // Validate required fields
     if (!userId || !taskId) {
@@ -127,28 +132,54 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Task is not active' }, { status: 400 });
     }
 
-    // Check if user has an incomplete attempt for this task
-    const existingAttempt = await prisma.taskAttempt.findFirst({
-      where: {
-        userId: user.id,
-        taskId,
-        isCompleted: false,
-      },
-    });
-
-    console.log(
-      '[Task Attempt POST] Existing attempt:',
-      existingAttempt ? `found (${existingAttempt.id})` : 'not found'
-    );
-
-    if (existingAttempt) {
-      console.log('[Task Attempt POST] Resuming existing attempt:', existingAttempt.id);
-      // Return existing attempt instead of creating new one
-      return NextResponse.json({
-        attempt: existingAttempt,
-        isExisting: true,
-        message: 'Resuming existing attempt',
+    // Check if user has an incomplete attempt for this task (unless forceNew is true)
+    if (!forceNew) {
+      const existingAttempt = await prisma.taskAttempt.findFirst({
+        where: {
+          userId: user.id,
+          taskId,
+          isCompleted: false,
+        },
       });
+
+      console.log(
+        '[Task Attempt POST] Existing attempt:',
+        existingAttempt ? `found (${existingAttempt.id})` : 'not found'
+      );
+
+      if (existingAttempt) {
+        console.log('[Task Attempt POST] Resuming existing attempt:', existingAttempt.id);
+        // Return existing attempt instead of creating new one
+        return NextResponse.json({
+          attempt: existingAttempt,
+          isExisting: true,
+          message: 'Resuming existing attempt',
+        });
+      }
+    } else {
+      console.log(
+        '[Task Attempt POST] forceNew=true, marking old incomplete attempts as abandoned'
+      );
+
+      // Mark any existing incomplete attempts as completed (abandoned)
+      const abandonedCount = await prisma.taskAttempt.updateMany({
+        where: {
+          userId: user.id,
+          taskId,
+          isCompleted: false,
+        },
+        data: {
+          isCompleted: true,
+          endTime: new Date(),
+          // The conversation history remains intact for statistics
+        },
+      });
+
+      console.log(
+        '[Task Attempt POST] Marked',
+        abandonedCount.count,
+        'old attempt(s) as abandoned'
+      );
     }
 
     console.log('[Task Attempt POST] Creating new attempt...');

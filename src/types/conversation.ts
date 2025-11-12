@@ -7,6 +7,17 @@ export interface Conversation {
   status?: 'speaking' | 'processing' | 'final';
 }
 
+/**
+ * Unified message interface for chat persistence
+ */
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  isStreaming?: boolean;
+  audioUrl?: string;
+}
+
 export interface Tool {
   type: 'function';
   name: string;

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { useChatPersistence } from './useChatPersistence';
 
 export interface StreamingMessage {
   role: 'user' | 'assistant';
@@ -23,6 +24,7 @@ export interface UseStreamingChatReturn {
 /**
  * Custom hook for streaming chat with WebRTC-like feel
  * Provides instant UI updates and real-time streaming
+ * Now includes automatic localStorage persistence across page reloads
  */
 export function useStreamingChat(
   attemptId: string,
@@ -31,7 +33,31 @@ export function useStreamingChat(
   const [messages, setMessages] = useState<StreamingMessage[]>(initialMessages);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Restore messages from localStorage on mount
+  const handleRestore = useCallback(
+    (restoredMessages: StreamingMessage[]) => {
+      console.log('[useStreamingChat] Restoring messages from localStorage:', {
+        count: restoredMessages.length,
+        attemptId,
+      });
+      setMessages(restoredMessages);
+      setIsInitialized(true);
+    },
+    [attemptId]
+  );
+
+  // Initialize chat persistence
+  const { clearMessages } = useChatPersistence(attemptId, messages, handleRestore);
+
+  // Set initialized flag if no messages were restored
+  useEffect(() => {
+    if (!isInitialized && messages.length === 0) {
+      setIsInitialized(true);
+    }
+  }, [isInitialized, messages.length]);
 
   const sendMessage = useCallback(
     async (messageText: string) => {
@@ -210,7 +236,8 @@ export function useStreamingChat(
 
   const resetMessages = useCallback(() => {
     setMessages([]);
-  }, []);
+    clearMessages(); // Also clear from localStorage
+  }, [clearMessages]);
 
   return {
     messages,
