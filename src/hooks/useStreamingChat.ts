@@ -11,6 +11,19 @@ export interface StreamingMessage {
   audioUrl?: string; // Kept for backward compatibility but not used in one-time playback
 }
 
+export interface ObjectiveDetectionResult {
+  objectives: Array<{
+    objectiveId: string;
+    objectiveText: string;
+    status: 'pending' | 'completed';
+    confidence: number;
+    evidence: string[];
+  }>;
+  newlyCompleted: string[];
+  allCompleted: boolean;
+  confidence: number;
+}
+
 export interface UseStreamingChatReturn {
   messages: StreamingMessage[];
   isStreaming: boolean;
@@ -25,10 +38,12 @@ export interface UseStreamingChatReturn {
  * Custom hook for streaming chat with WebRTC-like feel
  * Provides instant UI updates and real-time streaming
  * Now includes automatic localStorage persistence across page reloads
+ * Includes objective detection for task feedback system
  */
 export function useStreamingChat(
   attemptId: string,
-  initialMessages: StreamingMessage[] = []
+  initialMessages: StreamingMessage[] = [],
+  onObjectivesDetected?: (data: ObjectiveDetectionResult) => void
 ): UseStreamingChatReturn {
   const [messages, setMessages] = useState<StreamingMessage[]>(initialMessages);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -59,6 +74,34 @@ export function useStreamingChat(
     }
   }, [isInitialized, messages.length]);
 
+  // Helper function to detect objectives after message exchange
+  const detectObjectives = useCallback(
+    async (userContent: string, assistantContent: string) => {
+      try {
+        console.log('[useStreamingChat] Detecting objectives...');
+        const response = await fetch(`/api/task-attempts/${attemptId}/detect-objectives`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            newUserMessage: userContent,
+            newAssistantMessage: assistantContent,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('[useStreamingChat] Objectives detected:', data);
+          onObjectivesDetected?.(data);
+        } else {
+          console.error('[useStreamingChat] Failed to detect objectives:', response.status);
+        }
+      } catch (error) {
+        console.error('[useStreamingChat] Error detecting objectives:', error);
+      }
+    },
+    [attemptId, onObjectivesDetected]
+  );
+
   const sendMessage = useCallback(
     async (messageText: string) => {
       if (!messageText.trim() || isStreaming) return;
@@ -66,10 +109,14 @@ export function useStreamingChat(
       setError(null);
       setIsStreaming(true);
 
+      // Store user message content for later objective detection
+      const userMessageContent = messageText.trim();
+      let assistantMessageContent = '';
+
       // Add user message immediately (optimistic UI)
       const userMessage: StreamingMessage = {
         role: 'user',
-        content: messageText.trim(),
+        content: userMessageContent,
         timestamp: new Date().toISOString(),
       };
 
@@ -198,8 +245,14 @@ export function useStreamingChat(
                   hasAudioData: !!data.audioData,
                   temporaryUrl: temporaryAudioUrl,
                 });
+
+                // Detect objectives after message completion
+                if (onObjectivesDetected) {
+                  detectObjectives(userMessageContent, assistantMessageContent);
+                }
               } else if (data.content) {
                 // Update assistant message with streamed content
+                assistantMessageContent += data.content;
                 setMessages(prev =>
                   prev.map((msg, idx) =>
                     idx === prev.length - 1 ? { ...msg, content: msg.content + data.content } : msg
@@ -223,7 +276,7 @@ export function useStreamingChat(
         abortControllerRef.current = null;
       }
     },
-    [attemptId, isStreaming]
+    [attemptId, isStreaming, detectObjectives, onObjectivesDetected]
   );
 
   const addMessages = useCallback((newMessages: StreamingMessage[]) => {

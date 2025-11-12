@@ -20,6 +20,7 @@ model Task {
   learningObjectives   Json // Array of learning goals
   conversationExample  String @db.Text // Example conversation dialog (T: teacher, G: student)
   estimatedDuration    Int // Minutes
+  maxMessages        Int      @default(30) // Maximum messages per attempt
   isActive           Boolean  @default(true)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -64,17 +65,17 @@ model TaskAttempt {
   startTime DateTime  @default(now())
   endTime   DateTime?
 
-  // Japanese Learning Assessment Criteria
-  taskAchievement           Float? // タスク達成度 (0-100)
-  fluency                   Float? // 流暢さ (0-100)
-  vocabularyGrammarAccuracy Float? // 語彙・文法的正確さ (0-100)
-  politeness                Float? // 丁寧さ (0-100)
-  overallScore              Float? // Combined weighted score
+  // Simplified Feedback System
+  feedback                  String?  @db.Text // JSON: SimplifiedAssessment
+  conversationHistory       Json                // { messages: [...] }
+  isCompleted               Boolean  @default(false)
+  retryCount                Int      @default(0)
 
-  feedback            String? @db.Text
-  conversationHistory Json
-  isCompleted         Boolean @default(false)
-  retryCount          Int     @default(0)
+  // Objective Tracking
+  objectiveCompletionStatus Json?               // ObjectiveTracking[]
+  totalMessages             Int      @default(0)
+  completionDuration        Int?                // seconds
+  completionSuggestedAt     DateTime?
 
   user User @relation(fields: [userId], references: [id])
   task Task @relation(fields: [taskId], references: [id])
