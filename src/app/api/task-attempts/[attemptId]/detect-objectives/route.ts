@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth/auth';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
+
+type InputJsonValue = Prisma.InputJsonValue;
 import {
   generateObjectiveDetectionPrompt,
   initializeObjectives,
@@ -14,10 +16,13 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function POST(request: NextRequest, { params }: { params: { attemptId: string } }) {
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ attemptId: string }> }
+) {
   try {
     // Verify authentication
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -29,6 +34,9 @@ export async function POST(request: NextRequest, { params }: { params: { attempt
     if (!newUserMessage || !newAssistantMessage) {
       return NextResponse.json({ error: 'Missing required messages' }, { status: 400 });
     }
+
+    // Await params (Next.js 15 pattern)
+    const params = await context.params;
 
     // Get attempt with task and user verification
     const attempt = await prisma.taskAttempt.findUnique({
@@ -49,7 +57,8 @@ export async function POST(request: NextRequest, { params }: { params: { attempt
     }
 
     // Get conversation history
-    const history = (attempt.conversationHistory as { messages: Message[] }).messages || [];
+    const history =
+      (attempt.conversationHistory as unknown as { messages: Message[] }).messages || [];
 
     // Add new messages to history for analysis
     const updatedHistory: Message[] = [
@@ -100,7 +109,7 @@ export async function POST(request: NextRequest, { params }: { params: { attempt
     await prisma.taskAttempt.update({
       where: { id: params.attemptId },
       data: {
-        objectiveCompletionStatus: updatedObjectives,
+        objectiveCompletionStatus: updatedObjectives as unknown as InputJsonValue,
         totalMessages: attempt.totalMessages + 2, // User + assistant
       },
     });

@@ -63,17 +63,21 @@ export async function POST(
       (politeness || 0) * 0.2;
 
     // Complete the task attempt
+    // Note: Since Phase 6, we store SimplifiedAssessment in feedback field as JSON
+    // The old score fields (taskAchievement, fluency, etc.) have been removed from the schema
     const completedAttempt = await prisma.taskAttempt.update({
       where: { id: attemptId },
       data: {
         isCompleted: true,
         endTime: new Date(),
-        taskAchievement,
-        fluency,
-        vocabularyGrammarAccuracy,
-        politeness,
-        overallScore,
-        feedback,
+        feedback: JSON.stringify({
+          taskAchievement,
+          fluency,
+          vocabularyGrammarAccuracy,
+          politeness,
+          overallScore,
+          feedbackText: feedback,
+        }),
       },
     });
 
@@ -84,14 +88,29 @@ export async function POST(
         isCompleted: true,
       },
       select: {
-        overallScore: true,
+        feedback: true,
       },
     });
 
-    // Calculate new average score
-    const totalScore = allCompletedAttempts.reduce((sum, a) => sum + (a.overallScore || 0), 0);
-    const averageScore =
-      allCompletedAttempts.length > 0 ? totalScore / allCompletedAttempts.length : 0;
+    // Calculate new average score from feedback data
+    let totalScore = 0;
+    let validAttempts = 0;
+
+    allCompletedAttempts.forEach(a => {
+      if (a.feedback) {
+        try {
+          const feedbackData = JSON.parse(a.feedback);
+          if (feedbackData.overallScore !== undefined) {
+            totalScore += feedbackData.overallScore;
+            validAttempts++;
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+    });
+
+    const averageScore = validAttempts > 0 ? totalScore / validAttempts : 0;
 
     await prisma.task.update({
       where: { id: attempt.taskId },

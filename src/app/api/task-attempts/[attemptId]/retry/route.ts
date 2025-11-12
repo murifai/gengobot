@@ -61,7 +61,8 @@ export async function POST(
           startedAt: new Date().toISOString(),
           isRetry: true,
           previousAttemptId: attemptId,
-          previousScore: originalAttempt.overallScore,
+          // Note: Phase 6 removed overallScore field, calculate from feedback if needed
+          previousScore: null,
         },
       },
       include: {
@@ -97,32 +98,34 @@ export async function POST(
       },
     });
 
-    // Calculate improvement potential
-    const improvementAreas: string[] = [];
-    if (originalAttempt.taskAchievement && originalAttempt.taskAchievement < 80) {
-      improvementAreas.push('Task Achievement');
-    }
-    if (originalAttempt.fluency && originalAttempt.fluency < 80) {
-      improvementAreas.push('Fluency');
-    }
-    if (
-      originalAttempt.vocabularyGrammarAccuracy &&
-      originalAttempt.vocabularyGrammarAccuracy < 80
-    ) {
-      improvementAreas.push('Vocabulary & Grammar');
-    }
-    if (originalAttempt.politeness && originalAttempt.politeness < 80) {
-      improvementAreas.push('Politeness');
+    // Parse previous feedback (Phase 6 - Simplified Assessment)
+    let previousAssessment = null;
+    let improvementAreas: string[] = [];
+    let completionRate = 0;
+
+    try {
+      if (originalAttempt.feedback) {
+        previousAssessment = JSON.parse(originalAttempt.feedback);
+        completionRate = previousAssessment.statistics?.completionRate || 0;
+
+        // Extract improvement areas from previous feedback
+        if (previousAssessment.conversationFeedback?.areasToImprove) {
+          improvementAreas = previousAssessment.conversationFeedback.areasToImprove.slice(0, 3);
+        }
+      }
+    } catch (e) {
+      console.error('Error parsing previous feedback:', e);
     }
 
     return NextResponse.json({
       attempt: retryAttempt,
       retryContext: {
         attemptNumber: previousAttempts + 1,
-        previousScore: originalAttempt.overallScore,
+        previousCompletionRate: completionRate,
         previousFeedback: originalAttempt.feedback,
         improvementAreas,
-        targetScore: Math.min(100, (originalAttempt.overallScore || 0) + 15),
+        previousObjectivesAchieved: previousAssessment?.objectivesAchieved || 0,
+        totalObjectives: previousAssessment?.totalObjectives || 0,
       },
       message: `Starting retry attempt #${previousAttempts + 1}`,
     });
@@ -167,43 +170,64 @@ export async function GET(
       orderBy: { startTime: 'asc' },
     });
 
-    // Calculate retry statistics
+    // Calculate retry statistics (Phase 6 - Simplified Assessment)
     const completedAttempts = allAttempts.filter(a => a.isCompleted);
     const retryCount = allAttempts.length - 1; // Exclude first attempt
 
-    // Calculate score progression
-    const scoreProgression = completedAttempts.map((a, index) => ({
-      attemptNumber: index + 1,
-      overallScore: a.overallScore || 0,
-      taskAchievement: a.taskAchievement || 0,
-      fluency: a.fluency || 0,
-      vocabularyGrammarAccuracy: a.vocabularyGrammarAccuracy || 0,
-      politeness: a.politeness || 0,
-      date: a.endTime,
-    }));
+    // Parse assessment data for each completed attempt
+    const assessmentData = completedAttempts.map((a, index) => {
+      let assessment = null;
+      try {
+        if (a.feedback) {
+          assessment = JSON.parse(a.feedback);
+        }
+      } catch (e) {
+        console.error('Error parsing assessment:', e);
+      }
+
+      return {
+        attemptNumber: index + 1,
+        completionRate: assessment?.statistics?.completionRate || 0,
+        objectivesAchieved: assessment?.objectivesAchieved || 0,
+        totalObjectives: assessment?.totalObjectives || 0,
+        duration: assessment?.statistics?.durationMinutes || 0,
+        date: a.endTime,
+      };
+    });
 
     // Calculate improvement trends
-    const firstScore = completedAttempts[0]?.overallScore || 0;
-    const lastScore = completedAttempts[completedAttempts.length - 1]?.overallScore || 0;
-    const totalImprovement = lastScore - firstScore;
+    const firstRate = assessmentData[0]?.completionRate || 0;
+    const lastRate = assessmentData[assessmentData.length - 1]?.completionRate || 0;
+    const totalImprovement = lastRate - firstRate;
+
+    // Parse current attempt assessment
+    let currentAssessment = null;
+    try {
+      if (attempt.feedback) {
+        currentAssessment = JSON.parse(attempt.feedback);
+      }
+    } catch (e) {
+      console.error('Error parsing current assessment:', e);
+    }
+
+    const currentCompletionRate = currentAssessment?.statistics?.completionRate || 0;
 
     // Determine retry recommendation
-    const shouldRetry =
-      attempt.overallScore !== null && attempt.overallScore < 85 && retryCount < 3;
+    const shouldRetry = currentCompletionRate < 85 && retryCount < 3;
 
     const retryRecommendation = shouldRetry
       ? {
           recommended: true,
           reason:
-            attempt.overallScore! < 70
+            currentCompletionRate < 70
               ? 'Significant room for improvement. Retry recommended to master the material.'
               : 'Good progress! One more attempt could help you achieve mastery.',
-          focusAreas: getFocusAreas(attempt),
+          focusAreas: currentAssessment?.conversationFeedback?.areasToImprove || [],
         }
       : {
           recommended: false,
           reason:
-            attempt.overallScore! >= 85
+            currentCompletionRate >= 85
               ? "Excellent performance! You've mastered this task."
               : retryCount >= 3
                 ? "You've practiced this task multiple times. Consider trying a different task."
@@ -216,19 +240,18 @@ export async function GET(
         totalAttempts: allAttempts.length,
         completedAttempts: completedAttempts.length,
         retryCount,
-        currentScore: attempt.overallScore,
-        firstScore,
-        bestScore: Math.max(...completedAttempts.map(a => a.overallScore || 0)),
-        averageScore:
-          completedAttempts.reduce((sum, a) => sum + (a.overallScore || 0), 0) /
-          completedAttempts.length,
+        currentCompletionRate,
+        firstRate,
+        bestRate: Math.max(...assessmentData.map(a => a.completionRate)),
+        averageRate:
+          assessmentData.reduce((sum, a) => sum + a.completionRate, 0) / assessmentData.length || 0,
         totalImprovement,
       },
-      progression: scoreProgression,
+      progression: assessmentData,
       recommendation: retryRecommendation,
       insights: {
-        strengthAreas: getStrengthAreas(attempt),
-        improvementNeeded: getFocusAreas(attempt),
+        strengthAreas: currentAssessment?.conversationFeedback?.strengths || [],
+        improvementNeeded: currentAssessment?.conversationFeedback?.areasToImprove || [],
         progressTrend:
           totalImprovement > 10
             ? 'Improving'
@@ -243,48 +266,5 @@ export async function GET(
   }
 }
 
-// Helper: Identify focus areas for improvement
-function getFocusAreas(attempt: {
-  taskAchievement: number | null;
-  fluency: number | null;
-  vocabularyGrammarAccuracy: number | null;
-  politeness: number | null;
-}): string[] {
-  const areas: string[] = [];
-  if (attempt.taskAchievement !== null && attempt.taskAchievement < 75) {
-    areas.push('Task Achievement - Focus on completing all objectives');
-  }
-  if (attempt.fluency !== null && attempt.fluency < 75) {
-    areas.push('Fluency - Practice speaking more naturally');
-  }
-  if (attempt.vocabularyGrammarAccuracy !== null && attempt.vocabularyGrammarAccuracy < 75) {
-    areas.push('Vocabulary & Grammar - Review grammar patterns and vocabulary');
-  }
-  if (attempt.politeness !== null && attempt.politeness < 75) {
-    areas.push('Politeness - Use more appropriate politeness levels');
-  }
-  return areas;
-}
-
-// Helper: Identify strength areas
-function getStrengthAreas(attempt: {
-  taskAchievement: number | null;
-  fluency: number | null;
-  vocabularyGrammarAccuracy: number | null;
-  politeness: number | null;
-}): string[] {
-  const areas: string[] = [];
-  if (attempt.taskAchievement !== null && attempt.taskAchievement >= 85) {
-    areas.push('Task Achievement');
-  }
-  if (attempt.fluency !== null && attempt.fluency >= 85) {
-    areas.push('Fluency');
-  }
-  if (attempt.vocabularyGrammarAccuracy !== null && attempt.vocabularyGrammarAccuracy >= 85) {
-    areas.push('Vocabulary & Grammar');
-  }
-  if (attempt.politeness !== null && attempt.politeness >= 85) {
-    areas.push('Politeness');
-  }
-  return areas;
-}
+// Note: Helper functions removed in Phase 6 - Simplified Assessment
+// Focus areas and strengths are now extracted directly from the AI-generated feedback

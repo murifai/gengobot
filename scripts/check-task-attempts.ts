@@ -41,8 +41,8 @@ async function checkTaskAttempts() {
     }
 
     // Group by completion status
-    const incomplete = attempts.filter((a) => !a.isCompleted);
-    const completed = attempts.filter((a) => a.isCompleted);
+    const incomplete = attempts.filter(a => !a.isCompleted);
+    const completed = attempts.filter(a => a.isCompleted);
 
     console.log(`📊 Summary:`);
     console.log(`- Incomplete: ${incomplete.length}`);
@@ -50,7 +50,7 @@ async function checkTaskAttempts() {
 
     if (incomplete.length > 0) {
       console.log('⚠️  Incomplete attempts (these will be resumed on task start):\n');
-      incomplete.forEach((attempt) => {
+      incomplete.forEach(attempt => {
         const conversationHistory = attempt.conversationHistory as {
           messages?: unknown[];
           completedObjectives?: string[];
@@ -70,7 +70,7 @@ async function checkTaskAttempts() {
 
     if (completed.length > 0) {
       console.log('\n✅ Completed attempts:\n');
-      completed.forEach((attempt) => {
+      completed.forEach(attempt => {
         const conversationHistory = attempt.conversationHistory as {
           messages?: unknown[];
           completedObjectives?: string[];
@@ -82,7 +82,6 @@ async function checkTaskAttempts() {
         console.log(`Task: ${attempt.task.title}`);
         console.log(`User: ${attempt.user.name || attempt.user.email}`);
         console.log(`Messages: ${messageCount}`);
-        console.log(`Overall Score: ${attempt.overallScore || 'N/A'}`);
         console.log(
           `Duration: ${Math.round((new Date(attempt.endTime!).getTime() - new Date(attempt.startTime).getTime()) / 60000)} minutes`
         );
@@ -91,7 +90,7 @@ async function checkTaskAttempts() {
     }
 
     // Check for any attempts with no conversation history
-    const emptyAttempts = attempts.filter((a) => {
+    const emptyAttempts = attempts.filter(a => {
       const conversationHistory = a.conversationHistory as {
         messages?: unknown[];
       };
@@ -118,7 +117,7 @@ checkTaskAttempts()
     console.log('\n✅ Script completed successfully');
     process.exit(0);
   })
-  .catch((error) => {
+  .catch(error => {
     console.error('\n❌ Script failed:', error);
     process.exit(1);
   });

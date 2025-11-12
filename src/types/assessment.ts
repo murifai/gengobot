@@ -166,3 +166,41 @@ export interface ProgressMetrics {
     estimatedTime: number; // hours
   };
 }
+
+// Simplified Assessment (Phase 6 - Task Feedback System)
+export interface SimplifiedAssessment {
+  attemptId: string;
+  taskId: string;
+
+  // 1. Objective Achievement
+  objectives: {
+    text: string;
+    achieved: boolean;
+    evidence: string[];
+  }[];
+  objectivesAchieved: number;
+  totalObjectives: number;
+
+  // 2. Conversation Feedback
+  conversationFeedback: {
+    strengths: string[]; // What user did well
+    areasToImprove: string[]; // Specific improvements
+    overallFeedback: string; // General narrative
+    encouragement: string; // Motivational message
+  };
+
+  // 3. Statistics
+  statistics: {
+    duration: number; // seconds
+    durationMinutes: number;
+    totalMessages: number;
+    userMessagesCount: number;
+    completionRate: number; // percentage
+  };
+
+  // 4. Recommendations
+  suggestRetry: boolean;
+  nextSteps: string[];
+
+  assessmentDate: Date;
+}

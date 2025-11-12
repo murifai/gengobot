@@ -164,19 +164,30 @@ async function fetchTaskAttemptData(options: ExportOptions) {
   });
 
   return attempts.map(attempt => {
+    // Phase 6 - Parse simplified assessment for export
+    let assessmentSummary = null;
+    try {
+      if (attempt.feedback) {
+        const assessment = JSON.parse(attempt.feedback);
+        assessmentSummary = {
+          completionRate: assessment?.statistics?.completionRate || 0,
+          objectivesAchieved: assessment?.objectivesAchieved || 0,
+          totalObjectives: assessment?.totalObjectives || 0,
+        };
+      }
+    } catch (e) {
+      // Ignore parse errors
+    }
+
     const base: Record<string, unknown> = {
       attemptId: attempt.id,
       userId: attempt.userId,
       taskId: attempt.taskId,
       startTime: attempt.startTime,
       endTime: attempt.endTime,
-      taskAchievement: attempt.taskAchievement,
-      fluency: attempt.fluency,
-      vocabularyGrammarAccuracy: attempt.vocabularyGrammarAccuracy,
-      politeness: attempt.politeness,
-      overallScore: attempt.overallScore,
       isCompleted: attempt.isCompleted,
       retryCount: attempt.retryCount,
+      assessmentSummary,
     };
 
     if (options.includeUserData && attempt.user) {
@@ -237,7 +248,17 @@ async function fetchUserProgressData(userId: string) {
       taskTitle: a.task.title,
       category: a.task.category,
       difficulty: a.task.difficulty,
-      score: a.overallScore,
+      completionRate: (() => {
+        try {
+          if (a.feedback) {
+            const assessment = JSON.parse(a.feedback);
+            return assessment?.statistics?.completionRate || 0;
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+        return 0;
+      })(),
       completed: a.isCompleted,
       date: a.startTime,
     })),
@@ -285,7 +306,17 @@ async function fetchTaskAnalyticsData(taskId: string) {
     recentAttempts: task.taskAttempts.slice(0, 10).map(a => ({
       userName: a.user.name,
       userProficiency: a.user.proficiency,
-      score: a.overallScore,
+      completionRate: (() => {
+        try {
+          if (a.feedback) {
+            const assessment = JSON.parse(a.feedback);
+            return assessment?.statistics?.completionRate || 0;
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+        return 0;
+      })(),
       completed: a.isCompleted,
       date: a.startTime,
     })),
@@ -341,7 +372,10 @@ async function fetchSystemAnalyticsData() {
 
 // ===== Export Format Functions =====
 
-function exportToCSV(data: Record<string, unknown> | Record<string, unknown>[], filename: string): ExportResult {
+function exportToCSV(
+  data: Record<string, unknown> | Record<string, unknown>[],
+  filename: string
+): ExportResult {
   // Convert single object to array for consistent handling
   const dataArray = Array.isArray(data) ? data : [data];
 
@@ -380,7 +414,10 @@ function exportToCSV(data: Record<string, unknown> | Record<string, unknown>[], 
   };
 }
 
-function exportToJSON(data: Record<string, unknown> | Record<string, unknown>[], filename: string): ExportResult {
+function exportToJSON(
+  data: Record<string, unknown> | Record<string, unknown>[],
+  filename: string
+): ExportResult {
   return {
     format: 'json',
     filename: `${filename}.json`,
@@ -389,7 +426,10 @@ function exportToJSON(data: Record<string, unknown> | Record<string, unknown>[],
   };
 }
 
-function exportToExcel(data: Record<string, unknown> | Record<string, unknown>[], filename: string): ExportResult {
+function exportToExcel(
+  data: Record<string, unknown> | Record<string, unknown>[],
+  filename: string
+): ExportResult {
   // Convert single object to array for consistent handling
   const dataArray = Array.isArray(data) ? data : [data];
 
@@ -431,25 +471,43 @@ function flattenObject(obj: Record<string, unknown>, prefix = ''): Record<string
   return flattened;
 }
 
+// Phase 6 - Calculate average completion rate from simplified assessments
 function calculateAverageScores(attempts: Record<string, unknown>[]) {
   if (attempts.length === 0) {
     return {
-      overall: 0,
-      taskAchievement: 0,
-      fluency: 0,
-      vocabularyGrammar: 0,
-      politeness: 0,
+      completionRate: 0,
+      objectivesAchieved: 0,
     };
   }
 
+  const completionRates = attempts.map(a => {
+    try {
+      if (typeof a.feedback === 'string') {
+        const assessment = JSON.parse(a.feedback);
+        return assessment?.statistics?.completionRate || 0;
+      }
+    } catch (e) {
+      // Ignore parse errors
+    }
+    return 0;
+  });
+
+  const objectivesAchieved = attempts.map(a => {
+    try {
+      if (typeof a.feedback === 'string') {
+        const assessment = JSON.parse(a.feedback);
+        return assessment?.objectivesAchieved || 0;
+      }
+    } catch (e) {
+      // Ignore parse errors
+    }
+    return 0;
+  });
+
   return {
-    overall: attempts.reduce((sum, a) => sum + (Number(a.overallScore) || 0), 0) / attempts.length,
-    taskAchievement:
-      attempts.reduce((sum, a) => sum + (Number(a.taskAchievement) || 0), 0) / attempts.length,
-    fluency: attempts.reduce((sum, a) => sum + (Number(a.fluency) || 0), 0) / attempts.length,
-    vocabularyGrammar:
-      attempts.reduce((sum, a) => sum + (Number(a.vocabularyGrammarAccuracy) || 0), 0) / attempts.length,
-    politeness: attempts.reduce((sum, a) => sum + (Number(a.politeness) || 0), 0) / attempts.length,
+    completionRate: completionRates.reduce((sum, rate) => sum + rate, 0) / completionRates.length,
+    objectivesAchieved:
+      objectivesAchieved.reduce((sum, count) => sum + count, 0) / objectivesAchieved.length,
   };
 }
 

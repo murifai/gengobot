@@ -41,33 +41,54 @@ export async function GET(request: NextRequest) {
     });
 
     // Convert to TaskAssessment format
-    const recentAssessments: TaskAssessment[] = recentAttempts.map(attempt => ({
-      taskId: attempt.taskId,
-      attemptId: attempt.id,
-      taskAchievement: attempt.taskAchievement || 0,
-      fluency: attempt.fluency || 0,
-      vocabularyGrammarAccuracy: attempt.vocabularyGrammarAccuracy || 0,
-      politeness: attempt.politeness || 0,
-      objectiveCompletion: {},
-      overallScore: attempt.overallScore || 0,
-      feedback: attempt.feedback || '',
-      specificFeedback: {
-        taskAchievement: '',
-        fluency: '',
-        vocabularyGrammar: '',
-        politeness: '',
-      },
-      areasForImprovement: [],
-      strengths: [],
-      recommendedNextTasks: [],
-      timeToComplete: 0,
-      retryRecommendation: false,
-      estimatedJLPTLevel: currentLevel,
-      progressToNextLevel: 0,
-      assessmentDate: attempt.endTime || new Date(),
-      conversationTurns: 0,
-      totalMessages: 0,
-    }));
+    // Note: Since Phase 6, we store SimplifiedAssessment in feedback field
+    // For recommendations, we use placeholder values as the old assessment fields were removed
+    const recentAssessments: TaskAssessment[] = recentAttempts.map(attempt => {
+      // Try to parse SimplifiedAssessment from feedback if available
+      let objectivesAchieved = 0;
+      let totalObjectives = 1;
+      try {
+        if (attempt.feedback) {
+          const simplified = JSON.parse(attempt.feedback);
+          objectivesAchieved = simplified.objectivesAchieved || 0;
+          totalObjectives = simplified.totalObjectives || 1;
+        }
+      } catch (e) {
+        // Ignore parse errors, use defaults
+      }
+
+      // Calculate approximate scores based on objective completion rate
+      const completionRate =
+        totalObjectives > 0 ? (objectivesAchieved / totalObjectives) * 100 : 50;
+
+      return {
+        taskId: attempt.taskId,
+        attemptId: attempt.id,
+        taskAchievement: completionRate,
+        fluency: completionRate,
+        vocabularyGrammarAccuracy: completionRate,
+        politeness: completionRate,
+        objectiveCompletion: {},
+        overallScore: completionRate,
+        feedback: attempt.feedback || '',
+        specificFeedback: {
+          taskAchievement: '',
+          fluency: '',
+          vocabularyGrammar: '',
+          politeness: '',
+        },
+        areasForImprovement: [],
+        strengths: [],
+        recommendedNextTasks: [],
+        timeToComplete: attempt.completionDuration || 0,
+        retryRecommendation: false,
+        estimatedJLPTLevel: currentLevel,
+        progressToNextLevel: 0,
+        assessmentDate: attempt.endTime || new Date(),
+        conversationTurns: 0,
+        totalMessages: attempt.totalMessages || 0,
+      };
+    });
 
     // Calculate skill gaps
     const { averageScores } = TaskAssessmentService.calculateProgressMetrics(recentAssessments);

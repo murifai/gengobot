@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { TaskAssessmentService } from '@/lib/ai/task-assessment-service';
+import { SimplifiedAssessmentService } from '@/lib/ai/simplified-assessment-service';
+import { ObjectiveTracking } from '@/lib/ai/objective-detection';
 import { prisma } from '@/lib/prisma';
 
-// POST /api/assessments - Generate task assessment
+// POST /api/assessments - Generate simplified task assessment (Phase 6)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -37,64 +38,50 @@ export async function POST(request: NextRequest) {
         }
       )?.messages || [];
 
-    // Get task objectives
-    const taskObjectives = (attempt.task.learningObjectives as string[]) || [];
+    // Get objective completion status from the attempt
+    const objectiveStatus =
+      (attempt.objectiveCompletionStatus as unknown as ObjectiveTracking[]) || [];
 
-    // Determine completed objectives based on conversation quality
-    // (simplified - in production, this would analyze the actual conversation)
-    const conversationQuality = conversationHistory.length / 10; // Basic quality metric
-    const completedObjectives = taskObjectives.slice(
-      0,
-      Math.min(taskObjectives.length, Math.ceil(conversationQuality * taskObjectives.length))
-    );
+    // If objectives not initialized, create them from task objectives
+    let finalObjectiveStatus = objectiveStatus;
+    if (objectiveStatus.length === 0) {
+      const taskObjectives = (attempt.task.learningObjectives as string[]) || [];
+      finalObjectiveStatus = taskObjectives.map((text, index) => ({
+        objectiveId: index.toString(),
+        objectiveText: text,
+        status: 'pending' as const,
+        confidence: 0,
+        evidence: [],
+      }));
+    }
 
-    // Generate assessment
-    const assessment = await TaskAssessmentService.generateTaskAssessment({
-      taskId: attempt.taskId,
-      attemptId: attempt.id,
-      conversationHistory: conversationHistory.map(msg => ({
-        role: msg.role,
-        content: msg.content,
-        timestamp: new Date(msg.timestamp),
-      })),
-      taskObjectives,
-      completedObjectives,
-      taskDifficulty: attempt.task.difficulty as 'N5' | 'N4' | 'N3' | 'N2' | 'N1',
+    // Generate simplified assessment
+    const assessment = await SimplifiedAssessmentService.generateAssessment({
+      task: attempt.task,
+      conversationHistory,
+      objectiveStatus: finalObjectiveStatus,
       startTime: attempt.startTime,
       endTime: attempt.endTime || new Date(),
     });
 
-    // Update task attempt with assessment scores
+    // Set the attemptId
+    assessment.attemptId = attemptId;
+
+    // Update task attempt with simplified feedback
     await prisma.taskAttempt.update({
       where: { id: attemptId },
       data: {
-        taskAchievement: assessment.taskAchievement,
-        fluency: assessment.fluency,
-        vocabularyGrammarAccuracy: assessment.vocabularyGrammarAccuracy,
-        politeness: assessment.politeness,
-        overallScore: assessment.overallScore,
-        feedback: assessment.feedback,
+        feedback: JSON.stringify(assessment),
         isCompleted: true,
         endTime: new Date(),
+        completionDuration: assessment.statistics.duration,
       },
     });
 
-    // Update task average score
-    const allAttempts = await prisma.taskAttempt.findMany({
-      where: {
-        taskId: attempt.taskId,
-        isCompleted: true,
-        overallScore: { not: null },
-      },
-    });
-
-    const averageScore =
-      allAttempts.reduce((sum, a) => sum + (a.overallScore || 0), 0) / allAttempts.length;
-
+    // Update task usage count
     await prisma.task.update({
       where: { id: attempt.taskId },
       data: {
-        averageScore,
         usageCount: { increment: 1 },
       },
     });
@@ -131,21 +118,38 @@ export async function GET(request: NextRequest) {
       take: limit,
     });
 
-    // Convert to assessment format
-    const assessments = attempts.map(attempt => ({
-      taskId: attempt.taskId,
-      attemptId: attempt.id,
-      taskTitle: attempt.task.title,
-      taskCategory: attempt.task.category,
-      taskDifficulty: attempt.task.difficulty,
-      taskAchievement: attempt.taskAchievement || 0,
-      fluency: attempt.fluency || 0,
-      vocabularyGrammarAccuracy: attempt.vocabularyGrammarAccuracy || 0,
-      politeness: attempt.politeness || 0,
-      overallScore: attempt.overallScore || 0,
-      feedback: attempt.feedback,
-      assessmentDate: attempt.endTime,
-    }));
+    // Convert to assessment format with simplified assessment data
+    const assessments = attempts.map(attempt => {
+      // Try to parse SimplifiedAssessment from feedback field
+      let simplifiedAssessment = null;
+      let objectivesAchieved = 0;
+      let totalObjectives = 1;
+
+      try {
+        if (attempt.feedback) {
+          simplifiedAssessment = JSON.parse(attempt.feedback);
+          objectivesAchieved = simplifiedAssessment.objectivesAchieved || 0;
+          totalObjectives = simplifiedAssessment.totalObjectives || 1;
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
+
+      const completionRate = totalObjectives > 0 ? (objectivesAchieved / totalObjectives) * 100 : 0;
+
+      return {
+        taskId: attempt.taskId,
+        attemptId: attempt.id,
+        taskTitle: attempt.task.title,
+        taskCategory: attempt.task.category,
+        taskDifficulty: attempt.task.difficulty,
+        objectivesAchieved,
+        totalObjectives,
+        completionRate: Math.round(completionRate),
+        feedback: simplifiedAssessment,
+        assessmentDate: attempt.endTime,
+      };
+    });
 
     return NextResponse.json({ assessments });
   } catch (error) {

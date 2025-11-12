@@ -5,8 +5,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import StreamingChatInterface from '@/components/chat/StreamingChatInterface';
-import PostTaskReview from '@/components/task/PostTaskReview';
+import { SimplifiedPostTaskReview } from '@/components/task/SimplifiedPostTaskReview';
+import { SimplifiedAssessment } from '@/types/assessment';
 import { useStreamingChat } from '@/hooks/useStreamingChat';
+import { useTaskFeedbackProgress } from '@/hooks/useTaskFeedbackProgress';
+import { initializeObjectives } from '@/lib/ai/objective-detection';
 
 interface TaskAttempt {
   id: string;
@@ -44,6 +47,7 @@ interface TaskAttempt {
     learningObjectives: string[];
     conversationExample: string | string[];
     estimatedDuration: number;
+    maxMessages?: number; // Phase 5 - Task Feedback System
   };
 }
 
@@ -60,8 +64,22 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
   const [error, setError] = useState<string | null>(null);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [showPostTaskReview, setShowPostTaskReview] = useState(false);
+  const [assessment, setAssessment] = useState<SimplifiedAssessment | null>(null);
 
-  // Initialize streaming chat with existing messages
+  // Initialize task feedback progress hook
+  const {
+    progress: taskProgress,
+    updateObjectives,
+    incrementMessageCount,
+    dismissCompletionSuggestion,
+  } = useTaskFeedbackProgress(
+    attemptId,
+    attempt?.task?.maxMessages || 30,
+    attempt?.task?.estimatedDuration || 10,
+    attempt ? initializeObjectives(attempt.task?.learningObjectives || []) : []
+  );
+
+  // Initialize streaming chat with existing messages and objective detection callback
   const {
     messages: streamingMessages,
     isStreaming,
@@ -75,7 +93,11 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
       content: msg.content,
       timestamp: msg.timestamp,
       audioUrl: msg.voiceMetadata?.audioUrl,
-    })) || []
+    })) || [],
+    result => {
+      console.log('[TaskAttemptClientStreaming] Objectives detected:', result);
+      updateObjectives(result.objectives);
+    }
   );
 
   useEffect(() => {
@@ -110,6 +132,16 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
         progress: data.progress,
       });
       setAttempt(data.attempt);
+
+      // If task is completed and has feedback, try to parse the simplified assessment
+      if (data.attempt.isCompleted && data.attempt.feedback) {
+        try {
+          const parsedAssessment = JSON.parse(data.attempt.feedback);
+          setAssessment(parsedAssessment);
+        } catch (parseError) {
+          console.log('[TaskAttemptClientStreaming] Could not parse assessment from feedback');
+        }
+      }
     } catch (err) {
       console.error('[TaskAttemptClientStreaming] Error loading attempt:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -174,6 +206,8 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
       const assessmentData = await assessmentResponse.json();
       console.log('[TaskAttemptClientStreaming] Assessment generated:', assessmentData.assessment);
 
+      // Store the assessment and show review
+      setAssessment(assessmentData.assessment);
       await fetchAttempt();
       setShowPostTaskReview(true);
     } catch (err) {
@@ -209,16 +243,6 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reset chat');
     }
-  };
-
-  const handleAddToReviewQueue = async (words: string[]) => {
-    console.log('Adding words to review queue:', words);
-    alert(`${words.length} words will be added to your review queue!`);
-  };
-
-  const handleContinueFromReview = () => {
-    setShowPostTaskReview(false);
-    router.push('/dashboard/tasks');
   };
 
   if (loading) {
@@ -334,49 +358,28 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
         </div>
       )}
 
-      {attempt.isCompleted && (
+      {attempt.isCompleted && assessment && (
         <>
           <div className="mb-4 p-4 bg-tertiary-green/10 rounded-lg">
             <h3 className="text-sm font-medium text-green-800 dark:text-green-300 mb-2">
-              Assessment Results
+              Task Completed
             </h3>
             <div className="space-y-2 text-sm">
-              {attempt.taskAchievement !== null && (
-                <div className="flex justify-between">
-                  <span className="text-gray-700 dark:text-gray-300">Task Achievement:</span>
-                  <span className="font-medium">{attempt.taskAchievement}/100</span>
-                </div>
-              )}
-              {attempt.fluency !== null && (
-                <div className="flex justify-between">
-                  <span className="text-gray-700 dark:text-gray-300">Fluency:</span>
-                  <span className="font-medium">{attempt.fluency}/100</span>
-                </div>
-              )}
-              {attempt.vocabularyGrammarAccuracy !== null && (
-                <div className="flex justify-between">
-                  <span className="text-gray-700 dark:text-gray-300">Accuracy:</span>
-                  <span className="font-medium">{attempt.vocabularyGrammarAccuracy}/100</span>
-                </div>
-              )}
-              {attempt.politeness !== null && (
-                <div className="flex justify-between">
-                  <span className="text-gray-700 dark:text-gray-300">Politeness:</span>
-                  <span className="font-medium">{attempt.politeness}/100</span>
-                </div>
-              )}
-              {attempt.overallScore !== null && (
-                <div className="flex justify-between pt-2 border-t border-green-200 dark:border-green-700">
-                  <span className="font-medium text-gray-900 dark:text-white">Overall Score:</span>
-                  <span className="font-bold">{attempt.overallScore}/100</span>
-                </div>
-              )}
-            </div>
-            {attempt.feedback && (
-              <div className="mt-4 pt-4 border-t border-green-200 dark:border-green-700">
-                <p className="text-sm text-gray-700 dark:text-gray-300">{attempt.feedback}</p>
+              <div className="flex justify-between">
+                <span className="text-gray-700 dark:text-gray-300">Objectives:</span>
+                <span className="font-medium">
+                  {assessment.objectivesAchieved}/{assessment.totalObjectives}
+                </span>
               </div>
-            )}
+              <div className="flex justify-between">
+                <span className="text-gray-700 dark:text-gray-300">Duration:</span>
+                <span className="font-medium">{assessment.statistics.durationMinutes} min</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-700 dark:text-gray-300">Messages:</span>
+                <span className="font-medium">{assessment.statistics.totalMessages}</span>
+              </div>
+            </div>
           </div>
 
           {!showPostTaskReview && (
@@ -385,7 +388,7 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
               variant="secondary"
               className="w-full"
             >
-              View Vocabulary Review
+              View Detailed Feedback
             </Button>
           )}
         </>
@@ -394,51 +397,25 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
   );
 
   // Show post-task review modal
-  if (showPostTaskReview && attempt.isCompleted) {
-    const vocabularyUsed = [
-      {
-        word: 'こんにちは',
-        reading: 'konnichiwa',
-        meaning: 'Hello, Good afternoon',
-        used: true,
-        timesUsed: 2,
-      },
-      {
-        word: 'ありがとう',
-        reading: 'arigatou',
-        meaning: 'Thank you',
-        used: true,
-        timesUsed: 1,
-      },
-    ];
-
-    const missedOpportunities = [
-      {
-        word: 'すみません',
-        reading: 'sumimasen',
-        meaning: 'Excuse me, Sorry',
-        used: false,
-      },
-    ];
-
-    const newWordsEncountered = ['お願いします', 'どうも'];
-
+  if (showPostTaskReview && attempt.isCompleted && assessment) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-4">
-            <Button onClick={() => setShowPostTaskReview(false)} variant="secondary">
-              Back to Results
-            </Button>
-          </div>
-          <PostTaskReview
-            vocabularyUsed={vocabularyUsed}
-            missedOpportunities={missedOpportunities}
-            newWordsEncountered={newWordsEncountered}
-            onAddToReviewQueue={handleAddToReviewQueue}
-            onContinue={handleContinueFromReview}
-          />
-        </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <SimplifiedPostTaskReview
+          assessment={assessment}
+          onRetry={async () => {
+            // Create a new attempt for retry
+            const response = await fetch('/api/task-attempts', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ taskId: attempt.taskId }),
+            });
+            if (response.ok) {
+              const { attempt: newAttempt } = await response.json();
+              router.push(`/dashboard/tasks/${attempt.taskId}/attempt/${newAttempt.id}`);
+            }
+          }}
+          onBackToTasks={() => router.push('/dashboard/tasks')}
+        />
       </div>
     );
   }
@@ -473,6 +450,9 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
       error={streamingError}
       onClearError={clearStreamingError}
       attemptId={attemptId}
+      taskProgress={!attempt.isCompleted ? taskProgress : undefined}
+      onCompleteTask={completeAttempt}
+      onDismissCompletionSuggestion={dismissCompletionSuggestion}
     />
   );
 }

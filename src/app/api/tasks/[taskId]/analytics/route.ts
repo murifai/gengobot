@@ -50,45 +50,33 @@ export async function GET(
     const completedAttempts = attempts.filter(a => a.isCompleted).length;
     const completionRate = totalAttempts > 0 ? (completedAttempts / totalAttempts) * 100 : 0;
 
-    // Calculate average scores for each criterion
-    const completedAttemptsWithScores = attempts.filter(
-      a => a.isCompleted && a.overallScore !== null
-    );
+    // Calculate average completion rates (Phase 6 - Simplified Assessment)
+    const completedAttemptsWithAssessments = attempts.filter(a => a.isCompleted && a.feedback);
 
-    const averageScores = {
-      taskAchievement: 0,
-      fluency: 0,
-      vocabularyGrammarAccuracy: 0,
-      politeness: 0,
-      overall: 0,
-    };
+    let averageCompletionRate = 0;
+    let averageObjectivesAchieved = 0;
+    let totalObjectives = 0;
 
-    if (completedAttemptsWithScores.length > 0) {
-      const sums = completedAttemptsWithScores.reduce(
-        (acc, attempt) => ({
-          taskAchievement: acc.taskAchievement + (attempt.taskAchievement || 0),
-          fluency: acc.fluency + (attempt.fluency || 0),
-          vocabularyGrammarAccuracy:
-            acc.vocabularyGrammarAccuracy + (attempt.vocabularyGrammarAccuracy || 0),
-          politeness: acc.politeness + (attempt.politeness || 0),
-          overall: acc.overall + (attempt.overallScore || 0),
-        }),
-        {
-          taskAchievement: 0,
-          fluency: 0,
-          vocabularyGrammarAccuracy: 0,
-          politeness: 0,
-          overall: 0,
+    if (completedAttemptsWithAssessments.length > 0) {
+      const assessmentData = completedAttemptsWithAssessments.map(attempt => {
+        try {
+          const assessment = JSON.parse(attempt.feedback || '{}');
+          return {
+            completionRate: assessment?.statistics?.completionRate || 0,
+            objectivesAchieved: assessment?.objectivesAchieved || 0,
+            totalObjectives: assessment?.totalObjectives || 0,
+          };
+        } catch (e) {
+          return { completionRate: 0, objectivesAchieved: 0, totalObjectives: 0 };
         }
-      );
+      });
 
-      const count = completedAttemptsWithScores.length;
-      averageScores.taskAchievement = Math.round((sums.taskAchievement / count) * 10) / 10;
-      averageScores.fluency = Math.round((sums.fluency / count) * 10) / 10;
-      averageScores.vocabularyGrammarAccuracy =
-        Math.round((sums.vocabularyGrammarAccuracy / count) * 10) / 10;
-      averageScores.politeness = Math.round((sums.politeness / count) * 10) / 10;
-      averageScores.overall = Math.round((sums.overall / count) * 10) / 10;
+      averageCompletionRate =
+        assessmentData.reduce((sum, data) => sum + data.completionRate, 0) / assessmentData.length;
+      averageObjectivesAchieved =
+        assessmentData.reduce((sum, data) => sum + data.objectivesAchieved, 0) /
+        assessmentData.length;
+      totalObjectives = assessmentData[0]?.totalObjectives || 0;
     }
 
     // Calculate average completion time
@@ -118,18 +106,30 @@ export async function GET(
       attemptsByProficiency[level] = (attemptsByProficiency[level] || 0) + 1;
     });
 
-    // Get recent attempts
-    const recentAttempts = attempts.slice(0, 10).map(attempt => ({
-      id: attempt.id,
-      userId: attempt.userId,
-      userName: attempt.user.name,
-      userProficiency: attempt.user.proficiency,
-      startTime: attempt.startTime,
-      endTime: attempt.endTime,
-      isCompleted: attempt.isCompleted,
-      overallScore: attempt.overallScore,
-      retryCount: attempt.retryCount,
-    }));
+    // Get recent attempts (Phase 6 - Simplified Assessment)
+    const recentAttempts = attempts.slice(0, 10).map(attempt => {
+      let completionRate = 0;
+      try {
+        if (attempt.feedback) {
+          const assessment = JSON.parse(attempt.feedback);
+          completionRate = assessment?.statistics?.completionRate || 0;
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
+
+      return {
+        id: attempt.id,
+        userId: attempt.userId,
+        userName: attempt.user.name,
+        userProficiency: attempt.user.proficiency,
+        startTime: attempt.startTime,
+        endTime: attempt.endTime,
+        isCompleted: attempt.isCompleted,
+        completionRate,
+        retryCount: attempt.retryCount,
+      };
+    });
 
     // Calculate performance trend (last 30 days)
     const thirtyDaysAgo = new Date();
@@ -151,8 +151,11 @@ export async function GET(
         averageCompletionTime,
         attemptsWithRetries,
         averageRetries: Math.round(averageRetries * 10) / 10,
+        // Phase 6 - Simplified metrics
+        averageCompletionRate: Math.round(averageCompletionRate * 10) / 10,
+        averageObjectivesAchieved: Math.round(averageObjectivesAchieved * 10) / 10,
+        totalObjectives,
       },
-      averageScores,
       attemptsByProficiency,
       recentAttempts,
       performanceTrend,
@@ -163,15 +166,23 @@ export async function GET(
   }
 }
 
-// Helper function to calculate performance trend
-function calculatePerformanceTrend(attempts: { startTime: Date; overallScore: number | null }[]) {
+// Helper function to calculate performance trend (Phase 6 - Simplified Assessment)
+function calculatePerformanceTrend(attempts: { startTime: Date; feedback: string | null }[]) {
   if (attempts.length === 0) return [];
 
   // Group by week
-  const weeklyData: Record<string, { scores: number[]; count: number; week: string }> = {};
+  const weeklyData: Record<string, { completionRates: number[]; count: number; week: string }> = {};
 
   attempts.forEach(attempt => {
-    if (attempt.overallScore === null) return;
+    let completionRate = 0;
+    try {
+      if (attempt.feedback) {
+        const assessment = JSON.parse(attempt.feedback);
+        completionRate = assessment?.statistics?.completionRate || 0;
+      }
+    } catch (e) {
+      return;
+    }
 
     const date = new Date(attempt.startTime);
     const weekStart = new Date(date);
@@ -180,13 +191,13 @@ function calculatePerformanceTrend(attempts: { startTime: Date; overallScore: nu
 
     if (!weeklyData[weekKey]) {
       weeklyData[weekKey] = {
-        scores: [],
+        completionRates: [],
         count: 0,
         week: weekKey,
       };
     }
 
-    weeklyData[weekKey].scores.push(attempt.overallScore);
+    weeklyData[weekKey].completionRates.push(completionRate);
     weeklyData[weekKey].count++;
   });
 
@@ -194,7 +205,8 @@ function calculatePerformanceTrend(attempts: { startTime: Date; overallScore: nu
   return Object.values(weeklyData)
     .map(week => ({
       week: week.week,
-      averageScore: Math.round((week.scores.reduce((a, b) => a + b, 0) / week.count) * 10) / 10,
+      averageCompletionRate:
+        Math.round((week.completionRates.reduce((a, b) => a + b, 0) / week.count) * 10) / 10,
       attemptCount: week.count,
     }))
     .sort((a, b) => a.week.localeCompare(b.week));

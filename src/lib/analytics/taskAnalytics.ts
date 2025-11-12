@@ -348,13 +348,16 @@ function calculateAverageScores(attempts: Record<string, unknown>[]) {
   }
 
   return {
-    overall: attempts.reduce((sum, a) => sum + ((a.overallScore as number) || 0), 0) / attempts.length,
+    overall:
+      attempts.reduce((sum, a) => sum + ((a.overallScore as number) || 0), 0) / attempts.length,
     taskAchievement:
       attempts.reduce((sum, a) => sum + ((a.taskAchievement as number) || 0), 0) / attempts.length,
     fluency: attempts.reduce((sum, a) => sum + ((a.fluency as number) || 0), 0) / attempts.length,
     vocabularyGrammar:
-      attempts.reduce((sum, a) => sum + ((a.vocabularyGrammarAccuracy as number) || 0), 0) / attempts.length,
-    politeness: attempts.reduce((sum, a) => sum + ((a.politeness as number) || 0), 0) / attempts.length,
+      attempts.reduce((sum, a) => sum + ((a.vocabularyGrammarAccuracy as number) || 0), 0) /
+      attempts.length,
+    politeness:
+      attempts.reduce((sum, a) => sum + ((a.politeness as number) || 0), 0) / attempts.length,
   };
 }
 
@@ -398,13 +401,16 @@ async function getTaskTrendData(
   });
 
   // Group by date
-  const dailyData = new Map<string, {
-    date: Date;
-    attempts: number;
-    completions: number;
-    totalScore: number;
-    scoreCount: number;
-  }>();
+  const dailyData = new Map<
+    string,
+    {
+      date: Date;
+      attempts: number;
+      completions: number;
+      totalScore: number;
+      scoreCount: number;
+    }
+  >();
 
   for (const attempt of attempts) {
     const dateKey = attempt.startTime.toISOString().split('T')[0];
@@ -422,9 +428,16 @@ async function getTaskTrendData(
     data.attempts++;
     if (attempt.isCompleted) {
       data.completions++;
-      if (attempt.overallScore) {
-        data.totalScore += attempt.overallScore;
-        data.scoreCount++;
+      // Phase 6 - Parse simplified assessment for completion rate
+      try {
+        if (attempt.feedback) {
+          const assessment = JSON.parse(attempt.feedback);
+          const completionRate = assessment?.statistics?.completionRate || 0;
+          data.totalScore += completionRate;
+          data.scoreCount++;
+        }
+      } catch (e) {
+        // Ignore parse errors
       }
     }
   }
@@ -469,7 +482,9 @@ function identifyStrengthsWeaknesses(attempts: Record<string, unknown>[]): {
 function calculateLearningVelocity(attempts: Record<string, unknown>[]): number {
   if (attempts.length === 0) return 0;
 
-  const sorted = attempts.sort((a, b) => (a.startTime as Date).getTime() - (b.startTime as Date).getTime());
+  const sorted = attempts.sort(
+    (a, b) => (a.startTime as Date).getTime() - (b.startTime as Date).getTime()
+  );
   const firstDate = sorted[0].startTime as Date;
   const lastDate = sorted[sorted.length - 1].startTime as Date;
 
@@ -505,12 +520,15 @@ async function getDifficultyDistribution() {
     },
   });
 
-  const difficultyMap = new Map<string, {
-    level: string;
-    count: number;
-    totalScore: number;
-    scoreCount: number;
-  }>();
+  const difficultyMap = new Map<
+    string,
+    {
+      level: string;
+      count: number;
+      totalScore: number;
+      scoreCount: number;
+    }
+  >();
 
   for (const task of tasks) {
     if (!difficultyMap.has(task.difficulty)) {
@@ -524,10 +542,18 @@ async function getDifficultyDistribution() {
 
     const diff = difficultyMap.get(task.difficulty)!;
     diff.count++;
-    diff.totalScore += task.taskAttempts.reduce(
-      (sum: number, a) => sum + ((a.overallScore as number) || 0),
-      0
-    );
+    // Phase 6 - Calculate average completion rate from assessments
+    diff.totalScore += task.taskAttempts.reduce((sum: number, a) => {
+      try {
+        if (a.feedback) {
+          const assessment = JSON.parse(a.feedback);
+          return sum + (assessment?.statistics?.completionRate || 0);
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
+      return sum;
+    }, 0);
     diff.scoreCount += task.taskAttempts.length;
   }
 

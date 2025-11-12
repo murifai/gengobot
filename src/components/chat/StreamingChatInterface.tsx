@@ -5,6 +5,9 @@ import { cn } from '@/lib/utils';
 import { TaskChatInputV2 } from '@/components/task/TaskChatInputV2';
 import TokenizedText from '@/components/vocabulary/TokenizedText';
 import { Info, X } from 'lucide-react';
+import { ProgressHeader } from '@/components/task/ProgressHeader';
+import { CompletionSuggestion } from '@/components/task/CompletionSuggestion';
+import { MessageLimitWarning } from '@/components/task/MessageLimitWarning';
 
 export interface StreamingChatMessage {
   role: 'user' | 'assistant';
@@ -48,6 +51,33 @@ export interface StreamingChatInterfaceProps {
 
   // Real-time transcription
   attemptId?: string; // For Whisper API real-time transcription
+
+  // Task Progress (Phase 5 - Task Feedback System)
+  taskProgress?: {
+    attemptId: string;
+    startTime: string;
+    objectives: Array<{
+      objectiveId: string;
+      objectiveText: string;
+      status: 'pending' | 'completed';
+      completedAt?: string;
+      completedAtMessageIndex?: number;
+      confidence: number;
+      evidence: string[];
+    }>;
+    completedObjectivesCount: number;
+    totalObjectivesCount: number;
+    allObjectivesCompleted: boolean;
+    totalMessages: number;
+    maxMessages: number;
+    messagesRemaining: number;
+    elapsedSeconds: number;
+    estimatedDuration: number;
+    readyToComplete: boolean;
+    completionSuggested: boolean;
+  };
+  onCompleteTask?: () => void;
+  onDismissCompletionSuggestion?: () => void;
 }
 
 export default function StreamingChatInterface({
@@ -68,6 +98,9 @@ export default function StreamingChatInterface({
   error,
   onClearError,
   className,
+  taskProgress,
+  onCompleteTask,
+  onDismissCompletionSuggestion,
 }: StreamingChatInterfaceProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(sidebarDefaultOpen);
   const [showParser, setShowParser] = useState(true);
@@ -136,6 +169,9 @@ export default function StreamingChatInterface({
           )}
         </div>
 
+        {/* Progress Header Bar (Phase 5 - Task Feedback System) */}
+        {taskProgress && <ProgressHeader progress={taskProgress} />}
+
         {/* Error Banner */}
         {error && (
           <div className="bg-primary/10 border-b border-primary/30 px-4 py-3">
@@ -156,6 +192,32 @@ export default function StreamingChatInterface({
             </div>
           </div>
         )}
+
+        {/* Message Limit Warning (Phase 5 - Task Feedback System) */}
+        {taskProgress && taskProgress.messagesRemaining <= taskProgress.maxMessages * 0.2 && (
+          <MessageLimitWarning
+            level={taskProgress.messagesRemaining === 0 ? 'critical' : 'warning'}
+            messagesRemaining={taskProgress.messagesRemaining}
+            totalMessages={taskProgress.totalMessages}
+            maxMessages={taskProgress.maxMessages}
+            onComplete={
+              taskProgress.messagesRemaining === 0 && onCompleteTask ? onCompleteTask : undefined
+            }
+          />
+        )}
+
+        {/* Completion Suggestion Banner (Phase 5 - Task Feedback System) */}
+        {taskProgress &&
+          taskProgress.completionSuggested &&
+          taskProgress.allObjectivesCompleted &&
+          onCompleteTask &&
+          onDismissCompletionSuggestion && (
+            <CompletionSuggestion
+              objectives={taskProgress.objectives.filter(obj => obj.status === 'completed')}
+              onComplete={onCompleteTask}
+              onDismiss={onDismissCompletionSuggestion}
+            />
+          )}
 
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -260,7 +322,7 @@ export default function StreamingChatInterface({
               }
             }}
             placeholder={placeholder}
-            disabled={disabled}
+            disabled={disabled || taskProgress?.messagesRemaining === 0}
             loading={isStreaming}
             enableVoice={enableVoice}
           />

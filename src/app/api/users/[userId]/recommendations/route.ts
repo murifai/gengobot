@@ -57,45 +57,36 @@ export async function GET(
 
     // Calculate user's performance metrics
     const completedAttempts = user.taskAttempts.filter(a => a.isCompleted);
-    const averageScores = {
-      overall: 0,
-      taskAchievement: 0,
-      fluency: 0,
-      vocabularyGrammarAccuracy: 0,
-      politeness: 0,
-    };
+    // Calculate average completion rate (Phase 6 - Simplified Assessment)
+    let averageCompletionRate = 0;
 
     if (completedAttempts.length > 0) {
-      const sum = completedAttempts.reduce(
-        (acc, attempt) => ({
-          overall: acc.overall + (attempt.overallScore || 0),
-          taskAchievement: acc.taskAchievement + (attempt.taskAchievement || 0),
-          fluency: acc.fluency + (attempt.fluency || 0),
-          vocabularyGrammarAccuracy:
-            acc.vocabularyGrammarAccuracy + (attempt.vocabularyGrammarAccuracy || 0),
-          politeness: acc.politeness + (attempt.politeness || 0),
-        }),
-        averageScores
-      );
+      const completionRates = completedAttempts.map(attempt => {
+        try {
+          if (attempt.feedback) {
+            const assessment = JSON.parse(attempt.feedback);
+            return assessment?.statistics?.completionRate || 0;
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+        return 0;
+      });
 
-      const count = completedAttempts.length;
-      averageScores.overall = sum.overall / count;
-      averageScores.taskAchievement = sum.taskAchievement / count;
-      averageScores.fluency = sum.fluency / count;
-      averageScores.vocabularyGrammarAccuracy = sum.vocabularyGrammarAccuracy / count;
-      averageScores.politeness = sum.politeness / count;
+      averageCompletionRate =
+        completionRates.reduce((sum, rate) => sum + rate, 0) / completionRates.length;
     }
 
     // Determine recommended difficulty level
     const currentLevelIndex = LEVEL_INDEX[user.proficiency] || 0;
     let recommendedLevel = user.proficiency;
 
-    // If user is performing well (average > 80), suggest next level
-    if (averageScores.overall > 80 && currentLevelIndex < JLPT_LEVELS.length - 1) {
+    // If user is performing well (completion > 80%), suggest next level
+    if (averageCompletionRate > 80 && currentLevelIndex < JLPT_LEVELS.length - 1) {
       recommendedLevel = JLPT_LEVELS[currentLevelIndex + 1];
     }
-    // If struggling (average < 60), suggest easier tasks at same level
-    else if (averageScores.overall < 60 && completedAttempts.length > 3) {
+    // If struggling (completion < 60%), suggest easier tasks at same level
+    else if (averageCompletionRate < 60 && completedAttempts.length > 3) {
       // Keep same level but focus on different categories
     }
 
@@ -201,18 +192,24 @@ export async function GET(
         currentLevel: user.proficiency,
         recommendedLevel,
         completedTasks: completedTaskIds.length,
-        averagePerformance: averageScores,
+        averageCompletionRate: Math.round(averageCompletionRate * 10) / 10,
         preferredCategories,
       },
       insights: {
         progressSuggestion:
-          averageScores.overall > 80
+          averageCompletionRate > 80
             ? `Great progress! Ready to try ${recommendedLevel} level tasks.`
-            : averageScores.overall > 60
+            : averageCompletionRate > 60
               ? "You're making steady progress. Keep practicing at your current level."
               : 'Focus on mastering your current level before advancing.',
-        strengthAreas: getStrengthAreas(averageScores),
-        improvementAreas: getImprovementAreas(averageScores),
+        completionTrend:
+          averageCompletionRate > 75
+            ? 'Excellent'
+            : averageCompletionRate > 60
+              ? 'Good'
+              : averageCompletionRate > 40
+                ? 'Fair'
+                : 'Needs Improvement',
       },
     });
   } catch (error) {

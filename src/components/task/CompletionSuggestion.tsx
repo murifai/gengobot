@@ -43,7 +43,7 @@ export function CompletionSuggestion({
                 Great Job! All Objectives Completed
               </h3>
               <p className="text-sm text-green-700 dark:text-green-300 mt-0.5">
-                You've successfully achieved all learning goals for this task
+                You&apos;ve successfully achieved all learning goals for this task
               </p>
             </div>
           </div>
@@ -59,15 +59,10 @@ export function CompletionSuggestion({
         {/* Objectives List */}
         <div className="px-4 pb-3">
           <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3 space-y-2">
-            {completedObjectives.map((obj, index) => (
-              <div
-                key={obj.objectiveId}
-                className="flex items-start gap-2 text-sm"
-              >
+            {completedObjectives.map(obj => (
+              <div key={obj.objectiveId} className="flex items-start gap-2 text-sm">
                 <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-900 dark:text-gray-100 flex-1">
-                  {obj.objectiveText}
-                </span>
+                <span className="text-gray-900 dark:text-gray-100 flex-1">{obj.objectiveText}</span>
                 {obj.confidence >= 80 && (
                   <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">
                     {obj.confidence}%

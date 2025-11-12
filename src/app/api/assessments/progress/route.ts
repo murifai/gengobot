@@ -50,15 +50,18 @@ export async function GET(request: NextRequest) {
     });
 
     // Convert to TaskAssessment format
+    // NOTE: This uses the old assessment format which has been deprecated in Phase 1-6 of Task Feedback System
+    // The scoring fields have been removed from TaskAttempt schema
+    // TODO: Migrate this to use the new SimplifiedAssessment format
     const assessments: TaskAssessment[] = attempts.map(attempt => ({
       taskId: attempt.taskId,
       attemptId: attempt.id,
-      taskAchievement: attempt.taskAchievement || 0,
-      fluency: attempt.fluency || 0,
-      vocabularyGrammarAccuracy: attempt.vocabularyGrammarAccuracy || 0,
-      politeness: attempt.politeness || 0,
+      taskAchievement: 0, // Removed field - deprecated
+      fluency: 0, // Removed field - deprecated
+      vocabularyGrammarAccuracy: 0, // Removed field - deprecated
+      politeness: 0, // Removed field - deprecated
       objectiveCompletion: {},
-      overallScore: attempt.overallScore || 0,
+      overallScore: 0, // Removed field - deprecated
       feedback: attempt.feedback || '',
       specificFeedback: {
         taskAchievement: '',

@@ -53,25 +53,48 @@ export async function GET(
     const totalAttempts = attempts.length;
     const completedTasks = completedAttempts.length;
 
-    // Calculate average score
-    const scoresSum = completedAttempts.reduce(
-      (sum, attempt) => sum + (attempt.overallScore || 0),
-      0
-    );
-    const averageScore = completedAttempts.length > 0 ? scoresSum / completedAttempts.length : 0;
+    // Calculate average completion rate (Phase 6 - Simplified Assessment)
+    const completionRates = completedAttempts.map(attempt => {
+      try {
+        if (attempt.feedback) {
+          const assessment = JSON.parse(attempt.feedback);
+          return assessment?.statistics?.completionRate || 0;
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
+      return 0;
+    });
 
-    // Get recent attempts (last 10)
-    const recentAttempts = completedAttempts.slice(0, 10).map(attempt => ({
-      id: attempt.id,
-      taskTitle: attempt.task.title,
-      overallScore: attempt.overallScore || 0,
-      completedAt: attempt.endTime?.toISOString() || attempt.startTime.toISOString(),
-    }));
+    const averageCompletionRate =
+      completionRates.length > 0
+        ? completionRates.reduce((sum, rate) => sum + rate, 0) / completionRates.length
+        : 0;
+
+    // Get recent attempts (last 10) with completion rates
+    const recentAttempts = completedAttempts.slice(0, 10).map(attempt => {
+      let completionRate = 0;
+      try {
+        if (attempt.feedback) {
+          const assessment = JSON.parse(attempt.feedback);
+          completionRate = assessment?.statistics?.completionRate || 0;
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
+
+      return {
+        id: attempt.id,
+        taskTitle: attempt.task.title,
+        completionRate,
+        completedAt: attempt.endTime?.toISOString() || attempt.startTime.toISOString(),
+      };
+    });
 
     return NextResponse.json({
       totalAttempts,
       completedTasks,
-      averageScore,
+      averageCompletionRate: Math.round(averageCompletionRate * 10) / 10,
       recentAttempts,
     });
   } catch (error) {

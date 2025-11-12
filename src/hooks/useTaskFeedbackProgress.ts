@@ -49,7 +49,7 @@ export function useTaskFeedbackProgress(
   const [totalMessages, setTotalMessages] = useState<number>(0);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [completionSuggested, setCompletionSuggested] = useState<boolean>(false);
-  const timerRef = useRef<NodeJS.Timeout>();
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Calculate derived state
   const completedObjectivesCount = objectives.filter(obj => obj.status === 'completed').length;

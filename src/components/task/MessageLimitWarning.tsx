@@ -44,24 +44,20 @@ export function MessageLimitWarning({
         <div className="flex-1 min-w-0">
           <h4
             className={`font-semibold text-sm mb-1 ${
-              isWarning
-                ? 'text-yellow-900 dark:text-yellow-100'
-                : 'text-red-900 dark:text-red-100'
+              isWarning ? 'text-yellow-900 dark:text-yellow-100' : 'text-red-900 dark:text-red-100'
             }`}
           >
             {isCritical ? 'Message Limit Reached' : 'Approaching Message Limit'}
           </h4>
           <p
             className={`text-sm ${
-              isWarning
-                ? 'text-yellow-800 dark:text-yellow-200'
-                : 'text-red-800 dark:text-red-200'
+              isWarning ? 'text-yellow-800 dark:text-yellow-200' : 'text-red-800 dark:text-red-200'
             }`}
           >
             {isCritical ? (
               <>
-                You've used all {maxMessages} available messages for this task. Please complete the
-                task to see your feedback.
+                You&apos;ve used all {maxMessages} available messages for this task. Please complete
+                the task to see your feedback.
               </>
             ) : (
               <>
@@ -78,9 +74,7 @@ export function MessageLimitWarning({
             <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
-                  isWarning
-                    ? 'bg-yellow-500 dark:bg-yellow-600'
-                    : 'bg-red-500 dark:bg-red-600'
+                  isWarning ? 'bg-yellow-500 dark:bg-yellow-600' : 'bg-red-500 dark:bg-red-600'
                 }`}
                 style={{ width: `${(totalMessages / maxMessages) * 100}%` }}
               />
