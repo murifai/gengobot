@@ -468,7 +468,7 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
       disabled={attempt.isCompleted}
       enableVoice={!attempt.isCompleted}
       sidebar={sidebarContent}
-      sidebarDefaultOpen={true}
+      sidebarDefaultOpen={false}
       emptyStateMessage="Start your conversation to practice the task scenario!"
       error={streamingError}
       onClearError={clearStreamingError}

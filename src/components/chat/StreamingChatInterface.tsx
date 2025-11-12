@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { TaskChatInputV2 } from '@/components/task/TaskChatInputV2';
 import TokenizedText from '@/components/vocabulary/TokenizedText';
+import { Info, X } from 'lucide-react';
 
 export interface StreamingChatMessage {
   role: 'user' | 'assistant';
@@ -69,6 +70,7 @@ export default function StreamingChatInterface({
   className,
 }: StreamingChatInterfaceProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(sidebarDefaultOpen);
+  const [showParser, setShowParser] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -125,9 +127,11 @@ export default function StreamingChatInterface({
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               aria-label={isSidebarOpen ? 'Hide info' : 'Show info'}
             >
-              <span className="text-sm font-medium text-gray-900 dark:text-white">
-                {isSidebarOpen ? '✕' : 'ℹ️'}
-              </span>
+              {isSidebarOpen ? (
+                <X className="w-5 h-5 text-gray-900 dark:text-white" />
+              ) : (
+                <Info className="w-5 h-5 text-gray-900 dark:text-white" />
+              )}
             </button>
           )}
         </div>
@@ -181,11 +185,13 @@ export default function StreamingChatInterface({
                   >
                     {message.role === 'user' ? (
                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                    ) : (
+                    ) : showParser ? (
                       <TokenizedText
                         text={message.content}
                         className="text-sm whitespace-pre-wrap"
                       />
+                    ) : (
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     )}
                     {message.isStreaming && (
                       <div className="mt-2 flex items-center gap-1">
@@ -218,9 +224,23 @@ export default function StreamingChatInterface({
                       />
                     )}
 
-                    <p className="text-xs opacity-70 mt-1">
-                      {new Date(message.timestamp).toLocaleTimeString()}
-                    </p>
+                    <div className="flex items-center justify-between mt-2 gap-2">
+                      <p className="text-xs opacity-70">
+                        {new Date(message.timestamp).toLocaleTimeString()}
+                      </p>
+
+                      {/* Parser Toggle Button - Only for AI messages */}
+                      {message.role === 'assistant' && (
+                        <button
+                          onClick={() => setShowParser(!showParser)}
+                          className="flex items-center justify-center px-2 py-1 rounded transition-colors bg-white dark:bg-gray-700 text-primary hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600"
+                          aria-label={showParser ? 'Disable text parser' : 'Enable text parser'}
+                          title={showParser ? 'Disable text parser' : 'Enable text parser'}
+                        >
+                          <span className="text-xs font-medium">{showParser ? '辞' : '文'}</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

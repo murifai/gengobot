@@ -13,6 +13,7 @@ export interface MessageBubbleProps {
   audioUrl?: string;
   autoPlay?: boolean;
   showFurigana?: boolean;
+  showParser?: boolean;
 }
 
 export default function MessageBubble({
@@ -23,9 +24,11 @@ export default function MessageBubble({
   audioUrl,
   autoPlay = false,
   showFurigana: showFuriganaDefault = true,
+  showParser: showParserDefault = true,
 }: MessageBubbleProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showFurigana, setShowFurigana] = useState(showFuriganaDefault);
+  const [showParser, setShowParser] = useState(showParserDefault);
   const audioRef = useRef<HTMLAudioElement>(null);
   const hasAutoPlayed = useRef(false);
 
@@ -150,47 +153,58 @@ export default function MessageBubble({
 
       {/* Message Content */}
       <div className={cn('flex max-w-[70%] flex-col gap-2', isUser ? 'items-end' : 'items-start')}>
-        <div className="flex items-start gap-2">
-          <div
-            className={cn(
-              'rounded-2xl px-4 py-3',
-              isUser
-                ? 'bg-primary text-white rounded-br-sm'
-                : 'bg-card-background border border-border rounded-bl-sm'
-            )}
-          >
-            {showFurigana && contentHasFurigana ? (
-              <div
-                className="whitespace-pre-wrap text-sm furigana-text"
-                dangerouslySetInnerHTML={{ __html: processedContent }}
-                style={{
-                  lineHeight: '2.5em', // Extra space for furigana
-                }}
-              />
-            ) : isUser ? (
-              // User messages: plain text
-              <p className="whitespace-pre-wrap text-sm">{content}</p>
-            ) : (
-              // AI messages: tokenized with clickable vocabulary
-              <TokenizedText text={content} className="whitespace-pre-wrap text-sm" />
-            )}
-          </div>
+        <div
+          className={cn(
+            'rounded-2xl px-4 py-3',
+            isUser
+              ? 'bg-primary text-white rounded-br-sm'
+              : 'bg-card-background border border-border rounded-bl-sm'
+          )}
+        >
+          {showFurigana && contentHasFurigana ? (
+            <div
+              className="whitespace-pre-wrap text-sm furigana-text"
+              dangerouslySetInnerHTML={{ __html: processedContent }}
+              style={{
+                lineHeight: '2.5em', // Extra space for furigana
+              }}
+            />
+          ) : isUser ? (
+            // User messages: plain text
+            <p className="whitespace-pre-wrap text-sm">{content}</p>
+          ) : showParser ? (
+            // AI messages: tokenized with clickable vocabulary
+            <TokenizedText text={content} className="whitespace-pre-wrap text-sm" />
+          ) : (
+            // AI messages: plain text (parser disabled)
+            <p className="whitespace-pre-wrap text-sm">{content}</p>
+          )}
 
-          {/* Furigana Toggle Button */}
-          {contentHasFurigana && (
-            <button
-              onClick={() => setShowFurigana(!showFurigana)}
-              className={cn(
-                'flex items-center justify-center w-8 h-8 rounded-lg transition-colors shrink-0',
-                isUser
-                  ? 'bg-primary/10 hover:bg-primary/20 text-primary'
-                  : 'bg-secondary/10 hover:bg-secondary/20 text-secondary'
+          {/* Toggle Buttons Container - Bottom of bubble */}
+          {!isUser && (
+            <div className="flex items-center gap-2 mt-3 pt-2 border-t border-border/30">
+              {/* Parser Toggle Button */}
+              <button
+                onClick={() => setShowParser(!showParser)}
+                className="flex items-center justify-center px-2 py-1 rounded transition-colors bg-white dark:bg-gray-700 text-primary hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600"
+                aria-label={showParser ? 'Disable text parser' : 'Enable text parser'}
+                title={showParser ? 'Disable text parser' : 'Enable text parser'}
+              >
+                <span className="text-xs font-medium">{showParser ? '辞' : '文'}</span>
+              </button>
+
+              {/* Furigana Toggle Button */}
+              {contentHasFurigana && (
+                <button
+                  onClick={() => setShowFurigana(!showFurigana)}
+                  className="flex items-center justify-center px-2 py-1 rounded transition-colors bg-white dark:bg-gray-700 text-primary hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600"
+                  aria-label={showFurigana ? 'Hide furigana' : 'Show furigana'}
+                  title={showFurigana ? 'Hide furigana' : 'Show furigana'}
+                >
+                  <span className="text-xs font-medium">{showFurigana ? 'あ' : 'ア'}</span>
+                </button>
               )}
-              aria-label={showFurigana ? 'Hide furigana' : 'Show furigana'}
-              title={showFurigana ? 'Hide furigana' : 'Show furigana'}
-            >
-              <span className="text-xs font-medium">{showFurigana ? 'あ' : 'ア'}</span>
-            </button>
+            </div>
           )}
         </div>
 
