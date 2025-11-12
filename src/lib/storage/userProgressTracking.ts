@@ -1,9 +1,12 @@
 /**
  * User Progress Tracking Service
  * Comprehensive tracking of user learning progress and achievements
+ * Updated for Simplified Feedback System
  */
 
 import { prisma } from '@/lib/prisma';
+import { SimplifiedAssessment } from '@/types/assessment';
+
 export interface UserProgress {
   userId: string;
   proficiency: string;
@@ -14,11 +17,11 @@ export interface UserProgress {
   statistics: {
     totalAttempts: number;
     completedAttempts: number;
-    averageScore: number;
-    averageTaskAchievement: number;
-    averageFluency: number;
-    averageVocabularyGrammar: number;
-    averagePoliteness: number;
+    averageScore: number; // Based on objective completion rate
+    averageTaskAchievement: number; // Based on objective completion rate
+    averageFluency: number; // Not available in simplified system (set to 0)
+    averageVocabularyGrammar: number; // Not available in simplified system (set to 0)
+    averagePoliteness: number; // Not available in simplified system (set to 0)
     totalStudyTime: number; // in minutes
   };
   recentActivity: RecentActivity[];
@@ -28,6 +31,18 @@ export interface UserProgress {
     progressToNext: number; // percentage
     estimatedTimeToNext: number; // in days
   };
+}
+
+/**
+ * Parse feedback JSON from TaskAttempt
+ */
+function parseFeedback(feedbackString: string | null): SimplifiedAssessment | null {
+  if (!feedbackString) return null;
+  try {
+    return JSON.parse(feedbackString) as SimplifiedAssessment;
+  } catch {
+    return null;
+  }
 }
 
 export interface RecentActivity {
@@ -95,34 +110,33 @@ export async function getUserProgress(
   const completedAttempts = filteredAttempts.filter(a => a.isCompleted);
   const totalAttempts = filteredAttempts.length;
 
-  const avgScore =
-    completedAttempts.length > 0
-      ? completedAttempts.reduce((sum, a) => sum + (a.overallScore || 0), 0) /
-        completedAttempts.length
+  // Parse feedback and calculate completion rates
+  const completedAttemptsWithFeedback = completedAttempts
+    .map(a => ({
+      attempt: a,
+      feedback: parseFeedback(a.feedback),
+    }))
+    .filter(item => item.feedback !== null);
+
+  // Calculate average objective completion rate (0-100)
+  const avgCompletionRate =
+    completedAttemptsWithFeedback.length > 0
+      ? completedAttemptsWithFeedback.reduce((sum, item) => {
+          const rate = item.feedback
+            ? (item.feedback.objectivesAchieved / item.feedback.totalObjectives) * 100
+            : 0;
+          return sum + rate;
+        }, 0) / completedAttemptsWithFeedback.length
       : 0;
 
-  const avgTaskAchievement =
-    completedAttempts.length > 0
-      ? completedAttempts.reduce((sum, a) => sum + (a.taskAchievement || 0), 0) /
-        completedAttempts.length
-      : 0;
+  // Use completion rate for both avgScore and avgTaskAchievement
+  const avgScore = avgCompletionRate;
+  const avgTaskAchievement = avgCompletionRate;
 
-  const avgFluency =
-    completedAttempts.length > 0
-      ? completedAttempts.reduce((sum, a) => sum + (a.fluency || 0), 0) / completedAttempts.length
-      : 0;
-
-  const avgVocabGrammar =
-    completedAttempts.length > 0
-      ? completedAttempts.reduce((sum, a) => sum + (a.vocabularyGrammarAccuracy || 0), 0) /
-        completedAttempts.length
-      : 0;
-
-  const avgPoliteness =
-    completedAttempts.length > 0
-      ? completedAttempts.reduce((sum, a) => sum + (a.politeness || 0), 0) /
-        completedAttempts.length
-      : 0;
+  // These metrics are not available in the simplified feedback system
+  const avgFluency = 0;
+  const avgVocabGrammar = 0;
+  const avgPoliteness = 0;
 
   // Calculate total study time
   const totalStudyTime = completedAttempts.reduce((sum, a) => {
@@ -134,14 +148,21 @@ export async function getUserProgress(
   }, 0);
 
   // Get recent activity
-  const recentActivity: RecentActivity[] = filteredAttempts.slice(0, 10).map(attempt => ({
-    id: attempt.id,
-    type: 'task_attempt' as const,
-    taskId: attempt.taskId,
-    taskTitle: attempt.task.title,
-    score: attempt.overallScore || undefined,
-    timestamp: attempt.startTime,
-  }));
+  const recentActivity: RecentActivity[] = filteredAttempts.slice(0, 10).map(attempt => {
+    const feedback = parseFeedback(attempt.feedback);
+    const completionRate = feedback
+      ? (feedback.objectivesAchieved / feedback.totalObjectives) * 100
+      : undefined;
+
+    return {
+      id: attempt.id,
+      type: 'task_attempt' as const,
+      taskId: attempt.taskId,
+      taskTitle: attempt.task.title,
+      score: completionRate,
+      timestamp: attempt.startTime,
+    };
+  });
 
   // Calculate JLPT progress
   const jlptProgress = calculateJLPTProgress(user.proficiency, avgScore, completedAttempts.length);
@@ -343,32 +364,52 @@ async function getTaskRecommendations(
 
 /**
  * Get progress comparison with other users
+ * Note: Simplified feedback system doesn't store scores directly,
+ * so this calculates completion rates from feedback JSON
  */
 export async function getProgressComparison(userId: string) {
   const userProgress = await getUserProgress(userId);
 
-  // Get average scores for same proficiency level
-  const sameLevel = await prisma.taskAttempt.groupBy({
-    by: ['userId'],
+  // Get all completed attempts for users at same proficiency level
+  const sameLevelAttempts = await prisma.taskAttempt.findMany({
     where: {
       user: { proficiency: userProgress.proficiency },
       isCompleted: true,
+      feedback: { not: null },
     },
-    _avg: {
-      overallScore: true,
+    select: {
+      userId: true,
+      feedback: true,
     },
   });
 
+  // Calculate average completion rates per user
+  const userCompletionRates = new Map<string, number[]>();
+
+  sameLevelAttempts.forEach(attempt => {
+    const feedback = parseFeedback(attempt.feedback);
+    if (feedback) {
+      const rate = (feedback.objectivesAchieved / feedback.totalObjectives) * 100;
+      const rates = userCompletionRates.get(attempt.userId) || [];
+      rates.push(rate);
+      userCompletionRates.set(attempt.userId, rates);
+    }
+  });
+
+  // Calculate average score for each user
+  const allUserAverages = Array.from(userCompletionRates.values()).map(rates => {
+    return rates.reduce((sum, rate) => sum + rate, 0) / rates.length;
+  });
+
   const avgScoreForLevel =
-    sameLevel.reduce((sum, u) => sum + (u._avg.overallScore || 0), 0) / sameLevel.length;
+    allUserAverages.length > 0
+      ? allUserAverages.reduce((sum, avg) => sum + avg, 0) / allUserAverages.length
+      : 0;
 
   return {
     userScore: userProgress.statistics.averageScore,
     levelAverage: avgScoreForLevel,
-    percentile: calculatePercentile(
-      userProgress.statistics.averageScore,
-      sameLevel.map(u => u._avg.overallScore || 0)
-    ),
+    percentile: calculatePercentile(userProgress.statistics.averageScore, allUserAverages),
   };
 }
 
