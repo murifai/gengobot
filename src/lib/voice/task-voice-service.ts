@@ -3,9 +3,6 @@
 
 import { whisperService } from './whisper-service';
 import { ttsService } from './tts-service';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
 
 /**
  * Voice interaction metadata for task conversations
@@ -118,6 +115,7 @@ export class TaskVoiceService {
 
   /**
    * Synthesize AI response with task-appropriate voice
+   * Returns audio as in-memory buffer for one-time playback (no file storage)
    */
   async synthesizeResponse(
     text: string,
@@ -144,28 +142,14 @@ export class TaskVoiceService {
         );
       }
 
-      // Save audio file to public directory
-      const filename = `response-${Date.now()}.mp3`;
-      const publicDir = join(process.cwd(), 'public', 'audio');
-      const filepath = join(publicDir, filename);
-
-      // Ensure directory exists
-      if (!existsSync(publicDir)) {
-        await mkdir(publicDir, { recursive: true });
-      }
-
-      await writeFile(filepath, result.audio);
-
-      // Return public URL
-      const audioUrl = `/audio/${filename}`;
-
-      // Also create blob for compatibility
+      // Return audio as in-memory blob (no file storage)
+      // Client will create temporary blob URL that gets revoked after playback
       const audioBlob = new Blob([new Uint8Array(result.audio)], { type: 'audio/mpeg' });
 
       return {
         success: true,
         audioBlob,
-        audioUrl,
+        audioUrl: undefined, // No persistent URL - client creates temporary blob URL
         duration: (result as { duration?: number }).duration,
       };
     } catch (error) {

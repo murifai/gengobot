@@ -16,10 +16,10 @@ function getOpenAIClient(): OpenAI {
 
 // Default models
 export const MODELS = {
-  GPT_4: 'gpt-4-turbo-preview',
-  GPT_35_TURBO: 'gpt-3.5-turbo',
+  GPT_4: 'gpt-4o-mini',
+  GPT_35_TURBO: 'gpt-4o-mini',
   WHISPER: 'whisper-1',
-  TTS: 'tts-1',
+  TTS: 'gpt-4o-mini-tts',
 } as const;
 
 // Export configured client getter

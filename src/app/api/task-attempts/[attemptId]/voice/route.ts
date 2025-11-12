@@ -183,13 +183,13 @@ export async function POST(
       );
     }
 
-    // Add assistant message to conversation
+    // Add assistant message to conversation (without audio URL since it's temporary)
     const assistantMessage = {
       role: 'assistant' as const,
       content: aiResponseText,
       timestamp: new Date().toISOString(),
       voiceMetadata: {
-        audioUrl: synthesis.audioUrl,
+        // Don't store audio URL - client gets temporary blob
         audioDuration: synthesis.duration || 0,
       },
     };
@@ -211,7 +211,12 @@ export async function POST(
       },
     });
 
-    // Return response with audio
+    // Convert audio blob to base64 for transmission
+    // Client will create temporary blob URL and revoke after playback
+    const audioBuffer = await synthesis.audioBlob?.arrayBuffer();
+    const audioBase64 = audioBuffer ? Buffer.from(audioBuffer).toString('base64') : undefined;
+
+    // Return response with temporary audio data
     return NextResponse.json({
       success: true,
       transcription: {
@@ -221,7 +226,8 @@ export async function POST(
       },
       response: {
         text: aiResponseText,
-        audioUrl: synthesis.audioUrl,
+        audioData: audioBase64, // Base64 audio for one-time playback
+        audioType: 'audio/mpeg',
         duration: synthesis.duration,
       },
       progress: {

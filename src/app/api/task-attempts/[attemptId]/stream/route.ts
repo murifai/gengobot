@@ -151,15 +151,18 @@ Respond ONLY in Japanese unless explaining a complex grammar point.`;
           // Generate TTS audio for AI response (non-blocking)
           let synthesis: {
             success: boolean;
-            audioUrl?: string;
+            audioBlob?: Blob;
             duration?: number;
             error?: string;
           } = {
             success: false,
-            audioUrl: undefined,
+            audioBlob: undefined,
             duration: undefined,
             error: '',
           };
+
+          let audioData: string | undefined;
+          let audioType: string | undefined;
 
           try {
             console.log('[Streaming] Generating TTS for response...');
@@ -169,9 +172,16 @@ Respond ONLY in Japanese unless explaining a complex grammar point.`;
               attempt.user.proficiency
             );
 
+            // Convert audio blob to base64 for transmission
+            if (synthesis.success && synthesis.audioBlob) {
+              const audioBuffer = await synthesis.audioBlob.arrayBuffer();
+              audioData = Buffer.from(audioBuffer).toString('base64');
+              audioType = 'audio/mpeg';
+            }
+
             console.log('[Streaming] TTS result:', {
               success: synthesis.success,
-              audioUrl: synthesis.audioUrl,
+              hasAudioData: !!audioData,
               error: synthesis.error,
             });
           } catch (ttsError) {
@@ -184,7 +194,7 @@ Respond ONLY in Japanese unless explaining a complex grammar point.`;
             timestamp: new Date().toISOString(),
             voiceMetadata: synthesis.success
               ? {
-                  audioUrl: synthesis.audioUrl,
+                  // Don't store audio data - just duration
                   audioDuration: synthesis.duration || 0,
                 }
               : undefined,
@@ -205,11 +215,12 @@ Respond ONLY in Japanese unless explaining a complex grammar point.`;
             },
           });
 
-          // Send completion event with audioUrl
+          // Send completion event with audio data (base64)
           const doneData = JSON.stringify({
             content: '',
             done: true,
-            audioUrl: synthesis.success ? synthesis.audioUrl : undefined,
+            audioData: audioData, // Base64 audio for one-time playback
+            audioType: audioType,
             messageCount: updatedMessages.length,
             progress: {
               completedObjectives: completedObjectives.length,

@@ -161,6 +161,7 @@ export class VoiceConversationManager {
   private mediaRecorder: MediaRecorder | null = null;
   private audioChunks: Blob[] = [];
   private recordingStartTime: number = 0;
+  private activeBlobUrls: Set<string> = new Set(); // Track blob URLs for cleanup
 
   constructor(initialConfig?: Partial<TaskVoiceConfig>) {
     this.state = createInitialVoiceState(initialConfig);
@@ -293,6 +294,18 @@ export class VoiceConversationManager {
 
       const data = await response.json();
 
+      // Create temporary blob URL from base64 audio data
+      let temporaryAudioUrl: string | undefined;
+      if (data.response.audioData) {
+        // Convert base64 to blob
+        const audioBytes = Uint8Array.from(atob(data.response.audioData), c => c.charCodeAt(0));
+        const audioBlob = new Blob([audioBytes], { type: data.response.audioType || 'audio/mpeg' });
+
+        // Create temporary blob URL
+        temporaryAudioUrl = URL.createObjectURL(audioBlob);
+        this.activeBlobUrls.add(temporaryAudioUrl);
+      }
+
       // Add user message
       const userMessage: VoiceMessage = {
         role: 'user',
@@ -307,21 +320,21 @@ export class VoiceConversationManager {
 
       this.dispatch({ type: 'ADD_MESSAGE', message: userMessage });
 
-      // Add assistant message
+      // Add assistant message with temporary audio URL
       const assistantMessage: VoiceMessage = {
         role: 'assistant',
         content: data.response.text,
         timestamp: new Date().toISOString(),
-        audioUrl: data.response.audioUrl,
+        audioUrl: temporaryAudioUrl, // Temporary blob URL
         voiceMetadata: {
           audioDuration: data.response.duration,
           voiceActivityDetected: true,
         },
         metadata: {
-          objectiveCompleted: data.guidance.objectiveStatus?.completed
+          objectiveCompleted: data.guidance?.objectiveStatus?.completed
             ? data.guidance.objectiveStatus.current
             : undefined,
-          hintProvided: data.guidance.shouldProvideHint,
+          hintProvided: data.guidance?.shouldProvideHint,
         },
       };
 
@@ -332,7 +345,7 @@ export class VoiceConversationManager {
         success: true,
         transcript: data.transcription.text,
         response: data.response.text,
-        audioUrl: data.response.audioUrl,
+        audioUrl: temporaryAudioUrl,
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Voice processing failed';
@@ -345,11 +358,12 @@ export class VoiceConversationManager {
   }
 
   /**
-   * Play audio response
+   * Play audio response with automatic cleanup
    */
   async playAudioResponse(audioUrl: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const audio = new Audio(audioUrl);
+      const isBlobUrl = audioUrl.startsWith('blob:');
 
       audio.onplay = () => {
         this.dispatch({ type: 'START_SPEAKING', audioUrl });
@@ -357,12 +371,28 @@ export class VoiceConversationManager {
 
       audio.onended = () => {
         this.dispatch({ type: 'STOP_SPEAKING' });
+
+        // Automatically revoke blob URL after playback to free memory
+        if (isBlobUrl) {
+          URL.revokeObjectURL(audioUrl);
+          this.activeBlobUrls.delete(audioUrl);
+          console.log('[Voice Manager] Blob URL revoked after playback:', audioUrl);
+        }
+
         resolve();
       };
 
       audio.onerror = error => {
         this.dispatch({ type: 'STOP_SPEAKING' });
         this.dispatch({ type: 'SET_ERROR', error: 'Audio playback failed' });
+
+        // Revoke blob URL on error as well
+        if (isBlobUrl) {
+          URL.revokeObjectURL(audioUrl);
+          this.activeBlobUrls.delete(audioUrl);
+          console.log('[Voice Manager] Blob URL revoked after error:', audioUrl);
+        }
+
         reject(error);
       };
 
@@ -397,12 +427,20 @@ export class VoiceConversationManager {
   }
 
   /**
-   * Cleanup
+   * Cleanup - revoke all active blob URLs and stop recording
    */
   destroy(): void {
     if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
       this.mediaRecorder.stop();
     }
+
+    // Revoke all active blob URLs to free memory
+    this.activeBlobUrls.forEach(url => {
+      URL.revokeObjectURL(url);
+      console.log('[Voice Manager] Blob URL revoked on destroy:', url);
+    });
+    this.activeBlobUrls.clear();
+
     this.listeners.clear();
   }
 }

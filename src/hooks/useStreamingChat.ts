@@ -7,7 +7,7 @@ export interface StreamingMessage {
   content: string;
   timestamp: string;
   isStreaming?: boolean;
-  audioUrl?: string;
+  audioUrl?: string; // Kept for backward compatibility but not used in one-time playback
 }
 
 export interface UseStreamingChatReturn {
@@ -116,21 +116,61 @@ export function useStreamingChat(
               }
 
               if (data.done) {
-                // Mark streaming as complete and add audioUrl if present
+                // Convert base64 audio data to temporary blob URL for one-time playback
+                let temporaryAudioUrl: string | undefined;
+                if (data.audioData) {
+                  try {
+                    // Convert base64 to blob
+                    const audioBytes = Uint8Array.from(atob(data.audioData), c => c.charCodeAt(0));
+                    const audioBlob = new Blob([audioBytes], {
+                      type: data.audioType || 'audio/mpeg',
+                    });
+
+                    // Create temporary blob URL
+                    temporaryAudioUrl = URL.createObjectURL(audioBlob);
+
+                    console.log('[useStreamingChat] Created temporary audio blob URL:', {
+                      url: temporaryAudioUrl,
+                      size: audioBlob.size,
+                    });
+
+                    // Auto-play the audio
+                    const audio = new Audio(temporaryAudioUrl);
+                    audio.onended = () => {
+                      // Automatically revoke blob URL after playback
+                      URL.revokeObjectURL(temporaryAudioUrl!);
+                      console.log('[useStreamingChat] Blob URL revoked after playback');
+                    };
+                    audio.onerror = () => {
+                      // Revoke on error too
+                      URL.revokeObjectURL(temporaryAudioUrl!);
+                      console.error('[useStreamingChat] Audio playback failed, blob URL revoked');
+                    };
+                    audio.play().catch(err => {
+                      console.error('[useStreamingChat] Auto-play failed:', err);
+                      // Revoke if play fails
+                      URL.revokeObjectURL(temporaryAudioUrl!);
+                    });
+                  } catch (error) {
+                    console.error('[useStreamingChat] Failed to create audio blob:', error);
+                  }
+                }
+
+                // Mark streaming as complete (no audioUrl stored)
                 setMessages(prev =>
                   prev.map((msg, idx) =>
                     idx === prev.length - 1
                       ? {
                           ...msg,
                           isStreaming: false,
-                          audioUrl: data.audioUrl || msg.audioUrl,
+                          // Don't store audioUrl - it's one-time use only
                         }
                       : msg
                   )
                 );
                 console.log('[useStreamingChat] Streaming complete with audio:', {
-                  hasAudioUrl: !!data.audioUrl,
-                  audioUrl: data.audioUrl,
+                  hasAudioData: !!data.audioData,
+                  temporaryUrl: temporaryAudioUrl,
                 });
               } else if (data.content) {
                 // Update assistant message with streamed content
