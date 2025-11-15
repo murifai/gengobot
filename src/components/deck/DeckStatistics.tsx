@@ -3,52 +3,50 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { LoadingState } from '@/components/ui/LoadingState';
-import { Button } from '@/components/ui/Button';
-import Link from 'next/link';
 
-export const dynamic = 'force-dynamic';
-
-interface StudyStats {
-  overview: {
+interface DeckStatsData {
+  deckId: string;
+  deckName: string;
+  overall: {
     totalSessions: number;
     totalCardsReviewed: number;
-    totalCardsCorrect: number;
-    overallAccuracy: number;
-    totalStudyTime: number;
-    cardsDueToday: number;
+    totalStudyTime: number; // in minutes
     studyStreak: number;
-  };
-  ratingDistribution: {
-    belumHafal: number;
-    hafal: number;
+    masteredPercentage: number; // percentage of cards marked as "hafal"
+    notMasteredPercentage: number; // percentage of cards marked as "belum_hafal"
   };
   recentSessions: Array<{
     id: string;
-    deckName: string;
     startTime: string;
     endTime: string;
     cardsReviewed: number;
-    cardsCorrect: number;
+    hafalCount: number;
+    belumHafalCount: number;
     accuracy: number;
   }>;
 }
 
-export default function StudyStatsPage() {
-  const [stats, setStats] = useState<StudyStats | null>(null);
+interface DeckStatisticsProps {
+  deckId: string;
+}
+
+export default function DeckStatistics({ deckId }: DeckStatisticsProps) {
+  const [stats, setStats] = useState<DeckStatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchStats();
-  }, []);
+    fetchDeckStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deckId]);
 
-  const fetchStats = async () => {
+  const fetchDeckStats = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/study-sessions/stats');
-      if (!response.ok) throw new Error('Failed to fetch statistics');
+      const response = await fetch(`/api/decks/${deckId}/stats`);
+      if (!response.ok) throw new Error('Failed to fetch deck statistics');
 
       const data = await response.json();
       setStats(data);
@@ -61,28 +59,22 @@ export default function StudyStatsPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center min-h-[400px]">
-          <LoadingState type="spinner" size="lg" />
-        </div>
+      <div className="flex justify-center items-center min-h-[300px]">
+        <LoadingState type="spinner" size="lg" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="p-6 text-center">
-          <p className="text-primary mb-4">{error}</p>
-          <Button onClick={fetchStats}>Try Again</Button>
-        </Card>
-      </div>
+      <Card className="p-6 text-center">
+        <p className="text-red-500 dark:text-red-400">{error}</p>
+      </Card>
     );
   }
 
   if (!stats) return null;
 
-  const totalRatings = stats.ratingDistribution.belumHafal + stats.ratingDistribution.hafal;
   const formatTime = (minutes: number) => {
     if (minutes < 60) return `${minutes}m`;
     const hours = Math.floor(minutes / 60);
@@ -91,21 +83,9 @@ export default function StudyStatsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Statistik Belajar
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">Lihat progress belajarmu</p>
-        </div>
-        <Link href="/study">
-          <Button variant="secondary">Kembali</Button>
-        </Link>
-      </div>
-
-      {/* Statistik Per Deck - 4 Cards Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div className="space-y-6">
+      {/* Statistik Per Deck */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Study Streak */}
         <Card className="p-4 hover:shadow-lg transition-shadow">
           <div className="flex flex-col items-center text-center">
@@ -129,14 +109,14 @@ export default function StudyStatsPage() {
               />
             </svg>
             <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-              {stats.overview.studyStreak}
+              {stats.overall.studyStreak}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Study Streak</div>
             <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">hari</div>
           </div>
         </Card>
 
-        {/* Kartu Dipelajari */}
+        {/* Cards Reviewed */}
         <Card className="p-4 hover:shadow-lg transition-shadow">
           <div className="flex flex-col items-center text-center">
             <svg
@@ -153,14 +133,14 @@ export default function StudyStatsPage() {
               />
             </svg>
             <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-              {stats.overview.totalCardsReviewed}
+              {stats.overall.totalCardsReviewed}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Kartu Dipelajari</div>
             <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">kartu</div>
           </div>
         </Card>
 
-        {/* Persentase Hafal */}
+        {/* Mastered Percentage */}
         <Card className="p-4 hover:shadow-lg transition-shadow">
           <div className="flex flex-col items-center text-center">
             <svg
@@ -177,10 +157,7 @@ export default function StudyStatsPage() {
               />
             </svg>
             <div className="text-2xl font-bold text-tertiary-green mb-1">
-              {totalRatings > 0
-                ? Math.round((stats.ratingDistribution.hafal / totalRatings) * 100)
-                : 0}
-              %
+              {stats.overall.masteredPercentage}%
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Kartu Hafal</div>
             <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">dari total</div>
@@ -204,18 +181,18 @@ export default function StudyStatsPage() {
               />
             </svg>
             <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-              {formatTime(stats.overview.totalStudyTime)}
+              {formatTime(stats.overall.totalStudyTime)}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Study Time</div>
             <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-              {stats.overview.totalSessions} sesi
+              {stats.overall.totalSessions} sesi
             </div>
           </div>
         </Card>
       </div>
 
       {/* Progress Deck */}
-      <Card className="p-6 mb-6">
+      <Card className="p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Progress Deck</h2>
         <div className="space-y-4">
           {/* Mastered Cards */}
@@ -238,18 +215,13 @@ export default function StudyStatsPage() {
                 <span className="font-medium text-gray-900 dark:text-white">Hafal</span>
               </div>
               <span className="text-lg font-semibold text-tertiary-green">
-                {totalRatings > 0
-                  ? Math.round((stats.ratingDistribution.hafal / totalRatings) * 100)
-                  : 0}
-                %
+                {stats.overall.masteredPercentage}%
               </span>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
               <div
                 className="bg-tertiary-green h-3 rounded-full transition-all duration-500 ease-out"
-                style={{
-                  width: `${totalRatings > 0 ? (stats.ratingDistribution.hafal / totalRatings) * 100 : 0}%`,
-                }}
+                style={{ width: `${stats.overall.masteredPercentage}%` }}
               />
             </div>
           </div>
@@ -274,18 +246,13 @@ export default function StudyStatsPage() {
                 <span className="font-medium text-gray-900 dark:text-white">Belum Hafal</span>
               </div>
               <span className="text-lg font-semibold text-primary">
-                {totalRatings > 0
-                  ? Math.round((stats.ratingDistribution.belumHafal / totalRatings) * 100)
-                  : 0}
-                %
+                {stats.overall.notMasteredPercentage}%
               </span>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
               <div
                 className="bg-primary h-3 rounded-full transition-all duration-500 ease-out"
-                style={{
-                  width: `${totalRatings > 0 ? (stats.ratingDistribution.belumHafal / totalRatings) * 100 : 0}%`,
-                }}
+                style={{ width: `${stats.overall.notMasteredPercentage}%` }}
               />
             </div>
           </div>
@@ -332,7 +299,7 @@ export default function StudyStatsPage() {
                         </svg>
                         <div>
                           <p className="font-medium text-gray-900 dark:text-white">
-                            {session.deckName}
+                            {stats.deckName}
                           </p>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
                             {sessionDate.toLocaleDateString('id-ID', {
@@ -364,7 +331,7 @@ export default function StudyStatsPage() {
                             />
                           </svg>
                           <span className="text-gray-700 dark:text-gray-300">
-                            {session.cardsCorrect}
+                            {session.hafalCount}
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
@@ -382,7 +349,7 @@ export default function StudyStatsPage() {
                             />
                           </svg>
                           <span className="text-gray-700 dark:text-gray-300">
-                            {session.cardsReviewed - session.cardsCorrect}
+                            {session.belumHafalCount}
                           </span>
                         </div>
                         <div className="text-gray-500 dark:text-gray-400">•</div>

@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import DeckLearningWithSRS from '@/components/deck/DeckLearningWithSRS';
+import DeckLearningWithStats from '@/components/deck/DeckLearningWithStats';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -139,7 +139,7 @@ export default function StudyDeckPage({ params }: { params: Promise<{ deckId: st
   }
 
   return (
-    <DeckLearningWithSRS
+    <DeckLearningWithStats
       deck={deck}
       sessionId={sessionId}
       onComplete={handleComplete}

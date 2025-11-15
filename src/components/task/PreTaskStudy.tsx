@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import DeckLearning from '@/components/deck/DeckLearning';
+import DeckReview from '@/components/deck/DeckReview';
 
 interface Flashcard {
   id: string;
@@ -262,7 +262,7 @@ export default function PreTaskStudy({
     }
 
     return (
-      <DeckLearning deck={currentDeck} onComplete={handleDeckComplete} onExit={handleDeckExit} />
+      <DeckReview deck={currentDeck} onComplete={handleDeckComplete} onExit={handleDeckExit} />
     );
   }
 
