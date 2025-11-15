@@ -247,52 +247,38 @@ export default function DeckLearningWithSRS({
     switch (currentCard.cardType) {
       case 'kanji':
         return (
-          <div className="h-full flex flex-col justify-center p-8">
+          <div className="h-full flex flex-col justify-center p-8 bg-yellow-100">
             <div className="space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Arti</h3>
-                <p className="text-lg text-gray-900 dark:text-white">{currentCard.kanjiMeaning}</p>
+                <h3 className="text-lg font-bold text-gray-700 mb-1">Arti</h3>
+                <p className="text-lg text-gray-900">{currentCard.kanjiMeaning}</p>
               </div>
               {currentCard.onyomi && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    On&apos;yomi (音読み)
-                  </h3>
-                  <p className="text-lg text-gray-900 dark:text-white">{currentCard.onyomi}</p>
+                  <h3 className="text-lg font-bold text-gray-700 mb-1">On&apos;yomi</h3>
+                  <p className="text-lg text-gray-900">{currentCard.onyomi}</p>
                 </div>
               )}
               {currentCard.kunyomi && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Kun&apos;yomi (訓読み)
-                  </h3>
-                  <p className="text-lg text-gray-900 dark:text-white">{currentCard.kunyomi}</p>
+                  <h3 className="text-lg font-bold text-gray-700 mb-1">Kun&apos;yomi</h3>
+                  <p className="text-lg text-gray-900">{currentCard.kunyomi}</p>
                 </div>
               )}
               {currentCard.exampleSentence && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Contoh
-                  </h3>
-                  <p className="text-lg text-gray-900 dark:text-white mb-2">
-                    {currentCard.exampleSentence}
-                  </p>
+                  <h3 className="text-lg font-bold text-gray-700 mb-1">Contoh</h3>
+                  <p className="text-lg text-gray-900 mb-2">{currentCard.exampleSentence}</p>
                   {currentCard.exampleTranslation && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {currentCard.exampleTranslation}
-                    </p>
+                    <p className="text-sm text-gray-700">{currentCard.exampleTranslation}</p>
                   )}
                 </div>
               )}
             </div>
             {currentCard.notes && (
-              <div className="mt-6 p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg border-l-4 border-blue-400">
-                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  Catatan
-                </h3>
-                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                  {currentCard.notes}
-                </p>
+              <div className="mt-6 p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-400">
+                <h3 className="text-sm font-medium text-gray-700 mb-1">Catatan</h3>
+                <p className="text-sm text-gray-900 whitespace-pre-wrap">{currentCard.notes}</p>
               </div>
             )}
           </div>
@@ -300,44 +286,32 @@ export default function DeckLearningWithSRS({
 
       case 'vocabulary':
         return (
-          <div className="h-full flex flex-col justify-center p-8">
+          <div className="h-full flex flex-col justify-center p-8 bg-green-100">
             <div className="space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Arti</h3>
-                <p className="text-lg text-gray-900 dark:text-white">{currentCard.wordMeaning}</p>
+                <h3 className="text-lg font-bold text-gray-700 mb-1">Arti</h3>
+                <p className="text-lg text-gray-900">{currentCard.wordMeaning}</p>
               </div>
               {currentCard.partOfSpeech && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Jenis Kata
-                  </h3>
-                  <p className="text-gray-900 dark:text-white">{currentCard.partOfSpeech}</p>
+                  <h3 className="text-lg font-bold text-gray-700 mb-1">Jenis Kata</h3>
+                  <p className="text-gray-900">{currentCard.partOfSpeech}</p>
                 </div>
               )}
               {currentCard.exampleSentence && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Contoh
-                  </h3>
-                  <p className="text-lg text-gray-900 dark:text-white mb-2">
-                    {currentCard.exampleSentence}
-                  </p>
+                  <h3 className="text-lg font-bold text-gray-700 mb-1">Contoh</h3>
+                  <p className="text-lg text-gray-900 mb-2">{currentCard.exampleSentence}</p>
                   {currentCard.exampleTranslation && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {currentCard.exampleTranslation}
-                    </p>
+                    <p className="text-sm text-gray-700">{currentCard.exampleTranslation}</p>
                   )}
                 </div>
               )}
             </div>
             {currentCard.notes && (
-              <div className="mt-6 p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg border-l-4 border-green-400">
-                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  Catatan
-                </h3>
-                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                  {currentCard.notes}
-                </p>
+              <div className="mt-6 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
+                <h3 className="text-sm font-medium text-gray-700 mb-1">Catatan</h3>
+                <p className="text-sm text-gray-900 whitespace-pre-wrap">{currentCard.notes}</p>
               </div>
             )}
           </div>
@@ -345,48 +319,32 @@ export default function DeckLearningWithSRS({
 
       case 'grammar':
         return (
-          <div className="h-full flex flex-col justify-center p-8">
+          <div className="h-full flex flex-col justify-center p-8 bg-orange-100">
             <div className="space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Arti</h3>
-                <p className="text-lg text-gray-900 dark:text-white">
-                  {currentCard.grammarMeaning}
-                </p>
+                <h3 className="text-lg font-bold text-gray-700 mb-1">Arti</h3>
+                <p className="text-lg text-gray-900">{currentCard.grammarMeaning}</p>
               </div>
               {currentCard.usageNote && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Catatan Penggunaan
-                  </h3>
-                  <p className="text-gray-900 dark:text-white whitespace-pre-wrap">
-                    {currentCard.usageNote}
-                  </p>
+                  <h3 className="text-lg font-bold text-gray-700 mb-1">Catatan Penggunaan</h3>
+                  <p className="text-gray-900 whitespace-pre-wrap">{currentCard.usageNote}</p>
                 </div>
               )}
               {currentCard.exampleSentence && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Contoh
-                  </h3>
-                  <p className="text-lg text-gray-900 dark:text-white mb-2">
-                    {currentCard.exampleSentence}
-                  </p>
+                  <h3 className="text-lg font-bold text-gray-700 mb-1">Contoh</h3>
+                  <p className="text-lg text-gray-900 mb-2">{currentCard.exampleSentence}</p>
                   {currentCard.exampleTranslation && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {currentCard.exampleTranslation}
-                    </p>
+                    <p className="text-sm text-gray-700">{currentCard.exampleTranslation}</p>
                   )}
                 </div>
               )}
             </div>
             {currentCard.notes && (
-              <div className="mt-6 p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg border-l-4 border-orange-400">
-                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  Catatan
-                </h3>
-                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                  {currentCard.notes}
-                </p>
+              <div className="mt-6 p-4 bg-orange-50 rounded-lg border-l-4 border-orange-400">
+                <h3 className="text-xl font-medium text-gray-700 mb-1">Catatan</h3>
+                <p className="text-sm text-gray-900 whitespace-pre-wrap">{currentCard.notes}</p>
               </div>
             )}
           </div>
@@ -470,16 +428,15 @@ export default function DeckLearningWithSRS({
             </Card>
 
             {/* Back of Card */}
-            <Card
+            <div
               className="absolute inset-0 backface-hidden rotate-y-180 overflow-auto rounded-2xl shadow-xl"
               style={{
                 backfaceVisibility: 'hidden',
                 transform: 'rotateY(180deg)',
-                backgroundColor: 'hsl(var(--card))',
               }}
             >
               {renderCardBack()}
-            </Card>
+            </div>
           </div>
 
           {/* Arrow Rating Buttons - Always visible, always rate directly */}

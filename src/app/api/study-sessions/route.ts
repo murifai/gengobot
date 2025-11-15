@@ -79,17 +79,126 @@ export async function POST(request: Request) {
       return a.easeFactor - b.easeFactor; // Lower ease factor (harder) first
     });
 
-    // Shuffle new cards to add variety
-    newCards.sort(() => Math.random() - 0.5);
+    // Weighted shuffle for new cards - prioritize cards with lower ease factor (harder cards)
+    // Cards with lower easeFactor get higher weight in the shuffle
+    const weightedShuffleNewCards = (cards: typeof newCards) => {
+      if (cards.length === 0) return cards;
 
-    // Sort future cards by nextReviewDate (closest first)
-    futureCards.sort((a, b) => {
-      if (!a.nextReviewDate || !b.nextReviewDate) return 0;
-      return a.nextReviewDate.getTime() - b.nextReviewDate.getTime();
+      // Create weighted array based on inverse ease factor
+      // Lower ease factor = higher priority (appears more in weighted array)
+      const weighted: typeof cards = [];
+      cards.forEach(card => {
+        // Weight = inverse of ease factor (harder cards get more weight)
+        // Minimum weight of 1, cards with ease < 2.5 get extra weight
+        const weight = Math.max(1, Math.ceil((2.5 - card.easeFactor) * 3));
+        for (let i = 0; i < weight; i++) {
+          weighted.push(card);
+        }
+      });
+
+      // Shuffle the weighted array
+      weighted.sort(() => Math.random() - 0.5);
+
+      // Remove duplicates while preserving weighted order
+      const seen = new Set<string>();
+      const result: typeof cards = [];
+      for (const card of weighted) {
+        if (!seen.has(card.id)) {
+          seen.add(card.id);
+          result.push(card);
+        }
+      }
+
+      return result;
+    };
+
+    // Apply weighted shuffle to new cards
+    const shuffledNewCards = weightedShuffleNewCards(newCards);
+
+    // Weighted shuffle for future cards - also prioritize harder cards
+    const weightedShuffleFutureCards = (cards: typeof futureCards) => {
+      if (cards.length === 0) return cards;
+
+      // First sort by review date to maintain some temporal order
+      cards.sort((a, b) => {
+        if (!a.nextReviewDate || !b.nextReviewDate) return 0;
+        return a.nextReviewDate.getTime() - b.nextReviewDate.getTime();
+      });
+
+      // Then apply weighted shuffle within date groups
+      // Group cards by review date (same day)
+      const groups: Map<string, typeof cards> = new Map();
+      cards.forEach(card => {
+        if (!card.nextReviewDate) return;
+        const dateKey = card.nextReviewDate.toISOString().split('T')[0];
+        if (!groups.has(dateKey)) {
+          groups.set(dateKey, []);
+        }
+        groups.get(dateKey)!.push(card);
+      });
+
+      // Weighted shuffle within each date group
+      const result: typeof cards = [];
+      for (const [, groupCards] of groups) {
+        const weighted: typeof groupCards = [];
+        groupCards.forEach(card => {
+          const weight = Math.max(1, Math.ceil((2.5 - card.easeFactor) * 2));
+          for (let i = 0; i < weight; i++) {
+            weighted.push(card);
+          }
+        });
+
+        weighted.sort(() => Math.random() - 0.5);
+
+        const seen = new Set<string>();
+        for (const card of weighted) {
+          if (!seen.has(card.id)) {
+            seen.add(card.id);
+            result.push(card);
+          }
+        }
+      }
+
+      return result;
+    };
+
+    // Apply weighted shuffle to future cards
+    const shuffledFutureCards = weightedShuffleFutureCards(futureCards);
+
+    // Combine: due cards → shuffled new cards → shuffled future cards
+    const orderedFlashcards = [...dueCards, ...shuffledNewCards, ...shuffledFutureCards];
+
+    // Prevent starting with the same card as the last session
+    // Get the last completed session for this deck
+    const lastSession = await prisma.studySession.findFirst({
+      where: {
+        userId: dbUser.id,
+        deckId,
+        isCompleted: true,
+      },
+      orderBy: {
+        endTime: 'desc',
+      },
+      include: {
+        reviews: {
+          orderBy: {
+            reviewedAt: 'asc',
+          },
+          take: 1,
+        },
+      },
     });
 
-    // Combine: due cards → new cards → future cards
-    const orderedFlashcards = [...dueCards, ...newCards, ...futureCards];
+    // If there was a previous session and it has reviews, avoid starting with the same card
+    if (lastSession && lastSession.reviews.length > 0 && orderedFlashcards.length > 1) {
+      const lastFirstCardId = lastSession.reviews[0].flashcardId;
+      const firstCardIndex = orderedFlashcards.findIndex(card => card.id === lastFirstCardId);
+
+      if (firstCardIndex === 0) {
+        // Swap first card with second card to avoid repetition
+        [orderedFlashcards[0], orderedFlashcards[1]] = [orderedFlashcards[1], orderedFlashcards[0]];
+      }
+    }
 
     // Create study session
     const studySession = await prisma.studySession.create({
