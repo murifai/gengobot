@@ -333,7 +333,7 @@ model FlashcardReview {
   sessionId   String
 
   // Review outcome
-  rating       String // "again", "hard", "good", "easy"
+  rating       String // "belum_hafal", "hafal"
   responseTime Int? // Milliseconds
 
   // Spaced repetition data at time of review
@@ -362,10 +362,8 @@ model StudySession {
   averageResponseTime Float? // Milliseconds
 
   // Session breakdown by rating
-  againCount Int @default(0)
-  hardCount  Int @default(0)
-  goodCount  Int @default(0)
-  easyCount  Int @default(0)
+  belumHafalCount Int @default(0)
+  hafalCount      Int @default(0)
 
   startTime   DateTime  @default(now())
   endTime     DateTime?

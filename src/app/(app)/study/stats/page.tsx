@@ -19,10 +19,8 @@ interface StudyStats {
     studyStreak: number;
   };
   ratingDistribution: {
-    again: number;
-    hard: number;
-    good: number;
-    easy: number;
+    belumHafal: number;
+    hafal: number;
   };
   recentSessions: Array<{
     id: string;
@@ -93,11 +91,7 @@ export default function StudyStatsPage() {
 
   if (!stats) return null;
 
-  const totalRatings =
-    stats.ratingDistribution.again +
-    stats.ratingDistribution.hard +
-    stats.ratingDistribution.good +
-    stats.ratingDistribution.easy;
+  const totalRatings = stats.ratingDistribution.belumHafal + stats.ratingDistribution.hafal;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -193,11 +187,11 @@ export default function StudyStatsPage() {
           <div className="space-y-3">
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-primary">❌ Again</span>
+                <span className="text-primary">❌ Belum Hafal</span>
                 <span className="text-gray-600 dark:text-gray-400">
-                  {stats.ratingDistribution.again} (
+                  {stats.ratingDistribution.belumHafal} (
                   {totalRatings > 0
-                    ? Math.round((stats.ratingDistribution.again / totalRatings) * 100)
+                    ? Math.round((stats.ratingDistribution.belumHafal / totalRatings) * 100)
                     : 0}
                   %)
                 </span>
@@ -206,7 +200,7 @@ export default function StudyStatsPage() {
                 <div
                   className="bg-primary h-2 rounded-full"
                   style={{
-                    width: `${totalRatings > 0 ? (stats.ratingDistribution.again / totalRatings) * 100 : 0}%`,
+                    width: `${totalRatings > 0 ? (stats.ratingDistribution.belumHafal / totalRatings) * 100 : 0}%`,
                   }}
                 />
               </div>
@@ -214,32 +208,11 @@ export default function StudyStatsPage() {
 
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-orange-600 dark:text-orange-400">🤔 Hard</span>
+                <span className="text-tertiary-green">✅ Hafal</span>
                 <span className="text-gray-600 dark:text-gray-400">
-                  {stats.ratingDistribution.hard} (
+                  {stats.ratingDistribution.hafal} (
                   {totalRatings > 0
-                    ? Math.round((stats.ratingDistribution.hard / totalRatings) * 100)
-                    : 0}
-                  %)
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div
-                  className="bg-orange-600 dark:bg-orange-500 h-2 rounded-full"
-                  style={{
-                    width: `${totalRatings > 0 ? (stats.ratingDistribution.hard / totalRatings) * 100 : 0}%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-tertiary-green">✅ Good</span>
-                <span className="text-gray-600 dark:text-gray-400">
-                  {stats.ratingDistribution.good} (
-                  {totalRatings > 0
-                    ? Math.round((stats.ratingDistribution.good / totalRatings) * 100)
+                    ? Math.round((stats.ratingDistribution.hafal / totalRatings) * 100)
                     : 0}
                   %)
                 </span>
@@ -248,28 +221,7 @@ export default function StudyStatsPage() {
                 <div
                   className="bg-tertiary-green h-2 rounded-full"
                   style={{
-                    width: `${totalRatings > 0 ? (stats.ratingDistribution.good / totalRatings) * 100 : 0}%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-secondary">🎯 Easy</span>
-                <span className="text-gray-600 dark:text-gray-400">
-                  {stats.ratingDistribution.easy} (
-                  {totalRatings > 0
-                    ? Math.round((stats.ratingDistribution.easy / totalRatings) * 100)
-                    : 0}
-                  %)
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div
-                  className="bg-secondary h-2 rounded-full"
-                  style={{
-                    width: `${totalRatings > 0 ? (stats.ratingDistribution.easy / totalRatings) * 100 : 0}%`,
+                    width: `${totalRatings > 0 ? (stats.ratingDistribution.hafal / totalRatings) * 100 : 0}%`,
                   }}
                 />
               </div>

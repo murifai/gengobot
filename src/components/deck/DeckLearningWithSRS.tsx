@@ -36,26 +36,18 @@ interface Deck {
   flashcards: Flashcard[];
 }
 
-interface ReviewStats {
-  totalCards: number;
-  dueToday: number;
-  newCards: number;
-}
-
 interface DeckLearningWithSRSProps {
   deck: Deck;
   sessionId: string;
-  reviewStats: ReviewStats | null;
   onComplete: () => void;
   onExit: () => void;
 }
 
-type Rating = 'again' | 'hard' | 'good' | 'easy';
+type Rating = 'belum_hafal' | 'hafal';
 
 export default function DeckLearningWithSRS({
   deck,
   sessionId,
-  reviewStats,
   onComplete,
   onExit,
 }: DeckLearningWithSRSProps) {
@@ -64,20 +56,100 @@ export default function DeckLearningWithSRS({
   const [reviewedCards, setReviewedCards] = useState<Set<number>>(new Set());
   const [reviewStartTime, setReviewStartTime] = useState<number>(Date.now());
   const [submittingRating, setSubmittingRating] = useState(false);
-  const [sessionStats, setSessionStats] = useState({
-    againCount: 0,
-    hardCount: 0,
-    goodCount: 0,
-    easyCount: 0,
-  });
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const currentCard = deck.flashcards[currentIndex];
   const totalCards = deck.flashcards.length;
   const progress = ((reviewedCards.size / totalCards) * 100).toFixed(0);
 
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
+
   useEffect(() => {
     setReviewStartTime(Date.now());
   }, [currentIndex]);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+    setIsSwiping(false);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (isAnimating) return;
+
+    const currentX = e.targetTouches[0].clientX;
+    setTouchEnd(currentX);
+
+    // Check if user is swiping
+    if (touchStart !== null) {
+      const distance = currentX - touchStart;
+      const currentDistance = Math.abs(distance);
+
+      if (currentDistance > 10) {
+        // If moved more than 10px, consider it a swipe attempt
+        setIsSwiping(true);
+        // Limit drag offset to max 150px in either direction
+        const limitedOffset = Math.max(-150, Math.min(150, distance));
+        setDragOffset(limitedOffset);
+      }
+    }
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd || isAnimating) {
+      setIsSwiping(false);
+      setDragOffset(0);
+      setTouchStart(null);
+      setTouchEnd(null);
+      return;
+    }
+
+    const distance = touchStart - touchEnd;
+
+    // When card is flipped (showAnswer = true), the swipe direction is inverted
+    // due to rotateY(180deg) transform, so we need to reverse the logic
+    const isLeftSwipe = showAnswer
+      ? distance < -minSwipeDistance // Reversed for flipped card
+      : distance > minSwipeDistance;
+    const isRightSwipe = showAnswer
+      ? distance > minSwipeDistance // Reversed for flipped card
+      : distance < -minSwipeDistance;
+
+    if (isLeftSwipe || isRightSwipe) {
+      // Always rate on swipe, regardless of showAnswer state
+      setIsAnimating(true);
+
+      // Animate card flying away
+      const flyDirection = isLeftSwipe ? -400 : 400;
+      setDragOffset(flyDirection);
+
+      const ratingValue = isLeftSwipe ? 'belum_hafal' : 'hafal';
+
+      // Wait for animation to complete, then rate
+      setTimeout(() => {
+        handleRating(ratingValue);
+
+        // Reset states after rating
+        setTimeout(() => {
+          setIsAnimating(false);
+          setDragOffset(0);
+        }, 100);
+      }, 300);
+    } else {
+      // Swipe not far enough, snap back
+      setDragOffset(0);
+    }
+
+    // Reset touch state
+    setTouchStart(null);
+    setTouchEnd(null);
+    setIsSwiping(false);
+  };
 
   if (!currentCard) {
     return (
@@ -91,6 +163,11 @@ export default function DeckLearningWithSRS({
   }
 
   const handleFlipCard = () => {
+    // Don't flip if animating
+    if (isAnimating) {
+      return;
+    }
+
     setShowAnswer(!showAnswer);
     if (!showAnswer) {
       setReviewedCards(prev => new Set([...prev, currentIndex]));
@@ -116,12 +193,6 @@ export default function DeckLearningWithSRS({
         throw new Error('Failed to submit rating');
       }
 
-      // Update session stats
-      setSessionStats(prev => ({
-        ...prev,
-        [`${rating}Count`]: prev[`${rating}Count` as keyof typeof prev] + 1,
-      }));
-
       // Move to next card or complete
       if (currentIndex < totalCards - 1) {
         setCurrentIndex(currentIndex + 1);
@@ -134,13 +205,6 @@ export default function DeckLearningWithSRS({
       alert('Failed to submit rating. Please try again.');
     } finally {
       setSubmittingRating(false);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-      setShowAnswer(false);
     }
   };
 
@@ -354,106 +418,6 @@ export default function DeckLearningWithSRS({
           </button>
         </div>
 
-        {/* Statistics Bar */}
-        {reviewStats && (
-          <div className="mb-4 grid grid-cols-3 gap-3">
-            <Card
-              className="p-3"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--secondary) 12%, transparent)',
-                borderColor: 'var(--secondary)',
-              }}
-            >
-              <div className="text-xs mb-1" style={{ color: 'var(--secondary)' }}>
-                Diriviw
-              </div>
-              <div className="text-2xl font-bold" style={{ color: 'var(--secondary)' }}>
-                {reviewStats.dueToday}
-              </div>
-            </Card>
-            <Card
-              className="p-3"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--tertiary-green) 12%, transparent)',
-                borderColor: 'var(--tertiary-green)',
-              }}
-            >
-              <div className="text-xs mb-1" style={{ color: 'var(--tertiary-green)' }}>
-                Baru
-              </div>
-              <div className="text-2xl font-bold" style={{ color: 'var(--tertiary-green)' }}>
-                {reviewStats.newCards}
-              </div>
-            </Card>
-            <Card
-              className="p-3"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--tertiary-purple) 12%, transparent)',
-                borderColor: 'var(--tertiary-purple)',
-              }}
-            >
-              <div className="text-xs mb-1" style={{ color: 'var(--tertiary-purple)' }}>
-                Total
-              </div>
-              <div className="text-2xl font-bold" style={{ color: 'var(--tertiary-purple)' }}>
-                {reviewStats.totalCards}
-              </div>
-            </Card>
-          </div>
-        )}
-
-        {/* Session Stats */}
-        <div className="mb-4 grid grid-cols-4 gap-2">
-          <div
-            className="text-center p-2 rounded-lg"
-            style={{ backgroundColor: 'color-mix(in srgb, var(--primary) 12%, transparent)' }}
-          >
-            <div className="text-xs" style={{ color: 'var(--primary)' }}>
-              Baru
-            </div>
-            <div className="text-lg font-semibold" style={{ color: 'var(--primary)' }}>
-              {sessionStats.againCount}
-            </div>
-          </div>
-          <div
-            className="text-center p-2 rounded-lg"
-            style={{
-              backgroundColor: 'color-mix(in srgb, var(--tertiary-yellow) 12%, transparent)',
-            }}
-          >
-            <div className="text-xs" style={{ color: 'hsl(48, 50%, 50%)' }}>
-              Susah
-            </div>
-            <div className="text-lg font-semibold" style={{ color: 'hsl(48, 50%, 50%)' }}>
-              {sessionStats.hardCount}
-            </div>
-          </div>
-          <div
-            className="text-center p-2 rounded-lg"
-            style={{
-              backgroundColor: 'color-mix(in srgb, var(--tertiary-green) 12%, transparent)',
-            }}
-          >
-            <div className="text-xs" style={{ color: 'var(--tertiary-green)' }}>
-              Oke
-            </div>
-            <div className="text-lg font-semibold" style={{ color: 'var(--tertiary-green)' }}>
-              {sessionStats.goodCount}
-            </div>
-          </div>
-          <div
-            className="text-center p-2 rounded-lg"
-            style={{ backgroundColor: 'color-mix(in srgb, var(--secondary) 12%, transparent)' }}
-          >
-            <div className="text-xs" style={{ color: 'var(--secondary)' }}>
-              Gampang
-            </div>
-            <div className="text-lg font-semibold" style={{ color: 'var(--secondary)' }}>
-              {sessionStats.easyCount}
-            </div>
-          </div>
-        </div>
-
         {/* Progress Bar */}
         <div className="mb-6">
           <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
@@ -471,15 +435,27 @@ export default function DeckLearningWithSRS({
         </div>
 
         {/* Flip Card Container - Portrait */}
-        <div className="mb-6 perspective-1000 max-w-sm mx-auto">
+        <div className="mb-6 perspective-1000 max-w-sm mx-auto relative">
           <div
-            onClick={handleFlipCard}
-            className={`relative w-full aspect-[3/4] transition-transform duration-700 transform-style-3d cursor-pointer ${
+            className={`relative w-full aspect-[3/4] transition-transform duration-700 transform-style-3d ${
               showAnswer ? 'rotate-y-180' : ''
             }`}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
             style={{
               transformStyle: 'preserve-3d',
-              transition: 'transform 0.7s cubic-bezier(0.4, 0.0, 0.2, 1)',
+              transition:
+                isSwiping && !isAnimating
+                  ? 'none'
+                  : isAnimating
+                    ? 'all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)'
+                    : 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
+              transform: `${showAnswer ? 'rotateY(180deg)' : ''} translateX(${dragOffset}px) rotate(${dragOffset * 0.05}deg)`,
+              opacity: Math.max(0, 1 - Math.abs(dragOffset) / 300),
+              touchAction: 'pan-y',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
             }}
           >
             {/* Front of Card */}
@@ -505,6 +481,95 @@ export default function DeckLearningWithSRS({
               {renderCardBack()}
             </Card>
           </div>
+
+          {/* Arrow Rating Buttons - Always visible, always rate directly */}
+          {/* Left - Belum Hafal (X icon) */}
+          <button
+            onClick={e => {
+              e.stopPropagation();
+              handleRating('belum_hafal');
+            }}
+            disabled={submittingRating}
+            className="rating-button absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 z-20"
+            style={{
+              backgroundColor: submittingRating ? 'hsl(var(--muted))' : 'var(--primary)',
+              color: submittingRating ? 'hsl(var(--muted-foreground))' : '#fff',
+            }}
+            title="Belum Hafal (Swipe Left)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-7 w-7"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+
+          {/* Right - Hafal (Checkmark icon) */}
+          <button
+            onClick={e => {
+              e.stopPropagation();
+              handleRating('hafal');
+            }}
+            disabled={submittingRating}
+            className="rating-button absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 z-20"
+            style={{
+              backgroundColor: submittingRating ? 'hsl(var(--muted))' : 'var(--tertiary-green)',
+              color: submittingRating ? 'hsl(var(--muted-foreground))' : '#fff',
+            }}
+            title="Hafal (Swipe Right)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-7 w-7"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {/* Flip Button - Same width as card, icon only */}
+        <div className="flex justify-center mb-6">
+          <button
+            onClick={handleFlipCard}
+            disabled={submittingRating}
+            className="max-w-sm w-full h-12 rounded-lg flex items-center justify-center shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg"
+            style={{
+              backgroundColor: 'var(--primary)',
+              color: '#fff',
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+          </button>
         </div>
 
         {/* Custom CSS for flip animation */}
@@ -522,89 +587,6 @@ export default function DeckLearningWithSRS({
             transform: rotateY(180deg);
           }
         `}</style>
-
-        {/* Controls */}
-        <div className="max-w-sm mx-auto space-y-4">
-          <button
-            onClick={handleFlipCard}
-            className="w-full p-4 rounded-lg text-white transition-colors flex items-center justify-center shadow-lg hover:brightness-90"
-            style={{ backgroundColor: 'var(--primary)' }}
-            title={showAnswer ? 'Flip to front' : 'Turn over'}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-          </button>
-
-          {/* Rating Buttons - Always Visible */}
-          <div className="grid grid-cols-4 gap-3">
-            <button
-              onClick={() => handleRating('again')}
-              disabled={submittingRating || !showAnswer}
-              className="flex items-center justify-center py-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:brightness-90"
-              style={{
-                backgroundColor:
-                  submittingRating || !showAnswer ? 'hsl(var(--muted))' : 'var(--primary)',
-                color: submittingRating || !showAnswer ? 'hsl(var(--muted-foreground))' : '#fff',
-              }}
-            >
-              <span className="text-sm font-semibold">Baru</span>
-            </button>
-
-            <button
-              onClick={() => handleRating('hard')}
-              disabled={submittingRating || !showAnswer}
-              className="flex items-center justify-center py-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:brightness-90"
-              style={{
-                backgroundColor:
-                  submittingRating || !showAnswer ? 'hsl(var(--muted))' : 'var(--tertiary-yellow)',
-                color:
-                  submittingRating || !showAnswer
-                    ? 'hsl(var(--muted-foreground))'
-                    : 'hsl(48, 50%, 30%)',
-              }}
-            >
-              <span className="text-sm font-semibold">Susah</span>
-            </button>
-
-            <button
-              onClick={() => handleRating('good')}
-              disabled={submittingRating || !showAnswer}
-              className="flex items-center justify-center py-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:brightness-90"
-              style={{
-                backgroundColor:
-                  submittingRating || !showAnswer ? 'hsl(var(--muted))' : 'var(--tertiary-green)',
-                color: submittingRating || !showAnswer ? 'hsl(var(--muted-foreground))' : '#fff',
-              }}
-            >
-              <span className="text-sm font-semibold">Oke</span>
-            </button>
-
-            <button
-              onClick={() => handleRating('easy')}
-              disabled={submittingRating || !showAnswer}
-              className="flex items-center justify-center py-4 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:brightness-90"
-              style={{
-                backgroundColor:
-                  submittingRating || !showAnswer ? 'hsl(var(--muted))' : 'var(--secondary)',
-                color: submittingRating || !showAnswer ? 'hsl(var(--muted-foreground))' : '#fff',
-              }}
-            >
-              <span className="text-sm font-semibold">Gampang</span>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

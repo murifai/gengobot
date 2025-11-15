@@ -101,10 +101,8 @@ export async function POST(request: Request) {
         cardsReviewed: 0,
         cardsCorrect: 0,
         averageResponseTime: 0,
-        againCount: 0,
-        hardCount: 0,
-        goodCount: 0,
-        easyCount: 0,
+        belumHafalCount: 0,
+        hafalCount: 0,
       },
     });
 

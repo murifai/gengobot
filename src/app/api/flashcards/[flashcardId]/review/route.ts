@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { getCurrentSessionUser } from '@/lib/auth/session';
 import { prisma } from '@/lib/prisma';
 
-type Rating = 'again' | 'hard' | 'good' | 'easy';
+type Rating = 'belum_hafal' | 'hafal';
 
 /**
- * Calculate next review date using SM-2 algorithm
+ * Calculate next review date using simplified SM-2 algorithm (2 ratings)
  */
 function calculateNextReview(
   rating: Rating,
@@ -19,34 +19,15 @@ function calculateNextReview(
 
   // Update ease factor based on rating
   switch (rating) {
-    case 'again':
+    case 'belum_hafal':
+      // Belum Hafal (Not Memorized) - equivalent to 'again'
       newEaseFactor = Math.max(1.3, easeFactor - 0.2);
       newInterval = 1; // Review again in 1 day
       newRepetitions = 0;
       break;
 
-    case 'hard':
-      newEaseFactor = Math.max(1.3, easeFactor - 0.15);
-      if (repetitions === 0) {
-        newInterval = 1;
-      } else {
-        newInterval = Math.round(interval * 1.2);
-      }
-      newRepetitions = repetitions + 1;
-      break;
-
-    case 'good':
-      if (repetitions === 0) {
-        newInterval = 1;
-      } else if (repetitions === 1) {
-        newInterval = 6;
-      } else {
-        newInterval = Math.round(interval * easeFactor);
-      }
-      newRepetitions = repetitions + 1;
-      break;
-
-    case 'easy':
+    case 'hafal':
+      // Hafal (Memorized) - equivalent to 'easy'
       newEaseFactor = easeFactor + 0.15;
       if (repetitions === 0) {
         newInterval = 4;
@@ -92,7 +73,7 @@ export async function POST(
     const { rating, sessionId, responseTime } = body;
 
     // Validate rating
-    if (!['again', 'hard', 'good', 'easy'].includes(rating)) {
+    if (!['belum_hafal', 'hafal'].includes(rating)) {
       return NextResponse.json({ error: 'Invalid rating' }, { status: 400 });
     }
 
@@ -160,14 +141,12 @@ export async function POST(
 
       if (studySession && studySession.userId === dbUser.id) {
         const ratingCounts = {
-          againCount: studySession.againCount + (rating === 'again' ? 1 : 0),
-          hardCount: studySession.hardCount + (rating === 'hard' ? 1 : 0),
-          goodCount: studySession.goodCount + (rating === 'good' ? 1 : 0),
-          easyCount: studySession.easyCount + (rating === 'easy' ? 1 : 0),
+          belumHafalCount: studySession.belumHafalCount + (rating === 'belum_hafal' ? 1 : 0),
+          hafalCount: studySession.hafalCount + (rating === 'hafal' ? 1 : 0),
         };
 
         const cardsReviewed = studySession.cardsReviewed + 1;
-        const cardsCorrect = studySession.cardsCorrect + (rating !== 'again' ? 1 : 0);
+        const cardsCorrect = studySession.cardsCorrect + (rating === 'hafal' ? 1 : 0);
 
         // Calculate average response time
         const totalResponseTime =

@@ -2,7 +2,7 @@
 
 export type CardType = 'kanji' | 'vocabulary' | 'grammar';
 
-export type SpacedRepetitionRating = 'again' | 'hard' | 'good' | 'easy';
+export type SpacedRepetitionRating = 'belum_hafal' | 'hafal';
 
 // Kanji Card Template
 export interface KanjiCardData {
@@ -108,10 +108,8 @@ export interface StudySession {
   cardsReviewed: number;
   cardsCorrect: number;
   averageResponseTime?: number;
-  againCount: number;
-  hardCount: number;
-  goodCount: number;
-  easyCount: number;
+  belumHafalCount: number;
+  hafalCount: number;
   startTime: Date;
   endTime?: Date;
   isCompleted: boolean;

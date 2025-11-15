@@ -62,10 +62,8 @@ export async function GET() {
 
     // Get rating distribution
     const ratingDistribution = {
-      again: sessions.reduce((sum, s) => sum + s.againCount, 0),
-      hard: sessions.reduce((sum, s) => sum + s.hardCount, 0),
-      good: sessions.reduce((sum, s) => sum + s.goodCount, 0),
-      easy: sessions.reduce((sum, s) => sum + s.easyCount, 0),
+      belumHafal: sessions.reduce((sum, s) => sum + s.belumHafalCount, 0),
+      hafal: sessions.reduce((sum, s) => sum + s.hafalCount, 0),
     };
 
     // Get cards due for review today
