@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth/auth';
 import { User } from '@/types/user';
 import CharactersClient from '@/app/dashboard/characters/CharactersClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CharactersPage() {
   const session = await auth();
 

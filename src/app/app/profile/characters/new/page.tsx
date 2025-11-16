@@ -8,9 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/Card';
 import { ArrowLeft } from 'lucide-react';
-
-export const dynamic = 'force-dynamic';
-
 // OpenAI TTS voices
 const OPENAI_VOICES = [
   { value: 'alloy', label: 'Alloy', description: 'Neutral and balanced' },

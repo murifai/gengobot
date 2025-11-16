@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/auth';
 import ProgressClient from '@/app/dashboard/progress/ProgressClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ProgressPage() {
   const session = await auth();
   const user = session?.user;

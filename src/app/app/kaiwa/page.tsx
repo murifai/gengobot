@@ -3,6 +3,8 @@ import { MessageSquare, Users } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 
+export const dynamic = 'force-dynamic';
+
 export default function KaiwaHubPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">

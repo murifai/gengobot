@@ -1,5 +1,7 @@
 import { Metadata } from 'next';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Privacy Policy - GengoBot',
   description: 'Privacy Policy for GengoBot Japanese learning platform',

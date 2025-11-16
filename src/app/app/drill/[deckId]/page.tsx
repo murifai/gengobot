@@ -6,9 +6,6 @@ import DeckLearningWithStats from '@/components/deck/DeckLearningWithStats';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-
-export const dynamic = 'force-dynamic';
-
 interface Flashcard {
   id: string;
   cardType: string;

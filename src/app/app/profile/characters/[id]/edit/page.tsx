@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -8,9 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/Card';
 import { ArrowLeft } from 'lucide-react';
-
-export const dynamic = 'force-dynamic';
-
 // OpenAI TTS voices
 const OPENAI_VOICES = [
   { value: 'alloy', label: 'Alloy', description: 'Neutral and balanced' },
@@ -79,11 +76,7 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
     speakingStyle: '',
   });
 
-  useEffect(() => {
-    fetchCharacter();
-  }, [resolvedParams.id]);
-
-  const fetchCharacter = async () => {
+  const fetchCharacter = useCallback(async () => {
     try {
       const response = await fetch(`/api/characters/${resolvedParams.id}`);
       if (!response.ok) throw new Error('Failed to fetch character');
@@ -105,7 +98,11 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
     } finally {
       setLoading(false);
     }
-  };
+  }, [resolvedParams.id]);
+
+  useEffect(() => {
+    fetchCharacter();
+  }, [fetchCharacter]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

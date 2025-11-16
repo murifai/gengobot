@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth/auth';
 import { prisma } from '@/lib/prisma';
 import SettingsClient from '@/app/dashboard/settings/SettingsClient';
 
+export const dynamic = 'force-dynamic';
+
 export const runtime = 'nodejs';
 
 export default async function SettingsPage() {

@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import StreamingChatInterface from '@/components/chat/StreamingChatInterface';
 import { useStreamingChat } from '@/hooks/useStreamingChat';
+import { CharacterQuickCreateModal } from '@/components/kaiwa/bebas/character-quick-create-modal';
+import { EmptyCharacterState } from '@/components/kaiwa/bebas/empty-character-state';
 
 interface Character {
   id: string;
@@ -50,6 +52,7 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [voiceError, setVoiceError] = useState<string | null>(null);
+  const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false);
 
   // Initialize streaming chat with custom endpoint
   const {
@@ -129,6 +132,13 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   const handleBackToCharacterSelect = () => {
     setSession(null);
     setSelectedCharacter(null);
+  };
+
+  const handleCharacterCreated = async (character: Character) => {
+    // Add to characters list
+    setCharacters(prev => [...prev, character]);
+    // Auto-select and start session
+    await handleCharacterSelect(character);
   };
 
   const handleVoiceRecording = async (audioBlob: Blob, duration: number) => {
@@ -263,14 +273,7 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
           </div>
 
           {characters.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                利用可能なキャラクターがありません / No characters available
-              </p>
-              <Button onClick={() => router.push('/app/characters/new')}>
-                キャラクターを作成 / Create Character
-              </Button>
-            </div>
+            <EmptyCharacterState onQuickCreate={() => setIsQuickCreateOpen(true)} />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {characters.map(character => (
@@ -322,6 +325,14 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
               ))}
             </div>
           )}
+
+          {/* Quick Create Modal */}
+          <CharacterQuickCreateModal
+            isOpen={isQuickCreateOpen}
+            onClose={() => setIsQuickCreateOpen(false)}
+            onCharacterCreated={handleCharacterCreated}
+            userId={user.id}
+          />
         </main>
       </div>
     );

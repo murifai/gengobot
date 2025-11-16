@@ -2,6 +2,8 @@ import { auth } from '@/lib/auth/auth';
 import { redirect } from 'next/navigation';
 import PreTaskStudyClient from '@/app/dashboard/tasks/[taskId]/pre-study/PreTaskStudyClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function TaskPreStudyPage({
   params,
 }: {

@@ -1,11 +1,77 @@
-import Link from 'next/link';
-import { BookOpen, GraduationCap, MessageSquare, User } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { Mic, BookMarked, GraduationCap } from 'lucide-react';
+import { StatsCard } from '@/components/dashboard/stats-card';
+import { ActivityChart } from '@/components/dashboard/activity-chart';
+import { RecentActivity } from '@/components/dashboard/recent-activity';
+import { useEffect, useState } from 'react';
+
+interface KaiwaStats {
+  totalMinutes: number;
+  sessionsCount: number;
+  weeklyBreakdown: { date: string; minutes: number }[];
+}
+
+interface DrillStats {
+  totalCards: number;
+  masteredCards: number;
+  masteryPercentage: number;
+}
+
+interface WeeklyStats {
+  dates: string[];
+  kaiwaMinutes: number[];
+  cardsLearned: number[];
+}
+
+interface Activity {
+  type: 'task_complete' | 'cards_learned';
+  data: {
+    title?: string;
+    jlptLevel?: string;
+    score?: number | null;
+    word?: string;
+    deckName?: string;
+    quality?: number;
+  };
+  timestamp: Date | string;
+}
 
 export default function AppPage() {
+  const router = useRouter();
+  const [kaiwaStats, setKaiwaStats] = useState<KaiwaStats | null>(null);
+  const [drillStats, setDrillStats] = useState<DrillStats | null>(null);
+  const [weeklyStats, setWeeklyStats] = useState<WeeklyStats | null>(null);
+  const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const [kaiwa, drill, weekly, activity] = await Promise.all([
+          fetch('/api/stats/kaiwa').then(r => r.json()),
+          fetch('/api/stats/drill').then(r => r.json()),
+          fetch('/api/stats/weekly').then(r => r.json()),
+          fetch('/api/activity/recent').then(r => r.json()),
+        ]);
+
+        setKaiwaStats(kaiwa);
+        setDrillStats(drill);
+        setWeeklyStats(weekly);
+        setRecentActivity(activity);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchStats();
+  }, []);
+
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2">Beranda</h1>
         <p className="text-muted-foreground">
@@ -13,84 +79,46 @@ export default function AppPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Kaiwa Card */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <MessageSquare className="h-5 w-5 text-primary" />
-              </div>
-              <CardTitle>Kaiwa</CardTitle>
-            </div>
-            <CardDescription>Conversation practice</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/app/kaiwa">
-              <Button variant="outline" className="w-full">
-                Start Chatting
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <StatsCard
+          title="Menit Latihan Kaiwa"
+          value={kaiwaStats?.totalMinutes || 0}
+          description={`${kaiwaStats?.sessionsCount || 0} sessions this week`}
+          icon={Mic}
+          isLoading={isLoading}
+          onClick={() => router.push('/app/kaiwa')}
+        />
+        <StatsCard
+          title="Kartu yang Sudah Hafal"
+          value={drillStats?.masteredCards || 0}
+          description={`${drillStats?.masteryPercentage || 0}% of ${drillStats?.totalCards || 0} total cards`}
+          icon={BookMarked}
+          isLoading={isLoading}
+          onClick={() => router.push('/app/drill')}
+        />
+        <StatsCard
+          title="Streak Belajar"
+          value="0 days"
+          description="Keep it up!"
+          icon={GraduationCap}
+          isLoading={isLoading}
+        />
+      </div>
 
-        {/* Drill Card */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <BookOpen className="h-5 w-5 text-primary" />
-              </div>
-              <CardTitle>Drill</CardTitle>
-            </div>
-            <CardDescription>Flashcard study</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/app/drill">
-              <Button variant="outline" className="w-full">
-                Study Now
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+      {/* Weekly Activity Chart */}
+      <div className="mb-8">
+        <ActivityChart
+          dates={weeklyStats?.dates || []}
+          kaiwaMinutes={weeklyStats?.kaiwaMinutes || []}
+          cardsLearned={weeklyStats?.cardsLearned || []}
+          isLoading={isLoading}
+        />
+      </div>
 
-        {/* Ujian Card */}
-        <Card className="hover:shadow-lg transition-shadow opacity-60">
-          <CardHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <GraduationCap className="h-5 w-5 text-primary" />
-              </div>
-              <CardTitle>Ujian</CardTitle>
-            </div>
-            <CardDescription>JLPT preparation</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" className="w-full" disabled>
-              Coming Soon
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Profile Card */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <User className="h-5 w-5 text-primary" />
-              </div>
-              <CardTitle>Profile</CardTitle>
-            </div>
-            <CardDescription>Your account</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/app/profile">
-              <Button variant="outline" className="w-full">
-                View Profile
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+      {/* Recent Activity */}
+      <div className="mb-8">
+        <RecentActivity activities={recentActivity} isLoading={isLoading} />
       </div>
     </div>
   );

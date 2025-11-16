@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/auth';
 import FreeConversationClient from './FreeConversationClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function KaiwaBebasPage() {
   const session = await auth();
   const user = session?.user;

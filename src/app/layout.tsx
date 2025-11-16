@@ -19,6 +19,8 @@ export const metadata: Metadata = {
     'Enhance your Japanese speaking skills through task-based interactive roleplay conversations powered by AI',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function RootLayout({
   children,
 }: Readonly<{

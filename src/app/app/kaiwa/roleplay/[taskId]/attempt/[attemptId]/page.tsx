@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/auth';
 import TaskAttemptClientStreaming from '@/app/dashboard/tasks/[taskId]/attempt/[attemptId]/TaskAttemptClientStreaming';
 
+export const dynamic = 'force-dynamic';
+
 export default async function TaskAttemptPage({
   params,
 }: {
