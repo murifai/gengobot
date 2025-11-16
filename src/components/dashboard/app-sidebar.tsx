@@ -1,17 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import {
-  BookOpen,
-  GraduationCap,
-  Home,
-  MessageSquare,
-  Settings,
-  TrendingUp,
-  Users,
-  Book,
-  Mic,
-} from 'lucide-react';
+import { BookOpen, GraduationCap, Home, MessageSquare, User as UserIcon, Book } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import {
@@ -30,50 +20,36 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { User } from '@/types/user';
 
-// Menu items
+// Menu items - New simplified 4-item navigation
 const items = [
   {
-    title: 'Dasbor',
-    url: '/dashboard',
+    title: 'Beranda',
+    url: '/app',
     icon: Home,
   },
   {
-    title: 'Tugas',
-    url: '/dashboard/tasks',
-    icon: GraduationCap,
-  },
-  {
-    title: 'Dek Belajar',
-    url: '/study',
-    icon: BookOpen,
-  },
-  {
-    title: 'Obrolan',
-    url: '/dashboard/chat',
+    title: 'Kaiwa',
+    url: '/app/kaiwa',
     icon: MessageSquare,
   },
   {
-    title: 'Obrolan Suara',
-    url: '/chat-webrtc',
-    icon: Mic,
+    title: 'Drill',
+    url: '/app/drill',
+    icon: BookOpen,
   },
   {
-    title: 'Kemajuan',
-    url: '/dashboard/progress',
-    icon: TrendingUp,
-  },
-  {
-    title: 'Karakter',
-    url: '/dashboard/characters',
-    icon: Users,
+    title: 'Ujian',
+    url: '/app/ujian',
+    icon: GraduationCap,
+    badge: 'Soon',
   },
 ];
 
 const bottomItems = [
   {
-    title: 'Pengaturan',
-    url: '/dashboard/settings',
-    icon: Settings,
+    title: 'Profile',
+    url: '/app/profile',
+    icon: UserIcon,
   },
 ];
 
@@ -93,7 +69,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="/dashboard">
+              <a href="/app">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <Book className="size-4" />
                 </div>
@@ -119,9 +95,14 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                     isActive={pathname === item.url}
                     onClick={() => router.push(item.url)}
                   >
-                    <a href={item.url}>
+                    <a href={item.url} className="flex items-center gap-2">
                       <item.icon />
                       <span>{item.title}</span>
+                      {'badge' in item && (
+                        <span className="ml-auto text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                          {item.badge}
+                        </span>
+                      )}
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

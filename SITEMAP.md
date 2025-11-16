@@ -84,93 +84,78 @@ Root Layout (src/app/layout.tsx)
 
 /auth/error                 → Authentication Error Page
 └── Error handling untuk auth failures
+
+/termsofservice
+└── terms of service
+
+/privacypolicy
+└── privacy policy
+
 ```
 
 ---
 
-### **App Routes** (Authenticated Users)
+### **Dashboard Routes** (Authenticated Users)
 
 ```
-/app                        → Main Dashboard/Home
+/dashboard                  → Main Dashboard
 ├── Halo $username!
 ├── Menit latihan kaiwa
 ├── Kartu yang sudah hafal
 ├── Stats satu minggu
-└── Recent Activity
+└── Recent Activity ()
 
-/app/kaiwa                  → Latihan Kaiwa Hub
-├── Quick Stats (practice time, sessions)
-└── Two main options:
-
-/app/kaiwa/bebas            → Ngobrol Bebas (Free Conversation)
+/dashboard/kaiwa            → Latihan kaiwa
+/kaiwa/bebas (Ngobrol bebas)
 ├── AI Character Selection (can create character here)
-├── Message History
-└── Real-time Chat/Voice Interface
+└── Message History
 
-/app/kaiwa/roleplay         → Roleplay (Task-Based Practice)
-├── Available Tasks List
+/kaiwa/Roleplay
+├── Available Tasks
 ├── Task Filters (JLPT Level, Category)
-├── → /app/kaiwa/roleplay/[taskId]
-│   └── Pre-Task Study (vocabulary, context)
-└── → /app/kaiwa/roleplay/[taskId]/attempt
-    └── Active Roleplay Session (with feedback)
+└── → Start Task (with all pretask and feedback. its for menu understanding)
 
-/app/ujian                  → Ujian/Exam Section (COMING SOON)
-└── Placeholder for future JLPT exam preparation
-
-/app/profile                → Profile Hub
-├── User Overview
-├── Quick Links
-└── Sub-sections:
-
-/app/profile/settings       → User Settings
+/dashboard/profile
+settings         → User Settings
 ├── Profile Management
 ├── Preferences
 └── Account Settings
-
-/app/profile/progress       → Progress Tracking
+/profile/progress         → Progress Tracking
 ├── Learning Statistics
 ├── Completed Tasks
 ├── Achievement Badges
 └── Skill Assessment Charts
-
-/app/profile/characters     → Character Management
+/profile/characters       → Character Management
 ├── Character List
-├── → /app/profile/characters/new
+├── → /new
 │   └── Create New Character
-└── → /app/profile/characters/[id]/edit
+└── → {id}/edit
     └── Edit Character Profile
+```
 
-/app/drill                  → Drill Hub
+/drill → Study Hub
 ├── Available Study Decks
-├── Quick Stats
-└── Quick Start Options
-
-/app/drill/my-decks         → My Deck Collection
+/drill/my-decks → My Deck Collection
 ├── Personal Decks
 ├── Progress per Deck
 └── Quick Study Actions
-
-/app/drill/decks/new        → Create New Deck
+/drill/decks/new → Create New Deck
 ├── Deck Configuration
 ├── Card Templates
 └── Initial Content Setup
-
-/app/drill/decks/[deckId]   → View Deck Details
+/drill/decks/{deckId} → View Deck Details
 ├── Deck Overview
 ├── Card List
 ├── Study Statistics
-└── → /app/drill/decks/[deckId]/edit
-    ├── Edit Deck Settings
-    ├── Add/Remove Cards
-    └── Manage Vocabulary
-
-/app/drill/[deckId]         → Active Study Session
+└── → /study/decks/{deckId}/edit
+├── Edit Deck Settings
+├── Add/Remove Cards
+└── Manage Vocabulary
+/drill/{deckId} → Active Study Session
 ├── Flashcard Interface
 ├── Spaced Repetition Algorithm
-├── Answer Grading (Hafal/Belum Hafal)
+├── Answer Grading (hafal/belum hafal)
 └── Session Statistics
-```
 
 ---
 
@@ -186,7 +171,8 @@ Root Layout (src/app/layout.tsx)
 ├── User Metrics
 ├── Usage Statistics
 ├── Performance Data
-└── Engagement Analytics
+├── Engagement Analytics
+└── User Analytics (kaiwa practice time, card learned JLPT Level)
 
 /admin/users                → User Management
 ├── User List
