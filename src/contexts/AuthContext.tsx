@@ -1,8 +1,9 @@
 'use client';
 
-import { createContext, useContext } from 'react';
-import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
+import { createContext, useContext, useState } from 'react';
+import { useSession, signOut as nextAuthSignOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { LoginModal } from '@/components/auth/LoginModal';
 
 interface User {
   id: string;
@@ -15,9 +16,9 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, name?: string) => Promise<void>;
   signOut: () => Promise<void>;
+  openLoginModal: () => void;
+  closeLoginModal: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,6 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const loading = status === 'loading';
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const user = session?.user
     ? {
@@ -37,46 +39,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     : null;
 
-  const signIn = async (email: string, password: string) => {
-    const result = await nextAuthSignIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    });
-
-    if (result?.error) {
-      throw new Error(result.error);
-    }
-
-    router.push('/dashboard');
-    router.refresh();
-  };
-
-  const signUp = async (email: string, password: string, name?: string) => {
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Registration failed');
-    }
-
-    // Auto sign in after registration
-    await signIn(email, password);
-  };
-
   const signOut = async () => {
     await nextAuthSignOut({ redirect: false });
-    router.push('/login');
+    router.push('/');
     router.refresh();
+  };
+
+  const openLoginModal = () => {
+    setIsLoginModalOpen(true);
+  };
+
+  const closeLoginModal = () => {
+    setIsLoginModalOpen(false);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signOut, openLoginModal, closeLoginModal }}>
       {children}
+      <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} />
     </AuthContext.Provider>
   );
 }

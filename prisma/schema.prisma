@@ -172,13 +172,39 @@ model Session {
   @@index([userId])
 }
 
-// NextAuth Verification Token model
+// NextAuth Verification Token model (for magic link auth)
 model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// Email Verification Token model (for email verification)
+model EmailVerificationToken {
+  id         String   @id @default(cuid())
+  email      String
+  token      String   @unique
+  expires    DateTime
+  createdAt  DateTime @default(now())
+  verifiedAt DateTime?
+
+  @@index([email])
+  @@index([token])
+}
+
+// Password Reset Token model (for password reset)
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+  usedAt    DateTime?
+
+  @@index([email])
+  @@index([token])
 }
 
 // Character model - For task-based and free-chat scenarios
