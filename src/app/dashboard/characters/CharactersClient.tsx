@@ -65,7 +65,7 @@ export default function CharactersClient({}: CharactersClientProps) {
           <div className="flex justify-between items-center h-16">
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Manage Characters</h1>
             <div className="flex gap-4">
-              <Button onClick={() => router.push('/dashboard/characters/new')}>
+              <Button onClick={() => router.push('/app/profile/characters/new')}>
                 Create Character
               </Button>
               <Button onClick={() => router.push('/dashboard')} variant="secondary">
@@ -94,7 +94,7 @@ export default function CharactersClient({}: CharactersClientProps) {
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               No characters yet. Create your first character!
             </p>
-            <Button onClick={() => router.push('/dashboard/characters/new')}>
+            <Button onClick={() => router.push('/app/profile/characters/new')}>
               Create Character
             </Button>
           </div>
@@ -122,7 +122,7 @@ export default function CharactersClient({}: CharactersClientProps) {
                 )}
                 <div className="flex gap-2">
                   <Button
-                    onClick={() => router.push(`/dashboard/characters/${character.id}/edit`)}
+                    onClick={() => router.push(`/app/profile/characters/${character.id}/edit`)}
                     variant="secondary"
                     className="flex-1"
                   >

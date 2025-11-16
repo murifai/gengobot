@@ -126,14 +126,15 @@ model User {
   createdAt               DateTime  @default(now())
   updatedAt               DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  characters    Character[]
-  conversations Conversation[]
-  taskAttempts  TaskAttempt[]
-  adminLogs     AdminLog[]
-  decks         Deck[]
-  studySessions StudySession[]
+  accounts           Account[]
+  sessions           Session[]
+  characters         Character[]
+  conversations      Conversation[]
+  taskAttempts       TaskAttempt[]
+  adminLogs          AdminLog[]
+  decks              Deck[]
+  studySessions      StudySession[]
+  freeConversations  FreeConversation[]
 
   @@index([email])
   @@index([isAdmin])
@@ -403,4 +404,20 @@ model StudySession {
   @@index([deckId])
   @@index([startTime])
   @@index([isCompleted])
+}
+
+// FreeConversation model - Free conversation sessions (Kaiwa Bebas)
+model FreeConversation {
+  id                  String   @id @default(cuid())
+  userId              String
+  startTime           String // ISO DateTime as string
+  endTime             String? // ISO DateTime as string
+  conversationHistory Json // { messages: [], startedAt: string }
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
 }

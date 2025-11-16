@@ -1,13 +1,13 @@
-import { auth } from '@/lib/auth/auth';
 import { redirect } from 'next/navigation';
-import PreTaskStudyClient from '@/app/dashboard/tasks/[taskId]/pre-study/PreTaskStudyClient';
+import { auth } from '@/lib/auth/auth';
+import TaskAttemptClientStreaming from '@/app/dashboard/tasks/[taskId]/attempt/[attemptId]/TaskAttemptClientStreaming';
 
-export default async function TaskPreStudyPage({
+export default async function TaskAttemptPage({
   params,
 }: {
-  params: Promise<{ taskId: string }>;
+  params: Promise<{ taskId: string; attemptId: string }>;
 }) {
-  const { taskId } = await params;
+  const { taskId, attemptId } = await params;
   const session = await auth();
   const user = session?.user;
 
@@ -16,7 +16,7 @@ export default async function TaskPreStudyPage({
   }
 
   return (
-    <PreTaskStudyClient
+    <TaskAttemptClientStreaming
       user={
         user as {
           id: string;
@@ -27,6 +27,7 @@ export default async function TaskPreStudyPage({
         }
       }
       taskId={taskId}
+      attemptId={attemptId}
     />
   );
 }

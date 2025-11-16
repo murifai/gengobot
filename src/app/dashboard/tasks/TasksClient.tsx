@@ -68,7 +68,7 @@ export default function TasksClient({}: TasksClientProps) {
 
   const startTask = (taskId: string) => {
     // Navigate to pre-task study page
-    router.push(`/dashboard/tasks/${taskId}/pre-study`);
+    router.push(`/app/kaiwa/roleplay/${taskId}/pre-study`);
   };
 
   // Get unique difficulties and categories from tasks

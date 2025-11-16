@@ -51,7 +51,7 @@ export default function ChatClient({ user }: ChatClientProps) {
       if (!response.ok) throw new Error('Failed to start chat');
 
       const conversation = await response.json();
-      router.push(`/dashboard/chat/${conversation.id}`);
+      router.push(`/app/kaiwa/bebas/${conversation.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start chat');
     }
@@ -93,7 +93,7 @@ export default function ChatClient({ user }: ChatClientProps) {
             <p className="text-gray-600 dark:text-gray-400">
               No characters available. Create one to start chatting!
             </p>
-            <Button onClick={() => router.push('/dashboard/characters')} className="mt-4">
+            <Button onClick={() => router.push('/app/profile/characters')} className="mt-4">
               Create Character
             </Button>
           </div>

@@ -126,7 +126,7 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
   const handleContinueExisting = () => {
     if (existingAttempt) {
       console.log('[PreTaskStudy] Continuing existing attempt:', existingAttempt.id);
-      router.push(`/dashboard/tasks/${taskId}/attempt/${existingAttempt.id}`);
+      router.push(`/app/kaiwa/roleplay/${taskId}/attempt/${existingAttempt.id}`);
     }
   };
 
@@ -148,7 +148,7 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
   };
 
   const handleCancelResume = () => {
-    router.push('/dashboard/tasks');
+    router.push('/app/kaiwa/roleplay');
   };
 
   const handleSkip = async () => {
@@ -208,7 +208,7 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
         );
       }
 
-      router.push(`/dashboard/tasks/${taskId}/attempt/${data.attempt.id}`);
+      router.push(`/app/kaiwa/roleplay/${taskId}/attempt/${data.attempt.id}`);
     } catch (err) {
       console.error('[PreTaskStudy] Error:', err);
       setError(err instanceof Error ? err.message : 'Failed to start task');
@@ -232,7 +232,7 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
         <div className="text-center">
           <p className="text-primary">{error || 'Task not found'}</p>
           <button
-            onClick={() => router.push('/dashboard/tasks')}
+            onClick={() => router.push('/app/kaiwa/roleplay')}
             className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
           >
             Back to Tasks

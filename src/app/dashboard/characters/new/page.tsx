@@ -99,7 +99,7 @@ export default function NewCharacterPage() {
         throw new Error(data.error || 'Failed to create character');
       }
 
-      router.push('/dashboard/characters');
+      router.push('/app/profile/characters');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -122,7 +122,7 @@ export default function NewCharacterPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Create Character</h1>
-            <Button onClick={() => router.push('/dashboard/characters')} variant="secondary">
+            <Button onClick={() => router.push('/app/profile/characters')} variant="secondary">
               <ArrowLeft className="mr-2" size={16} />
               Back to Characters
             </Button>
@@ -253,7 +253,7 @@ export default function NewCharacterPage() {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => router.push('/dashboard/characters')}
+                onClick={() => router.push('/app/profile/characters')}
                 disabled={loading}
               >
                 Cancel
