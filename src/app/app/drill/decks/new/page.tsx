@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Upload, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
@@ -11,6 +11,8 @@ export const dynamic = 'force-dynamic';
 export default function NewDeckPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [importMode, setImportMode] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -19,8 +21,85 @@ export default function NewDeckPage() {
     isPublic: false,
   });
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const response = await fetch('/api/decks/template');
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'deck_import_template.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('Error downloading template:', error);
+      alert('Failed to download template');
+    }
+  };
+
+  const handleImport = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.name.trim()) {
+      alert('Deck name is required');
+      return;
+    }
+
+    if (!selectedFile) {
+      alert('Please select an Excel file to import');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const importFormData = new FormData();
+      importFormData.append('file', selectedFile);
+      importFormData.append('name', formData.name);
+      if (formData.description) importFormData.append('description', formData.description);
+      if (formData.category) importFormData.append('category', formData.category);
+      if (formData.difficulty) importFormData.append('difficulty', formData.difficulty);
+
+      const response = await fetch('/api/decks/import', {
+        method: 'POST',
+        body: importFormData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        alert(
+          `Deck imported successfully!\n${data.cardsImported} cards imported${data.errors.length > 0 ? `\n${data.errors.length} errors found` : ''}`
+        );
+        router.push(`/app/drill/decks/${data.deckId}/edit`);
+      } else {
+        alert(`Failed to import deck: ${data.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error importing deck:', error);
+      alert('Failed to import deck. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (importMode) {
+      return handleImport(e);
+    }
 
     if (!formData.name.trim()) {
       alert('Deck name is required');
@@ -67,6 +146,27 @@ export default function NewDeckPage() {
           <p className="text-gray-600 dark:text-gray-400">
             Create your own flashcard deck for studying Japanese
           </p>
+        </div>
+
+        {/* Mode Toggle */}
+        <div className="mb-6 flex gap-2">
+          <Button
+            type="button"
+            variant={!importMode ? 'default' : 'secondary'}
+            onClick={() => setImportMode(false)}
+            className="flex-1"
+          >
+            Create Empty Deck
+          </Button>
+          <Button
+            type="button"
+            variant={importMode ? 'default' : 'secondary'}
+            onClick={() => setImportMode(true)}
+            className="flex-1 gap-2"
+          >
+            <Upload size={20} />
+            Import from Excel
+          </Button>
         </div>
 
         {/* Form */}
@@ -155,10 +255,52 @@ export default function NewDeckPage() {
               </p>
             </div>
 
+            {/* Import Section (only when import mode is enabled) */}
+            {importMode && (
+              <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Upload Excel File *
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="file"
+                      accept=".xlsx,.xls"
+                      onChange={handleFileChange}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleDownloadTemplate}
+                      className="gap-2"
+                    >
+                      <FileSpreadsheet size={16} />
+                      Template
+                    </Button>
+                  </div>
+                  {selectedFile && (
+                    <p className="text-sm text-tertiary-green mt-2">
+                      Selected: {selectedFile.name}
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Download the template to see the required format
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Submit Buttons */}
             <div className="flex gap-4 pt-4">
               <Button type="submit" variant="default" disabled={loading} className="flex-1">
-                {loading ? 'Creating...' : 'Create Deck'}
+                {loading
+                  ? importMode
+                    ? 'Importing...'
+                    : 'Creating...'
+                  : importMode
+                    ? 'Import Deck'
+                    : 'Create Deck'}
               </Button>
               <Button
                 type="button"
@@ -174,13 +316,24 @@ export default function NewDeckPage() {
 
         {/* Help Text */}
         <div className="mt-6 bg-secondary/10 border border-secondary/30 rounded-lg p-4">
-          <h3 className="font-semibold text-secondary mb-2">Next Steps</h3>
-          <ul className="text-sm text-foreground space-y-1 list-disc list-inside">
-            <li>After creating the deck, you&apos;ll be redirected to the deck editor</li>
-            <li>Add flashcards manually or import them from an Excel file</li>
-            <li>Supported card types: Kanji, Vocabulary, and Grammar</li>
-            <li>You can mix different card types in one deck</li>
-          </ul>
+          <h3 className="font-semibold text-secondary mb-2">
+            {importMode ? 'Import Instructions' : 'Next Steps'}
+          </h3>
+          {importMode ? (
+            <ul className="text-sm text-foreground space-y-1 list-disc list-inside">
+              <li>Download the template to see the required Excel format</li>
+              <li>Fill in the template with your flashcard data</li>
+              <li>Supported card types: Kanji, Vocabulary, and Grammar</li>
+              <li>Upload the completed Excel file to import all cards at once</li>
+            </ul>
+          ) : (
+            <ul className="text-sm text-foreground space-y-1 list-disc list-inside">
+              <li>After creating the deck, you&apos;ll be redirected to the deck editor</li>
+              <li>Add flashcards manually or import them from an Excel file</li>
+              <li>Supported card types: Kanji, Vocabulary, and Grammar</li>
+              <li>You can mix different card types in one deck</li>
+            </ul>
+          )}
         </div>
       </div>
     </div>

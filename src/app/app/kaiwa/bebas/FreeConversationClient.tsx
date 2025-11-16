@@ -1,15 +1,26 @@
 'use client';
 
 import { User } from '@/types/user';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import StreamingChatInterface from '@/components/chat/StreamingChatInterface';
 import { useStreamingChat } from '@/hooks/useStreamingChat';
 
+interface Character {
+  id: string;
+  name: string;
+  description: string | null;
+  voice: string | null;
+  personality: Record<string, unknown>;
+  speakingStyle: string | null;
+  relationshipType: string | null;
+}
+
 interface ConversationSession {
   id: string;
   userId: string;
+  characterId: string;
   startTime: string;
   endTime: string | null;
   conversationHistory: {
@@ -24,6 +35,7 @@ interface ConversationSession {
     }>;
     startedAt: string;
   };
+  character: Character;
 }
 
 interface FreeConversationClientProps {
@@ -32,12 +44,14 @@ interface FreeConversationClientProps {
 
 export default function FreeConversationClient({ user }: FreeConversationClientProps) {
   const router = useRouter();
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [session, setSession] = useState<ConversationSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [voiceError, setVoiceError] = useState<string | null>(null);
 
-  // Initialize streaming chat
+  // Initialize streaming chat with custom endpoint
   const {
     messages: streamingMessages,
     isStreaming,
@@ -51,25 +65,54 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
       content: msg.content,
       timestamp: msg.timestamp,
       audioUrl: msg.voiceMetadata?.audioUrl,
-    })) || []
+    })) || [],
+    undefined, // No objective detection for free conversation
+    session ? `/api/free-conversation/${session.id}/stream` : undefined
   );
 
-  useEffect(() => {
-    initializeSession();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const initializeSession = async () => {
+  const loadCharacters = useCallback(async () => {
     try {
-      // Create or get active free conversation session
+      // Fetch user's characters
+      const response = await fetch(`/api/characters?userId=${user.id}`);
+
+      if (!response.ok) {
+        throw new Error('Failed to load characters');
+      }
+
+      const data = await response.json();
+      setCharacters(data || []);
+    } catch (err) {
+      console.error('Error loading characters:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load characters');
+    } finally {
+      setLoading(false);
+    }
+  }, [user.id]);
+
+  // Load available characters on mount
+  useEffect(() => {
+    loadCharacters();
+  }, [loadCharacters]);
+
+  const handleCharacterSelect = async (character: Character) => {
+    setSelectedCharacter(character);
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Create or get active free conversation session for this character
       const response = await fetch('/api/free-conversation/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id }),
+        body: JSON.stringify({
+          userId: user.id,
+          characterId: character.id,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to initialize conversation session');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to initialize conversation session');
       }
 
       const data = await response.json();
@@ -77,9 +120,15 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
     } catch (err) {
       console.error('Error initializing session:', err);
       setError(err instanceof Error ? err.message : 'Failed to initialize session');
+      setSelectedCharacter(null);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleBackToCharacterSelect = () => {
+    setSession(null);
+    setSelectedCharacter(null);
   };
 
   const handleVoiceRecording = async (audioBlob: Blob, duration: number) => {
@@ -145,20 +194,22 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
     }
   };
 
-  if (loading) {
+  // Loading state
+  if (loading && !session) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-400">
-            会話を準備中... / Loading conversation...
+            キャラクターを読み込み中... / Loading characters...
           </p>
         </div>
       </div>
     );
   }
 
-  if (error || !session) {
+  // Error state
+  if (error && !session) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -173,9 +224,7 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
         </nav>
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
-            <p className="text-primary">
-              {error || 'セッションが見つかりません / Session not found'}
-            </p>
+            <p className="text-primary">{error}</p>
             <Button onClick={() => router.push('/app/kaiwa')} className="mt-4">
               Kaiwaに戻る / Back to Kaiwa
             </Button>
@@ -185,9 +234,119 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
     );
   }
 
-  // Sidebar content
+  // Character selection screen
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                自由会話 / Free Conversation
+              </h1>
+              <Button onClick={() => router.push('/app/kaiwa')} variant="secondary">
+                Back to Kaiwa
+              </Button>
+            </div>
+          </div>
+        </nav>
+
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              会話相手を選んでください / Select Your Conversation Partner
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              キャラクターを選んで、自由に日本語で会話しましょう！ / Choose a character and start
+              your free conversation in Japanese!
+            </p>
+          </div>
+
+          {characters.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                利用可能なキャラクターがありません / No characters available
+              </p>
+              <Button onClick={() => router.push('/app/characters/new')}>
+                キャラクターを作成 / Create Character
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {characters.map(character => (
+                <div
+                  key={character.id}
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden"
+                >
+                  <div className="p-6">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                      {character.name}
+                    </h3>
+
+                    {character.description && (
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
+                        {character.description}
+                      </p>
+                    )}
+
+                    {character.relationshipType && (
+                      <div className="mb-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                          {character.relationshipType}
+                        </span>
+                      </div>
+                    )}
+
+                    {character.speakingStyle && (
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mb-4 italic">
+                        &ldquo;{character.speakingStyle}&rdquo;
+                      </p>
+                    )}
+
+                    <Button
+                      onClick={() => handleCharacterSelect(character)}
+                      className="w-full"
+                      disabled={loading}
+                    >
+                      {loading && selectedCharacter?.id === character.id ? (
+                        <>
+                          <div className="inline-block h-4 w-4 mr-2 animate-spin rounded-full border-2 border-solid border-current border-r-transparent"></div>
+                          準備中... / Loading...
+                        </>
+                      ) : (
+                        <>会話を始める / Start Conversation</>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
+    );
+  }
+
+  // Chat interface (when session exists)
   const sidebarContent = (
     <div className="p-6">
+      {/* Character Info */}
+      {session.character && (
+        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+            会話相手 / Conversation Partner
+          </h3>
+          <p className="text-lg font-semibold text-blue-900 dark:text-blue-100">
+            {session.character.name}
+          </p>
+          {session.character.relationshipType && (
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+              {session.character.relationshipType}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Voice Error Display */}
       {voiceError && (
         <div className="mb-4 p-3 bg-primary/10 border border-primary/30 rounded-lg">
@@ -245,15 +404,26 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
             メッセージ数: {streamingMessages.length}
           </p>
         </div>
+
+        <div className="pt-2">
+          <Button
+            onClick={handleBackToCharacterSelect}
+            variant="outline"
+            size="sm"
+            className="w-full"
+          >
+            キャラクターを変更 / Change Character
+          </Button>
+        </div>
       </div>
     </div>
   );
 
   return (
     <StreamingChatInterface
-      title="自由会話 / Free Conversation"
+      title={`${session.character.name}と会話 / Chat with ${session.character.name}`}
       subtitle="日本語で自由に話しましょう / Let's talk freely in Japanese"
-      onBack={() => router.push('/app/kaiwa')}
+      onBack={handleBackToCharacterSelect}
       headerActions={
         <Button onClick={resetChat} variant="outline" size="sm">
           リセット / Reset

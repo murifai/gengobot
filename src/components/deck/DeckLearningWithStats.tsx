@@ -55,7 +55,22 @@ export default function DeckLearningWithStats({
 }: DeckLearningWithStatsProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('learning');
 
-  const handleCompleteLearning = () => {
+  const handleCompleteLearning = async () => {
+    // Mark session as completed in database BEFORE showing stats
+    try {
+      await fetch(`/api/app/drill-sessions/${sessionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          isCompleted: true,
+          endTime: new Date().toISOString(),
+        }),
+      });
+    } catch (err) {
+      console.error('Error completing session:', err);
+    }
+
+    // Then show completion stats
     setViewMode('completed');
   };
 

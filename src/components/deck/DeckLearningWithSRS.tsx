@@ -53,7 +53,7 @@ export default function DeckLearningWithSRS({
 }: DeckLearningWithSRSProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [reviewedCards, setReviewedCards] = useState<Set<number>>(new Set());
+  const [ratedCards, setRatedCards] = useState<Set<number>>(new Set());
   const [reviewStartTime, setReviewStartTime] = useState<number>(Date.now());
   const [submittingRating, setSubmittingRating] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -64,7 +64,7 @@ export default function DeckLearningWithSRS({
 
   const currentCard = deck.flashcards[currentIndex];
   const totalCards = deck.flashcards.length;
-  const progress = ((reviewedCards.size / totalCards) * 100).toFixed(0);
+  const progress = ((ratedCards.size / totalCards) * 100).toFixed(0);
 
   // Minimum swipe distance (in px)
   const minSwipeDistance = 50;
@@ -169,15 +169,15 @@ export default function DeckLearningWithSRS({
     }
 
     setShowAnswer(!showAnswer);
-    if (!showAnswer) {
-      setReviewedCards(prev => new Set([...prev, currentIndex]));
-    }
   };
 
   const handleRating = async (rating: Rating) => {
     try {
       setSubmittingRating(true);
       const responseTime = Math.floor((Date.now() - reviewStartTime) / 1000); // in seconds
+
+      // Mark card as rated for progress tracking
+      setRatedCards(prev => new Set([...prev, currentIndex]));
 
       const response = await fetch(`/api/flashcards/${currentCard.id}/review`, {
         method: 'POST',

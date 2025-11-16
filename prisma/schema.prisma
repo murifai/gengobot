@@ -221,10 +221,11 @@ model Character {
   relationshipType String? // For free chat (secondary feature)
   isUserCreated    Boolean @default(true)
 
-  userId        String?
-  user          User?          @relation(fields: [userId], references: [id])
-  conversations Conversation[]
-  tasks         Task[]
+  userId             String?
+  user               User?               @relation(fields: [userId], references: [id])
+  conversations      Conversation[]
+  tasks              Task[]
+  freeConversations  FreeConversation[]
 
   @@index([userId])
   @@index([taskSpecific])
@@ -410,14 +411,17 @@ model StudySession {
 model FreeConversation {
   id                  String   @id @default(cuid())
   userId              String
+  characterId         String? // Character for this conversation (optional for migration)
   startTime           String // ISO DateTime as string
   endTime             String? // ISO DateTime as string
   conversationHistory Json // { messages: [], startedAt: string }
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  character Character? @relation(fields: [characterId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([characterId])
   @@index([createdAt])
 }

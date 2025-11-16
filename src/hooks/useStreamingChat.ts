@@ -39,11 +39,13 @@ export interface UseStreamingChatReturn {
  * Provides instant UI updates and real-time streaming
  * Now includes automatic localStorage persistence across page reloads
  * Includes objective detection for task feedback system
+ * Supports custom API endpoints for different chat types
  */
 export function useStreamingChat(
   attemptId: string,
   initialMessages: StreamingMessage[] = [],
-  onObjectivesDetected?: (data: ObjectiveDetectionResult) => void
+  onObjectivesDetected?: (data: ObjectiveDetectionResult) => void,
+  apiEndpoint?: string
 ): UseStreamingChatReturn {
   const [messages, setMessages] = useState<StreamingMessage[]>(initialMessages);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -136,7 +138,10 @@ export function useStreamingChat(
       abortControllerRef.current = new AbortController();
 
       try {
-        const response = await fetch(`/api/task-attempts/${attemptId}/stream`, {
+        // Use custom endpoint if provided, otherwise default to task-attempts
+        const endpoint = apiEndpoint || `/api/task-attempts/${attemptId}/stream`;
+
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ message: messageText.trim() }),
@@ -246,8 +251,8 @@ export function useStreamingChat(
                   temporaryUrl: temporaryAudioUrl,
                 });
 
-                // Detect objectives after message completion
-                if (onObjectivesDetected) {
+                // Detect objectives after message completion (only for task-based conversations)
+                if (onObjectivesDetected && !apiEndpoint) {
                   detectObjectives(userMessageContent, assistantMessageContent);
                 }
               } else if (data.content) {

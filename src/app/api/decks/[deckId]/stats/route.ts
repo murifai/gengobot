@@ -88,15 +88,21 @@ export async function GET(request: Request, { params }: RouteParams) {
     const studyStreak = await calculateDeckStudyStreak(dbUser.id, deckId);
 
     // Get recent sessions (last 10)
-    const recentSessions = sessions.slice(0, 10).map(s => ({
-      id: s.id,
-      startTime: s.startTime,
-      endTime: s.endTime,
-      cardsReviewed: s.cardsReviewed,
-      hafalCount: s.hafalCount,
-      belumHafalCount: s.belumHafalCount,
-      accuracy: s.cardsReviewed > 0 ? Math.round((s.cardsCorrect / s.cardsReviewed) * 100) : 0,
-    }));
+    const recentSessions = sessions.slice(0, 10).map(s => {
+      // Calculate accuracy: hafal / (hafal + belumHafal) * 100
+      const totalRated = s.hafalCount + s.belumHafalCount;
+      const accuracy = totalRated > 0 ? Math.round((s.hafalCount / totalRated) * 100) : 0;
+
+      return {
+        id: s.id,
+        startTime: s.startTime,
+        endTime: s.endTime,
+        cardsReviewed: s.cardsReviewed,
+        hafalCount: s.hafalCount,
+        belumHafalCount: s.belumHafalCount,
+        accuracy,
+      };
+    });
 
     return NextResponse.json({
       deckId: deck.id,
