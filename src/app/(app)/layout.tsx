@@ -9,7 +9,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const session = await auth();
 
   if (!session?.user?.email) {
-    redirect('/login');
+    redirect('/?login=required');
   }
 
   const user: User = {

@@ -3,6 +3,8 @@ import Link from 'next/link';
 import DeckBrowser from '@/components/deck/DeckBrowser';
 import { LoadingState } from '@/components/ui/LoadingState';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Study Decks - Gengobot',
   description: 'Browse and study flashcard decks',

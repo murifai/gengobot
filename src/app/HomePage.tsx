@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { motion } from 'framer-motion';
 
 export function HomePage() {
@@ -24,7 +25,8 @@ export function HomePage() {
       <nav className="fixed top-0 w-full z-50 border-b border-[var(--border)] bg-white/70 dark:bg-[var(--dark)]/60 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center h-16">
           <h1 className="text-2xl font-bold text-[var(--primary)]">GengoBot</h1>
-          <div className="flex gap-4">
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
             {loading ? (
               <div className="h-10 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
             ) : user ? (

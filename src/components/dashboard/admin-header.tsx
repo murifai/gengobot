@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { LogOut, User } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import {
@@ -80,6 +81,8 @@ export function AdminHeader({ user }: AdminHeaderProps) {
           <User className="mr-2 h-4 w-4" />
           User Dashboard
         </Button>
+
+        <ThemeToggle />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
