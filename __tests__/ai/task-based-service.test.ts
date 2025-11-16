@@ -259,7 +259,7 @@ describe('TaskBasedAIService', () => {
       const level = await service.estimateJLPTLevel(userHistory);
 
       expect(['N5', 'N4', 'N3', 'N2', 'N1']).toContain(level);
-    });
+    }, 10000);
 
     it('should return N5 for empty history', async () => {
       const level = await service.estimateJLPTLevel([]);

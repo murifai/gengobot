@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrentSessionUser } from '@/lib/auth/session';
 
 // GET /api/tasks - Retrieve tasks with filtering and pagination
 export async function GET(request: NextRequest) {
   try {
+    // Require authentication
+    const user = await getCurrentSessionUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
     const searchParams = request.nextUrl.searchParams;
     const category = searchParams.get('category');
     const difficulty = searchParams.get('difficulty');

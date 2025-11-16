@@ -6,27 +6,22 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Protected routes - require authentication
+  // Instead of redirecting to login page, we'll redirect to home with a query param
+  // The home page will detect this and show the login modal
   if (pathname.startsWith('/dashboard') && !session) {
     const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    url.searchParams.set('callbackUrl', pathname);
+    url.pathname = '/';
+    url.searchParams.set('login', 'required');
+    url.searchParams.set('returnTo', pathname);
     return NextResponse.redirect(url);
   }
 
-  // Admin routes - require authentication (admin check happens in layout with Prisma)
+  // Admin routes - require authentication
   if (pathname.startsWith('/admin') && !session) {
     const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    url.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(url);
-  }
-
-  // Redirect to dashboard if already logged in
-  if (pathname === '/login' && session) {
-    const callbackUrl = request.nextUrl.searchParams.get('callbackUrl');
-    const url = request.nextUrl.clone();
-    url.pathname = callbackUrl || '/dashboard';
-    url.search = '';
+    url.pathname = '/';
+    url.searchParams.set('login', 'required');
+    url.searchParams.set('returnTo', pathname);
     return NextResponse.redirect(url);
   }
 
