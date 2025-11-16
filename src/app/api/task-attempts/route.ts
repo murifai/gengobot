@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrentSessionUser } from '@/lib/auth/session';
 
 /**
  * GET /api/task-attempts
@@ -16,6 +17,13 @@ import { prisma } from '@/lib/prisma';
  */
 export async function GET(request: NextRequest) {
   try {
+    // Require authentication
+    const user = await getCurrentSessionUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const userId = searchParams.get('userId');
     const taskId = searchParams.get('taskId');
@@ -26,7 +34,12 @@ export async function GET(request: NextRequest) {
 
     // Build where clause
     const where: Record<string, unknown> = {};
-    if (userId) where.userId = userId;
+    // Security: Non-admins can only view their own attempts
+    if (user.isAdmin) {
+      if (userId) where.userId = userId;
+    } else {
+      where.userId = user.id; // Force filter by current user
+    }
     if (taskId) where.taskId = taskId;
 
     // Handle completion status filters
