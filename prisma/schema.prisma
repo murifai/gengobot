@@ -135,6 +135,7 @@ model User {
   decks              Deck[]
   studySessions      StudySession[]
   freeConversations  FreeConversation[]
+  analyticsEvents    AnalyticsEvent[]
 
   @@index([email])
   @@index([isAdmin])
@@ -424,4 +425,23 @@ model FreeConversation {
   @@index([userId])
   @@index([characterId])
   @@index([createdAt])
+}
+
+// Analytics Event model - Track user events and interactions
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  userId     String?
+  eventName  String // e.g., 'page_view', 'kaiwa_session_start', etc.
+  properties Json? // Event-specific properties
+  timestamp  DateTime @default(now())
+  userAgent  String?
+  ip         String?
+  url        String?
+  referrer   String?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([eventName])
+  @@index([timestamp])
 }

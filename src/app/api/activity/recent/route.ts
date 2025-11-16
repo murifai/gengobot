@@ -18,40 +18,35 @@ export async function GET() {
     const recentTasks = await prisma.taskAttempt.findMany({
       where: {
         userId,
-        status: 'completed',
+        isCompleted: true,
       },
       orderBy: {
-        completedAt: 'desc',
+        endTime: 'desc',
       },
       take: 5,
       include: {
         task: {
           select: {
             title: true,
-            jlptLevel: true,
+            difficulty: true,
           },
         },
       },
     });
 
-    // Get recent card reviews
-    const recentReviews = await prisma.cardReview.findMany({
+    // Get recent study sessions
+    const recentSessions = await prisma.studySession.findMany({
       where: {
         userId,
       },
       orderBy: {
-        reviewedAt: 'desc',
+        startTime: 'desc',
       },
       take: 5,
       include: {
-        card: {
+        deck: {
           select: {
-            front: true,
-            deck: {
-              select: {
-                name: true,
-              },
-            },
+            name: true,
           },
         },
       },
@@ -63,19 +58,19 @@ export async function GET() {
         type: 'task_complete' as const,
         data: {
           title: attempt.task.title,
-          jlptLevel: attempt.task.jlptLevel,
-          score: attempt.score,
+          jlptLevel: attempt.task.difficulty,
+          score: null,
         },
-        timestamp: attempt.completedAt || attempt.createdAt,
+        timestamp: attempt.endTime || attempt.startTime,
       })),
-      ...recentReviews.map(review => ({
+      ...recentSessions.map(session => ({
         type: 'cards_learned' as const,
         data: {
-          word: review.card.front,
-          deckName: review.card.deck.name,
-          quality: review.quality,
+          word: 'Study session',
+          deckName: session.deck.name,
+          quality: session.cardsReviewed || 0,
         },
-        timestamp: review.reviewedAt,
+        timestamp: session.startTime,
       })),
     ]
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
