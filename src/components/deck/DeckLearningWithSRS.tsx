@@ -358,8 +358,8 @@ export default function DeckLearningWithSRS({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-      <div className="max-w-3xl w-full">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center md:p-4">
+      <div className="max-w-3xl w-full px-4 md:px-0">
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
           <div>
@@ -377,7 +377,7 @@ export default function DeckLearningWithSRS({
         </div>
 
         {/* Progress Bar */}
-        <div className="mb-6">
+        <div className="mb-6 md:mb-6">
           <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
             <span>
               Kartu {currentIndex + 1} dari {totalCards}
@@ -389,6 +389,39 @@ export default function DeckLearningWithSRS({
               className="h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%`, backgroundColor: 'var(--secondary)' }}
             />
+          </div>
+        </div>
+
+        {/* Swipe Instructions - Mobile only, placed before card container */}
+        <div className="md:hidden mb-3 flex justify-between items-center px-4 text-sm">
+          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            <span>Belum hafal</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+            <span>Hafal</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </div>
         </div>
 
@@ -439,7 +472,7 @@ export default function DeckLearningWithSRS({
             </div>
           </div>
 
-          {/* Arrow Rating Buttons - Always visible, always rate directly */}
+          {/* Arrow Rating Buttons - Hidden on mobile (< md), visible on desktop */}
           {/* Left - Belum Hafal (X icon) */}
           <button
             onClick={e => {
@@ -447,7 +480,7 @@ export default function DeckLearningWithSRS({
               handleRating('belum_hafal');
             }}
             disabled={submittingRating}
-            className="rating-button absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 z-20"
+            className="rating-button hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 w-12 h-12 rounded-full items-center justify-center shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 z-20"
             style={{
               backgroundColor: submittingRating ? 'hsl(var(--muted))' : 'var(--primary)',
               color: submittingRating ? 'hsl(var(--muted-foreground))' : '#fff',
@@ -477,7 +510,7 @@ export default function DeckLearningWithSRS({
               handleRating('hafal');
             }}
             disabled={submittingRating}
-            className="rating-button absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 z-20"
+            className="rating-button hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 w-12 h-12 rounded-full items-center justify-center shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 z-20"
             style={{
               backgroundColor: submittingRating ? 'hsl(var(--muted))' : 'var(--tertiary-green)',
               color: submittingRating ? 'hsl(var(--muted-foreground))' : '#fff',
