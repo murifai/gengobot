@@ -21,15 +21,6 @@ export const LazyFreeConversationClient = dynamic(
   }
 );
 
-export const LazyTaskList = dynamic(() => import('@/components/task/TaskList'), {
-  loading: DefaultLoader,
-});
-
-export const LazyRoleplaySession = dynamic(() => import('@/components/task/RoleplaySession'), {
-  loading: DefaultLoader,
-  ssr: false,
-});
-
 // Drill Components
 export const LazyDeckLearningWithStats = dynamic(
   () => import('@/components/deck/DeckLearningWithStats'),
@@ -39,60 +30,36 @@ export const LazyDeckLearningWithStats = dynamic(
   }
 );
 
-export const LazyDeckList = dynamic(() => import('@/components/deck/DeckList'), {
-  loading: DefaultLoader,
-});
+// Dashboard Components (named exports)
+export const LazyStatsCard = dynamic(
+  () => import('@/components/dashboard/stats-card').then(mod => mod.StatsCard),
+  {
+    loading: () =>
+      React.createElement('div', {
+        className: 'animate-pulse bg-gray-200 dark:bg-gray-800 h-32 rounded-lg',
+      }),
+  }
+);
 
-export const LazyFlashcardEditor = dynamic(() => import('@/components/flashcard/FlashcardEditor'), {
-  loading: DefaultLoader,
-  ssr: false,
-});
+export const LazyActivityChart = dynamic(
+  () => import('@/components/dashboard/activity-chart').then(mod => mod.ActivityChart),
+  {
+    loading: () =>
+      React.createElement('div', {
+        className: 'animate-pulse bg-gray-200 dark:bg-gray-800 h-64 rounded-lg',
+      }),
+  }
+);
 
-// Dashboard Components
-export const LazyStatsCard = dynamic(() => import('@/components/dashboard/stats-card'), {
-  loading: () =>
-    React.createElement('div', {
-      className: 'animate-pulse bg-gray-200 dark:bg-gray-800 h-32 rounded-lg',
-    }),
-});
-
-export const LazyActivityChart = dynamic(() => import('@/components/dashboard/activity-chart'), {
-  loading: () =>
-    React.createElement('div', {
-      className: 'animate-pulse bg-gray-200 dark:bg-gray-800 h-64 rounded-lg',
-    }),
-});
-
-export const LazyRecentActivity = dynamic(() => import('@/components/dashboard/recent-activity'), {
-  loading: () =>
-    React.createElement('div', {
-      className: 'animate-pulse bg-gray-200 dark:bg-gray-800 h-96 rounded-lg',
-    }),
-});
-
-// Profile Components
-export const LazyCharacterForm = dynamic(() => import('@/components/character/CharacterForm'), {
-  loading: DefaultLoader,
-  ssr: false,
-});
-
-export const LazyProgressChart = dynamic(() => import('@/components/dashboard/progress-chart'), {
-  loading: () =>
-    React.createElement('div', {
-      className: 'animate-pulse bg-gray-200 dark:bg-gray-800 h-96 rounded-lg',
-    }),
-});
-
-// Heavy Libraries (charts, editors, etc)
-export const LazyRichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor'), {
-  loading: DefaultLoader,
-  ssr: false,
-});
-
-// Admin Components
-export const LazyAdminDashboard = dynamic(() => import('@/components/admin/AdminDashboard'), {
-  loading: DefaultLoader,
-});
+export const LazyRecentActivity = dynamic(
+  () => import('@/components/dashboard/recent-activity').then(mod => mod.RecentActivity),
+  {
+    loading: () =>
+      React.createElement('div', {
+        className: 'animate-pulse bg-gray-200 dark:bg-gray-800 h-96 rounded-lg',
+      }),
+  }
+);
 
 /**
  * Prefetch components on hover for instant loading
@@ -106,16 +73,8 @@ export const prefetchComponent = (componentName: keyof typeof lazyComponents) =>
 
 const lazyComponents = {
   FreeConversationClient: LazyFreeConversationClient,
-  TaskList: LazyTaskList,
-  RoleplaySession: LazyRoleplaySession,
   DeckLearningWithStats: LazyDeckLearningWithStats,
-  DeckList: LazyDeckList,
-  FlashcardEditor: LazyFlashcardEditor,
   StatsCard: LazyStatsCard,
   ActivityChart: LazyActivityChart,
   RecentActivity: LazyRecentActivity,
-  CharacterForm: LazyCharacterForm,
-  ProgressChart: LazyProgressChart,
-  RichTextEditor: LazyRichTextEditor,
-  AdminDashboard: LazyAdminDashboard,
 };

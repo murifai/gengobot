@@ -22,14 +22,14 @@ export async function GET() {
     const taskAttempts = await prisma.taskAttempt.findMany({
       where: {
         userId,
-        status: 'completed',
-        completedAt: {
+        isCompleted: true,
+        endTime: {
           gte: sevenDaysAgo,
         },
       },
       select: {
-        completedAt: true,
-        createdAt: true,
+        endTime: true,
+        startTime: true,
       },
     });
 
@@ -38,8 +38,8 @@ export async function GET() {
     const sessionsCount = taskAttempts.length;
 
     taskAttempts.forEach(attempt => {
-      if (attempt.completedAt && attempt.createdAt) {
-        const duration = attempt.completedAt.getTime() - attempt.createdAt.getTime();
+      if (attempt.endTime && attempt.startTime) {
+        const duration = attempt.endTime.getTime() - attempt.startTime.getTime();
         totalMinutes += Math.floor(duration / 1000 / 60);
       }
     });
@@ -54,14 +54,14 @@ export async function GET() {
       nextDay.setDate(nextDay.getDate() + 1);
 
       const attemptsForDay = taskAttempts.filter(attempt => {
-        const attemptDate = new Date(attempt.completedAt || attempt.createdAt);
+        const attemptDate = new Date(attempt.endTime || attempt.startTime);
         return attemptDate >= date && attemptDate < nextDay;
       });
 
       let minutesForDay = 0;
       attemptsForDay.forEach(attempt => {
-        if (attempt.completedAt && attempt.createdAt) {
-          const duration = attempt.completedAt.getTime() - attempt.createdAt.getTime();
+        if (attempt.endTime && attempt.startTime) {
+          const duration = attempt.endTime.getTime() - attempt.startTime.getTime();
           minutesForDay += Math.floor(duration / 1000 / 60);
         }
       });

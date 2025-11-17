@@ -105,7 +105,14 @@ export function useTasks(filters?: Record<string, string | number | boolean>) {
   return useQuery({
     queryKey: queryKeys.tasks.list(filters),
     queryFn: async () => {
-      const params = new URLSearchParams(filters);
+      const params = new URLSearchParams(
+        filters
+          ? Object.entries(filters).reduce(
+              (acc, [key, value]) => ({ ...acc, [key]: String(value) }),
+              {} as Record<string, string>
+            )
+          : undefined
+      );
       const response = await fetch(`/api/tasks?${params}`);
       if (!response.ok) throw new Error('Failed to fetch tasks');
       return response.json();

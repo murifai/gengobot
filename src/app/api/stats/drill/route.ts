@@ -14,44 +14,53 @@ export async function GET() {
 
     const userId = session.user.id;
 
-    // Get all user's decks
+    // Get all flashcards from user's decks
     const decks = await prisma.deck.findMany({
       where: {
-        userId,
+        createdBy: userId,
       },
       include: {
-        cards: {
-          include: {
-            reviews: {
-              where: {
-                userId,
-              },
-              orderBy: {
-                reviewedAt: 'desc',
-              },
-              take: 1,
-            },
+        flashcards: {
+          select: {
+            id: true,
           },
         },
       },
     });
 
-    let totalCards = 0;
-    let masteredCards = 0;
+    const totalCards = decks.reduce((sum, deck) => sum + deck.flashcards.length, 0);
 
-    decks.forEach(deck => {
-      deck.cards.forEach(card => {
-        totalCards++;
+    // Get the latest review for each flashcard
+    const flashcardIds = decks.flatMap(deck => deck.flashcards.map(f => f.id));
 
-        // Consider a card mastered if it has been reviewed and has interval > 21 days
-        if (card.reviews.length > 0) {
-          const lastReview = card.reviews[0];
-          if (lastReview.interval && lastReview.interval >= 21) {
-            masteredCards++;
-          }
-        }
+    if (flashcardIds.length === 0) {
+      return NextResponse.json({
+        totalCards: 0,
+        masteredCards: 0,
+        masteryPercentage: 0,
       });
+    }
+
+    // Get latest review for each flashcard through study sessions
+    const latestReviews = await prisma.flashcardReview.findMany({
+      where: {
+        flashcardId: { in: flashcardIds },
+        session: {
+          userId,
+        },
+      },
+      orderBy: {
+        reviewedAt: 'desc',
+      },
+      distinct: ['flashcardId'],
+      select: {
+        flashcardId: true,
+        interval: true,
+      },
     });
+
+    // Consider a card mastered if it has been reviewed and has interval >= 21 days
+    const masteredCards = latestReviews.filter(review => review.interval >= 21).length;
 
     const masteryPercentage = totalCards > 0 ? Math.round((masteredCards / totalCards) * 100) : 0;
 

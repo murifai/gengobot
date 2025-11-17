@@ -12,7 +12,7 @@ import { analytics, EventName, EventProperties } from './events';
  */
 export function usePageTracking() {
   const pathname = usePathname();
-  const previousPath = useRef<string>();
+  const previousPath = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (pathname && pathname !== previousPath.current) {
@@ -36,8 +36,6 @@ export function useTrackEvent() {
  * Track component mount/unmount
  */
 export function useTrackLifecycle(componentName: string, properties?: EventProperties) {
-  const mountTime = useRef<number>(Date.now());
-
   useEffect(() => {
     const mounted = Date.now();
 
@@ -97,7 +95,7 @@ export function useTrackError() {
  * Track performance metrics
  */
 export function usePerformanceTracking(metricName: string) {
-  const startTime = useRef<number>();
+  const startTime = useRef<number | undefined>(undefined);
 
   const start = useCallback(() => {
     startTime.current = Date.now();
@@ -105,7 +103,7 @@ export function usePerformanceTracking(metricName: string) {
 
   const end = useCallback(
     (properties?: EventProperties) => {
-      if (startTime.current) {
+      if (startTime.current !== undefined) {
         const duration = Date.now() - startTime.current;
         analytics.track('page_view', {
           label: `perf_${metricName}`,

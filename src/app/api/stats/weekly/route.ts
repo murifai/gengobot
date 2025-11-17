@@ -21,21 +21,23 @@ export async function GET() {
     const taskAttempts = await prisma.taskAttempt.findMany({
       where: {
         userId,
-        status: 'completed',
-        completedAt: {
+        isCompleted: true,
+        endTime: {
           gte: sevenDaysAgo,
         },
       },
       select: {
-        completedAt: true,
-        createdAt: true,
+        endTime: true,
+        startTime: true,
       },
     });
 
-    // Get card reviews for weekly chart
-    const cardReviews = await prisma.cardReview.findMany({
+    // Get flashcard reviews for weekly chart
+    const flashcardReviews = await prisma.flashcardReview.findMany({
       where: {
-        userId,
+        session: {
+          userId,
+        },
         reviewedAt: {
           gte: sevenDaysAgo,
         },
@@ -62,14 +64,14 @@ export async function GET() {
 
       // Calculate kaiwa minutes for this day
       const attemptsForDay = taskAttempts.filter(attempt => {
-        const attemptDate = new Date(attempt.completedAt || attempt.createdAt);
+        const attemptDate = new Date(attempt.endTime || attempt.startTime);
         return attemptDate >= date && attemptDate < nextDay;
       });
 
       let minutesForDay = 0;
       attemptsForDay.forEach(attempt => {
-        if (attempt.completedAt && attempt.createdAt) {
-          const duration = attempt.completedAt.getTime() - attempt.createdAt.getTime();
+        if (attempt.endTime && attempt.startTime) {
+          const duration = attempt.endTime.getTime() - attempt.startTime.getTime();
           minutesForDay += Math.floor(duration / 1000 / 60);
         }
       });
@@ -77,7 +79,7 @@ export async function GET() {
       kaiwaMinutes.push(minutesForDay);
 
       // Calculate cards learned for this day
-      const reviewsForDay = cardReviews.filter(review => {
+      const reviewsForDay = flashcardReviews.filter(review => {
         const reviewDate = new Date(review.reviewedAt);
         return reviewDate >= date && reviewDate < nextDay;
       });
