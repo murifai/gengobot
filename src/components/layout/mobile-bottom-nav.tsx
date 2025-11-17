@@ -30,11 +30,10 @@ export function MobileBottomNav() {
     return pathname?.startsWith(href);
   };
 
-  // Hide navigation in chat routes
+  // Hide navigation in chat routes (only when actually in chat interface)
   const isChatRoute =
-    pathname?.includes('/kaiwa/bebas') ||
-    pathname?.includes('/kaiwa/roleplay') ||
     pathname?.includes('/chat') ||
+    (pathname?.includes('/kaiwa/roleplay/') && pathname?.includes('/attempt/')) ||
     (pathname?.includes('/tasks/') && pathname?.includes('/attempt/'));
 
   if (isChatRoute) {
@@ -42,7 +41,10 @@ export function MobileBottomNav() {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none pb-4">
+    <div
+      className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none pb-4"
+      data-mobile-nav="true"
+    >
       <div className="flex items-center justify-center pointer-events-auto">
         <Dock magnification={80} distance={120} panelHeight={64}>
           {navItems.map(item => {

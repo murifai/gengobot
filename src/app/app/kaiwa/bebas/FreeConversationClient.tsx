@@ -10,6 +10,20 @@ import { CharacterQuickCreateModal } from '@/components/kaiwa/bebas/character-qu
 import { EmptyCharacterState } from '@/components/kaiwa/bebas/empty-character-state';
 import { RotateCcw } from 'lucide-react';
 
+// Component to hide mobile navbar
+function HideMobileNav() {
+  useEffect(() => {
+    const nav = document.querySelector('[data-mobile-nav="true"]') as HTMLElement;
+    if (nav) {
+      nav.style.display = 'none';
+      return () => {
+        nav.style.display = '';
+      };
+    }
+  }, []);
+  return null;
+}
+
 interface Character {
   id: string;
   name: string;
@@ -222,7 +236,7 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   // Error state
   if (error && !session) {
     return (
-      <div className="fixed inset-0 bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
             <p className="text-primary">{error}</p>
@@ -238,7 +252,7 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   // Character selection screen
   if (!session) {
     return (
-      <div className="fixed inset-0 bg-gray-50 dark:bg-gray-900 overflow-y-auto">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -318,32 +332,35 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
 
   // Chat interface (when session exists)
   return (
-    <StreamingChatInterface
-      title={`${session.character.name}と会話 / Chat with ${session.character.name}`}
-      subtitle="日本語で自由に話しましょう / Let's talk freely in Japanese"
-      onBack={handleBackToCharacterSelect}
-      headerActions={
-        <Button
-          onClick={resetChat}
-          variant="outline"
-          size="icon"
-          title="リセット / Reset"
-          aria-label="リセット / Reset"
-        >
-          <RotateCcw className="h-4 w-4" />
-        </Button>
-      }
-      messages={streamingMessages}
-      isStreaming={isStreaming}
-      onSendMessage={sendMessage}
-      onVoiceRecording={handleVoiceRecording}
-      placeholder="日本語でメッセージを入力... / Type your message in Japanese..."
-      disabled={false}
-      enableVoice={true}
-      emptyStateMessage="自由に会話を始めましょう！ / Start your free conversation!"
-      error={streamingError}
-      onClearError={clearStreamingError}
-      attemptId={session.id}
-    />
+    <>
+      <HideMobileNav />
+      <StreamingChatInterface
+        title={`${session.character.name}と会話 / Chat with ${session.character.name}`}
+        subtitle="日本語で自由に話しましょう / Let's talk freely in Japanese"
+        onBack={handleBackToCharacterSelect}
+        headerActions={
+          <Button
+            onClick={resetChat}
+            variant="outline"
+            size="icon"
+            title="リセット / Reset"
+            aria-label="リセット / Reset"
+          >
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+        }
+        messages={streamingMessages}
+        isStreaming={isStreaming}
+        onSendMessage={sendMessage}
+        onVoiceRecording={handleVoiceRecording}
+        placeholder="日本語でメッセージを入力... / Type your message in Japanese..."
+        disabled={false}
+        enableVoice={true}
+        emptyStateMessage="自由に会話を始めましょう！ / Start your free conversation!"
+        error={streamingError}
+        onClearError={clearStreamingError}
+        attemptId={session.id}
+      />
+    </>
   );
 }
