@@ -30,6 +30,17 @@ export function MobileBottomNav() {
     return pathname?.startsWith(href);
   };
 
+  // Hide navigation in chat routes
+  const isChatRoute =
+    pathname?.includes('/kaiwa/bebas') ||
+    pathname?.includes('/kaiwa/roleplay') ||
+    pathname?.includes('/chat') ||
+    (pathname?.includes('/tasks/') && pathname?.includes('/attempt/'));
+
+  if (isChatRoute) {
+    return null;
+  }
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none pb-4">
       <div className="flex items-center justify-center pointer-events-auto">

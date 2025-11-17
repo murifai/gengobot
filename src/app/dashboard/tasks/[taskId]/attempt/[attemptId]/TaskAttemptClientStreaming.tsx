@@ -10,6 +10,7 @@ import { SimplifiedAssessment } from '@/types/assessment';
 import { useStreamingChat } from '@/hooks/useStreamingChat';
 import { useTaskFeedbackProgress } from '@/hooks/useTaskFeedbackProgress';
 import { initializeObjectives } from '@/lib/ai/objective-detection';
+import { RotateCcw, Check } from 'lucide-react';
 
 interface TaskAttempt {
   id: string;
@@ -281,121 +282,6 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
     );
   }
 
-  // Create sidebar content
-  const sidebarContent = (
-    <div className="p-6">
-      {/* Voice Error Display */}
-      {voiceError && (
-        <div className="mb-4 p-3 bg-primary/10 border border-primary/30 rounded-lg">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-300 mb-1">
-                Voice Input Error
-              </h3>
-              <p className="text-sm text-primary whitespace-pre-line">{voiceError}</p>
-            </div>
-            <button
-              onClick={() => setVoiceError(null)}
-              className="text-red-800 dark:text-red-300 hover:text-red-900 dark:hover:text-red-200"
-              aria-label="Dismiss error"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Task Information */}
-      {attempt.task && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Task Information</h3>
-
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Scenario</h4>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{attempt.task.scenario}</p>
-          </div>
-
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Learning Objectives
-            </h4>
-            <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
-              {attempt.task.learningObjectives.map((obj, idx) => (
-                <li key={idx}>{obj}</li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Conversation Example
-            </h4>
-            <div className="bg-gray-50 dark:bg-gray-900 rounded p-3 space-y-2">
-              {(Array.isArray(attempt.task.conversationExample)
-                ? attempt.task.conversationExample
-                : attempt.task.conversationExample.split('\n')
-              ).map((line, idx) => (
-                <div key={idx} className="text-sm text-gray-600 dark:text-gray-400">
-                  {line}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Estimated Duration:{' '}
-              <span className="font-medium">{attempt.task.estimatedDuration} minutes</span>
-            </p>
-          </div>
-        </div>
-      )}
-
-      {attempt.isCompleted && assessment && (
-        <>
-          <div className="mb-4 p-4 bg-tertiary-green/10 rounded-lg">
-            <h3 className="text-sm font-medium text-green-800 dark:text-green-300 mb-2">
-              Task Completed
-            </h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-700 dark:text-gray-300">Objectives:</span>
-                <span className="font-medium">
-                  {assessment.objectivesAchieved}/{assessment.totalObjectives}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-700 dark:text-gray-300">Duration:</span>
-                <span className="font-medium">{assessment.statistics.durationMinutes} min</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-700 dark:text-gray-300">Messages:</span>
-                <span className="font-medium">{assessment.statistics.totalMessages}</span>
-              </div>
-            </div>
-          </div>
-
-          {!showPostTaskReview && (
-            <Button
-              onClick={() => setShowPostTaskReview(true)}
-              variant="secondary"
-              className="w-full"
-            >
-              View Detailed Feedback
-            </Button>
-          )}
-        </>
-      )}
-    </div>
-  );
-
   // Show post-task review modal
   if (showPostTaskReview && attempt.isCompleted && assessment) {
     return (
@@ -428,11 +314,24 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
       headerActions={
         !attempt.isCompleted ? (
           <>
-            <Button onClick={resetChat} variant="outline" size="sm">
-              Reset Chat
+            <Button
+              onClick={resetChat}
+              variant="outline"
+              size="icon"
+              title="Reset Chat"
+              aria-label="Reset Chat"
+            >
+              <RotateCcw className="h-4 w-4" />
             </Button>
-            <Button onClick={completeAttempt} variant="default" size="sm" disabled={isStreaming}>
-              Complete Task
+            <Button
+              onClick={completeAttempt}
+              variant="default"
+              size="icon"
+              disabled={isStreaming}
+              title="Complete Task"
+              aria-label="Complete Task"
+            >
+              <Check className="h-4 w-4" />
             </Button>
           </>
         ) : null
@@ -444,8 +343,6 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
       placeholder="Type your message in Japanese..."
       disabled={attempt.isCompleted}
       enableVoice={!attempt.isCompleted}
-      sidebar={sidebarContent}
-      sidebarDefaultOpen={false}
       emptyStateMessage="Start your conversation to practice the task scenario!"
       error={streamingError}
       onClearError={clearStreamingError}

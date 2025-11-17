@@ -58,9 +58,9 @@ export default function UnifiedChatInterface({
   const [isSidebarOpen, setIsSidebarOpen] = useState(sidebarDefaultOpen);
 
   return (
-    <div className={cn('flex flex-col h-screen bg-gray-50 dark:bg-gray-900', className)}>
+    <div className={cn('fixed inset-0 flex flex-col bg-gray-50 dark:bg-gray-900', className)}>
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4 flex items-center gap-4 shrink-0">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 shrink-0">
         {onBack && (
           <button
             onClick={onBack}
@@ -96,8 +96,8 @@ export default function UnifiedChatInterface({
             aria-label={isSidebarOpen ? 'Hide hints' : 'Show hints'}
             title={isSidebarOpen ? 'Hide hints' : 'Show hints'}
           >
-            <span className="text-sm font-medium text-gray-900 dark:text-white">
-              💡 {isSidebarOpen ? 'Hide' : 'Hints'}
+            <span className="text-sm font-medium text-gray-900 dark:text-white sm:inline">
+              💡 <span className="hidden sm:inline">{isSidebarOpen ? 'Hide' : 'Hints'}</span>
             </span>
           </button>
         )}
@@ -107,7 +107,7 @@ export default function UnifiedChatInterface({
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar (optional) */}
         {sidebar && isSidebarOpen && (
-          <div className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto shrink-0 transition-all duration-300">
+          <div className="w-64 sm:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto shrink-0 transition-all duration-300">
             {sidebar}
           </div>
         )}

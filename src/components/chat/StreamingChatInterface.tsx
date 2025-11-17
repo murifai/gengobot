@@ -112,11 +112,11 @@ export default function StreamingChatInterface({
   }, [messages]);
 
   return (
-    <div className={cn('flex h-screen bg-gray-50 dark:bg-gray-900', className)}>
+    <div className={cn('fixed inset-0 flex bg-gray-50 dark:bg-gray-900', className)}>
       {/* Main Chat Area */}
       <div className="flex flex-col flex-1">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4 flex items-center gap-4 shrink-0">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 shrink-0">
           {onBack && (
             <button
               onClick={onBack}
@@ -157,8 +157,9 @@ export default function StreamingChatInterface({
           {sidebar && (
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-1"
               aria-label={isSidebarOpen ? 'Hide info' : 'Show info'}
+              title={isSidebarOpen ? 'Hide info' : 'Show info'}
             >
               {isSidebarOpen ? (
                 <X className="w-5 h-5 text-gray-900 dark:text-white" />
@@ -331,7 +332,7 @@ export default function StreamingChatInterface({
 
       {/* Sidebar */}
       {sidebar && isSidebarOpen && (
-        <div className="w-96 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 overflow-y-auto">
+        <div className="w-64 sm:w-80 md:w-96 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 overflow-y-auto">
           {sidebar}
         </div>
       )}

@@ -8,6 +8,7 @@ import StreamingChatInterface from '@/components/chat/StreamingChatInterface';
 import { useStreamingChat } from '@/hooks/useStreamingChat';
 import { CharacterQuickCreateModal } from '@/components/kaiwa/bebas/character-quick-create-modal';
 import { EmptyCharacterState } from '@/components/kaiwa/bebas/empty-character-state';
+import { RotateCcw } from 'lucide-react';
 
 interface Character {
   id: string;
@@ -221,17 +222,7 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   // Error state
   if (error && !session) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Kaiwa Bebas</h1>
-              <Button onClick={() => router.push('/app/kaiwa')} variant="secondary">
-                Back to Kaiwa
-              </Button>
-            </div>
-          </div>
-        </nav>
+      <div className="fixed inset-0 bg-gray-50 dark:bg-gray-900">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
             <p className="text-primary">{error}</p>
@@ -247,20 +238,7 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   // Character selection screen
   if (!session) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                自由会話 / Free Conversation
-              </h1>
-              <Button onClick={() => router.push('/app/kaiwa')} variant="secondary">
-                Back to Kaiwa
-              </Button>
-            </div>
-          </div>
-        </nav>
-
+      <div className="fixed inset-0 bg-gray-50 dark:bg-gray-900 overflow-y-auto">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -339,105 +317,20 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   }
 
   // Chat interface (when session exists)
-  const sidebarContent = (
-    <div className="p-6">
-      {/* Character Info */}
-      {session.character && (
-        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
-            会話相手 / Conversation Partner
-          </h3>
-          <p className="text-lg font-semibold text-blue-900 dark:text-blue-100">
-            {session.character.name}
-          </p>
-          {session.character.relationshipType && (
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-              {session.character.relationshipType}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Voice Error Display */}
-      {voiceError && (
-        <div className="mb-4 p-3 bg-primary/10 border border-primary/30 rounded-lg">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-300 mb-1">
-                音声入力エラー / Voice Input Error
-              </h3>
-              <p className="text-sm text-primary whitespace-pre-line">{voiceError}</p>
-            </div>
-            <button
-              onClick={() => setVoiceError(null)}
-              className="text-red-800 dark:text-red-300 hover:text-red-900 dark:hover:text-red-200"
-              aria-label="Dismiss error"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Free Conversation Tips */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          自由会話のヒント / Free Conversation Tips
-        </h3>
-
-        <div>
-          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            話題の例 / Topic Examples
-          </h4>
-          <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
-            <li>日常生活について / Daily life</li>
-            <li>趣味や興味 / Hobbies and interests</li>
-            <li>旅行の経験 / Travel experiences</li>
-            <li>文化や習慣 / Culture and customs</li>
-          </ul>
-        </div>
-
-        <div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            自然な会話を楽しんでください！ / Enjoy natural conversation!
-          </p>
-        </div>
-
-        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-xs text-gray-500 dark:text-gray-500">
-            メッセージ数: {streamingMessages.length}
-          </p>
-        </div>
-
-        <div className="pt-2">
-          <Button
-            onClick={handleBackToCharacterSelect}
-            variant="outline"
-            size="sm"
-            className="w-full"
-          >
-            キャラクターを変更 / Change Character
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <StreamingChatInterface
       title={`${session.character.name}と会話 / Chat with ${session.character.name}`}
       subtitle="日本語で自由に話しましょう / Let's talk freely in Japanese"
       onBack={handleBackToCharacterSelect}
       headerActions={
-        <Button onClick={resetChat} variant="outline" size="sm">
-          リセット / Reset
+        <Button
+          onClick={resetChat}
+          variant="outline"
+          size="icon"
+          title="リセット / Reset"
+          aria-label="リセット / Reset"
+        >
+          <RotateCcw className="h-4 w-4" />
         </Button>
       }
       messages={streamingMessages}
@@ -447,8 +340,6 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
       placeholder="日本語でメッセージを入力... / Type your message in Japanese..."
       disabled={false}
       enableVoice={true}
-      sidebar={sidebarContent}
-      sidebarDefaultOpen={false}
       emptyStateMessage="自由に会話を始めましょう！ / Start your free conversation!"
       error={streamingError}
       onClearError={clearStreamingError}

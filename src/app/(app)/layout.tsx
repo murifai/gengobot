@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/auth';
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav';
+import { AppLayoutClient } from './layout-client';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -10,9 +11,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="container mx-auto p-4 pb-24">{children}</main>
+    <AppLayoutClient>
+      {children}
       <MobileBottomNav />
-    </div>
+    </AppLayoutClient>
   );
 }
