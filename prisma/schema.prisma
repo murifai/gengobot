@@ -126,6 +126,27 @@ model User {
   createdAt               DateTime  @default(now())
   updatedAt               DateTime  @updatedAt
 
+  // Profile fields
+  fullName                String?   // Nama Lengkap
+  nickname                String?   // Nama Panggilan
+  domicile                String?   // Domisili
+  institution             String?   // Institusi
+  subscriptionPlan        String    @default("free") // free, premium
+
+  // Onboarding fields
+  onboardingCompleted     Boolean   @default(false)
+  ageRange                String?   // "10-19", "20-29", "30-39", "40-49", "50+"
+  gender                  String?   // "male", "female"
+  learningDuration        String?   // Duration of Japanese study
+  learningGoals           Json?     // Array of learning goals
+  japaneseUsageOpportunities Json?  // Array of usage opportunities
+  hasAppExperience        Boolean?  // Has used Japanese learning apps
+  previousApps            String?   // Names of previous apps used
+  conversationPracticeExp String?   // Frequency of conversation practice
+  appOpinion              String?   @db.Text // Opinion about previous apps
+  hasLivedInJapan         Boolean?  // Has lived in Japan
+  japanStayDuration       String?   // Duration of stay in Japan
+
   accounts           Account[]
   sessions           Session[]
   characters         Character[]

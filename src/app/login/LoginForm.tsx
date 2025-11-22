@@ -25,7 +25,7 @@ export function LoginForm() {
 
     try {
       await nextAuthSignIn('google', {
-        callbackUrl: '/dashboard',
+        callbackUrl: '/app',
         redirect: true,
       });
     } catch (err) {

@@ -29,7 +29,7 @@ export const authConfig: NextAuthConfig = {
           });
 
           if (!existingUser) {
-            // Create new user
+            // Create new user with onboardingCompleted = false
             await prisma.user.create({
               data: {
                 email: profile.email,
@@ -37,6 +37,7 @@ export const authConfig: NextAuthConfig = {
                 image: profile.picture || null,
                 emailVerified: new Date(),
                 isAdmin: false,
+                onboardingCompleted: false,
               },
             });
           } else {
@@ -65,6 +66,14 @@ export const authConfig: NextAuthConfig = {
       if (account && profile?.email) {
         const dbUser = await prisma.user.findUnique({
           where: { email: profile.email },
+          select: {
+            id: true,
+            isAdmin: true,
+            email: true,
+            name: true,
+            image: true,
+            onboardingCompleted: true,
+          },
         });
 
         if (dbUser) {
@@ -73,6 +82,7 @@ export const authConfig: NextAuthConfig = {
           token.email = dbUser.email;
           token.name = dbUser.name;
           token.picture = dbUser.image;
+          token.onboardingCompleted = dbUser.onboardingCompleted;
         }
       }
 
@@ -83,6 +93,8 @@ export const authConfig: NextAuthConfig = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.isAdmin = token.isAdmin as boolean;
+        (session.user as { onboardingCompleted?: boolean }).onboardingCompleted =
+          token.onboardingCompleted as boolean;
       }
       return session;
     },

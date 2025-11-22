@@ -1,13 +1,13 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/auth';
 import { prisma } from '@/lib/prisma';
-import { ProfilePage } from '@/components/app/profile/ProfilePage';
+import { EditProfilePage } from '@/components/app/profile/EditProfilePage';
 
 export const dynamic = 'force-dynamic';
 
 export const runtime = 'nodejs';
 
-export default async function SettingsPage() {
+export default async function EditProfileRoute() {
   const session = await auth();
   const user = session?.user;
 
@@ -41,7 +41,7 @@ export default async function SettingsPage() {
     subscriptionPlan?: string;
   };
 
-  // Map database user to ProfilePage props
+  // Map database user to EditProfilePage props
   const userProfile = {
     id: userWithNewFields.id,
     email: userWithNewFields.email,
@@ -52,9 +52,7 @@ export default async function SettingsPage() {
     domicile: userWithNewFields.domicile ?? null,
     institution: userWithNewFields.institution ?? null,
     proficiency: userWithNewFields.proficiency,
-    subscriptionPlan: userWithNewFields.subscriptionPlan ?? 'free',
-    createdAt: userWithNewFields.createdAt,
   };
 
-  return <ProfilePage user={userProfile} />;
+  return <EditProfilePage user={userProfile} />;
 }

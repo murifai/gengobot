@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/auth';
 import { User } from '@/types/user';
-import CharactersClient from '@/app/dashboard/characters/CharactersClient';
+import CharactersClient from '@/components/app/profile/CharactersClient';
 
 export const dynamic = 'force-dynamic';
 

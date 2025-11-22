@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/auth';
-import TaskAttemptClientStreaming from '@/app/dashboard/tasks/[taskId]/attempt/[attemptId]/TaskAttemptClientStreaming';
+import TaskAttemptClientStreaming from '@/components/app/kaiwa/TaskAttemptClientStreaming';
 
 export const dynamic = 'force-dynamic';
 

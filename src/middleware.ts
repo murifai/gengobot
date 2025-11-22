@@ -41,17 +41,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protected routes - require authentication
-  // Instead of redirecting to login page, we'll redirect to home with a query param
-  // The home page will detect this and show the login modal
-  if (pathname.startsWith('/dashboard') && !session) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/';
-    url.searchParams.set('login', 'required');
-    url.searchParams.set('returnTo', pathname);
-    return NextResponse.redirect(url);
-  }
-
-  // New /app routes - require authentication
+  // /app routes - require authentication
   if (pathname.startsWith('/app') && !session) {
     const url = request.nextUrl.clone();
     url.pathname = '/';
@@ -59,6 +49,10 @@ export async function middleware(request: NextRequest) {
     url.searchParams.set('returnTo', pathname);
     return NextResponse.redirect(url);
   }
+
+  // Note: Onboarding check should be done at the page level (not middleware)
+  // since we need to query the database for onboardingCompleted status.
+  // See: src/app/app/page.tsx - check onboardingCompleted and redirect to /app/onboarding if needed
 
   // Admin routes - require authentication
   if (pathname.startsWith('/admin') && !session) {

@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth/auth';
 import { redirect } from 'next/navigation';
-import PreTaskStudyClient from '@/app/dashboard/tasks/[taskId]/pre-study/PreTaskStudyClient';
+import PreTaskStudyClient from '@/components/app/kaiwa/PreTaskStudyClient';
 
 export const dynamic = 'force-dynamic';
 

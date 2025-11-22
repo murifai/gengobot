@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/auth';
-import ProgressClient from '@/app/dashboard/progress/ProgressClient';
+import ProgressClient from '@/components/app/profile/ProgressClient';
 
 export const dynamic = 'force-dynamic';
 

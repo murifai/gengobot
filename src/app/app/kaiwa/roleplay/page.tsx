@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/auth';
-import TasksClient from '@/app/dashboard/tasks/TasksClient';
+import TasksClient from '@/components/app/kaiwa/TasksClient';
 
 export const dynamic = 'force-dynamic';
 
