@@ -12,7 +12,8 @@ interface ProfileHeaderProps {
 }
 
 export function ProfileHeader({ user }: ProfileHeaderProps) {
-  const displayName = user.fullName || user.nickname || user.name || 'User';
+  // Display full name first, fallback to Google account name
+  const displayName = user.fullName || user.name || 'User';
   const initials = displayName
     .split(' ')
     .map(n => n[0])

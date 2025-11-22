@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -12,19 +12,30 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 
+interface City {
+  name: string;
+  country: string;
+}
+
 interface OnboardingData {
+  nickname: string;
+  domicile: string;
+  institution: string;
   ageRange: string;
   gender: string;
   learningDuration: string;
   currentLevel: string;
   learningGoals: string[];
+  learningGoalsOther: string;
   usageOpportunities: string[];
+  usageOpportunitiesOther: string;
   hasAppExperience: boolean | null;
   previousApps: string;
   conversationPracticeExp: string;
   appOpinion: string;
   hasLivedInJapan: boolean | null;
   japanStayDuration: string;
+  subscriptionPlan: string;
 }
 
 interface OnboardingFlowProps {
@@ -37,25 +48,95 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [data, setData] = useState<OnboardingData>({
+    nickname: '',
+    domicile: '',
+    institution: '',
     ageRange: '',
     gender: '',
     learningDuration: '',
     currentLevel: '',
     learningGoals: [],
+    learningGoalsOther: '',
     usageOpportunities: [],
+    usageOpportunitiesOther: '',
     hasAppExperience: null,
     previousApps: '',
     conversationPracticeExp: '',
     appOpinion: '',
     hasLivedInJapan: null,
     japanStayDuration: '',
+    subscriptionPlan: '',
   });
 
-  const totalSteps = 7;
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [cities, setCities] = useState<City[]>([]);
+
+  useEffect(() => {
+    fetch('/api/cities')
+      .then(res => res.json())
+      .then(data => setCities(data.cities))
+      .catch(err => console.error('Failed to load cities:', err));
+  }, []);
+
+  const totalSteps = 9;
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
+  const validateStep = (step: number): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    switch (step) {
+      case 0:
+        if (!data.nickname.trim()) newErrors.nickname = 'Nama panggilan wajib diisi';
+        if (!data.domicile) newErrors.domicile = 'Domisili wajib dipilih';
+        break;
+      case 1:
+        if (!data.ageRange) newErrors.ageRange = 'Usia wajib dipilih';
+        if (!data.gender) newErrors.gender = 'Jenis kelamin wajib dipilih';
+        break;
+      case 2:
+        if (!data.learningDuration) newErrors.learningDuration = 'Lama belajar wajib dipilih';
+        break;
+      case 3:
+        if (!data.currentLevel) newErrors.currentLevel = 'Level wajib dipilih';
+        break;
+      case 4:
+        if (data.learningGoals.length === 0) newErrors.learningGoals = 'Pilih minimal satu tujuan';
+        if (data.learningGoals.includes('Lainnya') && !data.learningGoalsOther.trim()) {
+          newErrors.learningGoalsOther = 'Jelaskan tujuan lainnya';
+        }
+        break;
+      case 5:
+        if (data.usageOpportunities.length === 0)
+          newErrors.usageOpportunities = 'Pilih minimal satu kesempatan';
+        if (data.usageOpportunities.includes('Lainnya') && !data.usageOpportunitiesOther.trim()) {
+          newErrors.usageOpportunitiesOther = 'Jelaskan kesempatan lainnya';
+        }
+        break;
+      case 6:
+        if (data.hasAppExperience === null) newErrors.hasAppExperience = 'Pilih salah satu';
+        if (data.hasAppExperience) {
+          if (!data.previousApps.trim()) newErrors.previousApps = 'Nama aplikasi wajib diisi';
+          if (!data.conversationPracticeExp)
+            newErrors.conversationPracticeExp = 'Pengalaman latihan wajib dipilih';
+        }
+        break;
+      case 7:
+        if (data.hasLivedInJapan === null) newErrors.hasLivedInJapan = 'Pilih salah satu';
+        if (data.hasLivedInJapan && !data.japanStayDuration) {
+          newErrors.japanStayDuration = 'Lama tinggal wajib dipilih';
+        }
+        break;
+      case 8:
+        if (!data.subscriptionPlan) newErrors.subscriptionPlan = 'Pilih paket berlangganan';
+        break;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleNext = () => {
-    if (currentStep < totalSteps - 1) {
+    if (validateStep(currentStep) && currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -67,6 +148,10 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
   };
 
   const handleSubmit = async () => {
+    if (!validateStep(currentStep)) {
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const response = await fetch('/api/onboarding', {
@@ -112,6 +197,55 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
         return (
           <>
             <CardHeader>
+              <CardTitle>Profil Anda</CardTitle>
+              <CardDescription>Lengkapi informasi dasar Anda</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="nickname">Nama Panggilan</Label>
+                <Input
+                  id="nickname"
+                  value={data.nickname}
+                  onChange={e => setData({ ...data, nickname: e.target.value })}
+                  placeholder="Masukkan nama panggilan"
+                />
+                {errors.nickname && <p className="text-sm text-red-500">{errors.nickname}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="domicile">Domisili</Label>
+                <Input
+                  id="domicile"
+                  value={data.domicile}
+                  onChange={e => setData({ ...data, domicile: e.target.value })}
+                  placeholder="Masukkan kota domisili"
+                  list="cities-list"
+                />
+                <datalist id="cities-list">
+                  {cities.map(city => (
+                    <option key={city.name} value={city.name} />
+                  ))}
+                </datalist>
+                {errors.domicile && <p className="text-sm text-red-500">{errors.domicile}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="institution">Institusi (opsional)</Label>
+                <Input
+                  id="institution"
+                  value={data.institution}
+                  onChange={e => setData({ ...data, institution: e.target.value })}
+                  placeholder="Sekolah/Universitas/Tempat Kerja"
+                />
+              </div>
+            </CardContent>
+          </>
+        );
+
+      case 1:
+        return (
+          <>
+            <CardHeader>
               <CardTitle>Data Diri</CardTitle>
               <CardDescription>Bantu kami mengenal Anda lebih baik</CardDescription>
             </CardHeader>
@@ -137,6 +271,7 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
                     </div>
                   ))}
                 </RadioGroup>
+                {errors.ageRange && <p className="text-sm text-red-500">{errors.ageRange}</p>}
               </div>
 
               <div className="space-y-3">
@@ -158,12 +293,13 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
                     </Label>
                   </div>
                 </RadioGroup>
+                {errors.gender && <p className="text-sm text-red-500">{errors.gender}</p>}
               </div>
             </CardContent>
           </>
         );
 
-      case 1:
+      case 2:
         return (
           <>
             <CardHeader>
@@ -192,12 +328,15 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
                     </div>
                   ))}
                 </RadioGroup>
+                {errors.learningDuration && (
+                  <p className="text-sm text-red-500">{errors.learningDuration}</p>
+                )}
               </div>
             </CardContent>
           </>
         );
 
-      case 2:
+      case 3:
         return (
           <>
             <CardHeader>
@@ -205,30 +344,36 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
               <CardDescription>Pilih level bahasa Jepang Anda saat ini</CardDescription>
             </CardHeader>
             <CardContent>
-              <RadioGroup
-                value={data.currentLevel}
-                onValueChange={v => setData({ ...data, currentLevel: v })}
-              >
-                {[
-                  { value: 'N5', label: 'N5 setara JFT A1' },
-                  { value: 'N4', label: 'N4 setara JFT A2' },
-                  { value: 'N3', label: 'N3' },
-                  { value: 'N2', label: 'N2 ke atas' },
-                  { value: 'unknown', label: 'Tidak tahu' },
-                ].map(level => (
-                  <div key={level.value} className="flex items-center space-x-2">
-                    <RadioGroupItem value={level.value} id={level.value} />
-                    <Label htmlFor={level.value} className="cursor-pointer">
-                      {level.label}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
+              <div className="space-y-3">
+                <RadioGroup
+                  value={data.currentLevel}
+                  onValueChange={v => setData({ ...data, currentLevel: v })}
+                >
+                  {[
+                    { value: 'N5', label: 'N5 setara JFT A1' },
+                    { value: 'N4', label: 'N4 setara JFT A2' },
+                    { value: 'N3', label: 'N3' },
+                    { value: 'N2', label: 'N2' },
+                    { value: 'N1', label: 'N1' },
+                    { value: 'unknown', label: 'Tidak tahu' },
+                  ].map(level => (
+                    <div key={level.value} className="flex items-center space-x-2">
+                      <RadioGroupItem value={level.value} id={level.value} />
+                      <Label htmlFor={level.value} className="cursor-pointer">
+                        {level.label}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+                {errors.currentLevel && (
+                  <p className="text-sm text-red-500">{errors.currentLevel}</p>
+                )}
+              </div>
             </CardContent>
           </>
         );
 
-      case 3:
+      case 4:
         return (
           <>
             <CardHeader>
@@ -256,12 +401,27 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
                     </Label>
                   </div>
                 ))}
+                {data.learningGoals.includes('Lainnya') && (
+                  <div className="ml-6 mt-2">
+                    <Input
+                      value={data.learningGoalsOther}
+                      onChange={e => setData({ ...data, learningGoalsOther: e.target.value })}
+                      placeholder="Jelaskan tujuan lainnya..."
+                    />
+                    {errors.learningGoalsOther && (
+                      <p className="text-sm text-red-500 mt-1">{errors.learningGoalsOther}</p>
+                    )}
+                  </div>
+                )}
+                {errors.learningGoals && (
+                  <p className="text-sm text-red-500">{errors.learningGoals}</p>
+                )}
               </div>
             </CardContent>
           </>
         );
 
-      case 4:
+      case 5:
         return (
           <>
             <CardHeader>
@@ -291,12 +451,27 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
                     </Label>
                   </div>
                 ))}
+                {data.usageOpportunities.includes('Lainnya') && (
+                  <div className="ml-6 mt-2">
+                    <Input
+                      value={data.usageOpportunitiesOther}
+                      onChange={e => setData({ ...data, usageOpportunitiesOther: e.target.value })}
+                      placeholder="Jelaskan kesempatan lainnya..."
+                    />
+                    {errors.usageOpportunitiesOther && (
+                      <p className="text-sm text-red-500 mt-1">{errors.usageOpportunitiesOther}</p>
+                    )}
+                  </div>
+                )}
+                {errors.usageOpportunities && (
+                  <p className="text-sm text-red-500">{errors.usageOpportunities}</p>
+                )}
               </div>
             </CardContent>
           </>
         );
 
-      case 5:
+      case 6:
         return (
           <>
             <CardHeader>
@@ -327,6 +502,9 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
                     </Label>
                   </div>
                 </RadioGroup>
+                {errors.hasAppExperience && (
+                  <p className="text-sm text-red-500">{errors.hasAppExperience}</p>
+                )}
               </div>
 
               {data.hasAppExperience && (
@@ -339,6 +517,9 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
                       onChange={e => setData({ ...data, previousApps: e.target.value })}
                       placeholder="Contoh: Duolingo, Bunpo, dll"
                     />
+                    {errors.previousApps && (
+                      <p className="text-sm text-red-500">{errors.previousApps}</p>
+                    )}
                   </div>
 
                   <div className="space-y-3">
@@ -360,11 +541,14 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
                         )
                       )}
                     </RadioGroup>
+                    {errors.conversationPracticeExp && (
+                      <p className="text-sm text-red-500">{errors.conversationPracticeExp}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="appOpinion">
-                      Pendapat tentang latihan percakapan di aplikasi tersebut
+                      Pendapat tentang latihan percakapan di aplikasi tersebut (opsional)
                     </Label>
                     <Textarea
                       id="appOpinion"
@@ -380,7 +564,7 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
           </>
         );
 
-      case 6:
+      case 7:
         return (
           <>
             <CardHeader>
@@ -407,6 +591,9 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
                     </Label>
                   </div>
                 </RadioGroup>
+                {errors.hasLivedInJapan && (
+                  <p className="text-sm text-red-500">{errors.hasLivedInJapan}</p>
+                )}
               </div>
 
               {data.hasLivedInJapan && (
@@ -430,8 +617,62 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
                       </div>
                     ))}
                   </RadioGroup>
+                  {errors.japanStayDuration && (
+                    <p className="text-sm text-red-500">{errors.japanStayDuration}</p>
+                  )}
                 </div>
               )}
+            </CardContent>
+          </>
+        );
+
+      case 8:
+        return (
+          <>
+            <CardHeader>
+              <CardTitle>Pilih Paket</CardTitle>
+              <CardDescription>
+                Pilih paket berlangganan yang sesuai dengan kebutuhan Anda
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <RadioGroup
+                  value={data.subscriptionPlan}
+                  onValueChange={v => setData({ ...data, subscriptionPlan: v })}
+                >
+                  {[
+                    { value: 'free', label: 'Gratis', description: 'Fitur dasar untuk memulai' },
+                    {
+                      value: 'basic',
+                      label: 'Basic - Rp 49.000/bulan',
+                      description: 'Akses ke semua materi pembelajaran',
+                    },
+                    {
+                      value: 'premium',
+                      label: 'Premium - Rp 99.000/bulan',
+                      description: 'Semua fitur + latihan percakapan AI tanpa batas',
+                    },
+                  ].map(plan => (
+                    <div
+                      key={plan.value}
+                      className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                      onClick={() => setData({ ...data, subscriptionPlan: plan.value })}
+                    >
+                      <RadioGroupItem value={plan.value} id={plan.value} className="mt-1" />
+                      <div className="flex-1">
+                        <Label htmlFor={plan.value} className="cursor-pointer font-medium">
+                          {plan.label}
+                        </Label>
+                        <p className="text-sm text-muted-foreground">{plan.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </RadioGroup>
+                {errors.subscriptionPlan && (
+                  <p className="text-sm text-red-500">{errors.subscriptionPlan}</p>
+                )}
+              </div>
             </CardContent>
           </>
         );
@@ -456,7 +697,7 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
 
         <Card>
           {renderStep()}
-          <div className="p-6 pt-0 flex gap-3">
+          <div className="p-6 pt-4 flex gap-3">
             {currentStep > 0 && (
               <Button variant="outline" onClick={handleBack} className="gap-2">
                 <ArrowLeft className="h-4 w-4" />

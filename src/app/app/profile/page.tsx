@@ -1,88 +1,56 @@
-import Link from 'next/link';
-import { Settings, TrendingUp, Users } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { redirect } from 'next/navigation';
+import { auth } from '@/lib/auth/auth';
+import { prisma } from '@/lib/prisma';
+import { ProfilePage } from '@/components/app/profile/ProfilePage';
 
 export const dynamic = 'force-dynamic';
 
-export default function ProfileHubPage() {
-  return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Profile</h1>
-        <p className="text-muted-foreground">Manage your account and track your progress</p>
-      </div>
+export const runtime = 'nodejs';
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Settings Card */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Settings className="h-5 w-5 text-primary" />
-              </div>
-              <CardTitle>Settings</CardTitle>
-            </div>
-            <CardDescription>Account and app preferences</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Manage your account settings and preferences
-            </p>
-            <Link href="/app/profile/settings">
-              <Button variant="outline" className="w-full">
-                Open Settings
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+export default async function ProfileSettingsPage() {
+  const session = await auth();
+  const user = session?.user;
 
-        {/* Progress Card */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-primary" />
-              </div>
-              <CardTitle>Progress</CardTitle>
-            </div>
-            <CardDescription>Your learning statistics</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              View your learning progress and achievements
-            </p>
-            <Link href="/app/profile/progress">
-              <Button variant="outline" className="w-full">
-                View Progress
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+  if (!user?.email) {
+    redirect('/login');
+  }
 
-        {/* Characters Card */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Users className="h-5 w-5 text-primary" />
-              </div>
-              <CardTitle>Characters</CardTitle>
-            </div>
-            <CardDescription>Manage AI conversation partners</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Create and manage your AI characters
-            </p>
-            <Link href="/app/profile/characters">
-              <Button variant="outline" className="w-full">
-                Manage Characters
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+  // Get user data from database
+  const dbUser = await prisma.user.findUnique({
+    where: { email: user.email },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      proficiency: true,
+      fullName: true,
+      nickname: true,
+      domicile: true,
+      institution: true,
+      subscriptionPlan: true,
+      createdAt: true,
+    },
+  });
+
+  if (!dbUser) {
+    redirect('/login');
+  }
+
+  // Map database user to ProfilePage props
+  const userProfile = {
+    id: dbUser.id,
+    email: dbUser.email,
+    name: dbUser.name,
+    image: dbUser.image,
+    fullName: dbUser.fullName ?? null,
+    nickname: dbUser.nickname ?? null,
+    domicile: dbUser.domicile ?? null,
+    institution: dbUser.institution ?? null,
+    proficiency: dbUser.proficiency,
+    subscriptionPlan: dbUser.subscriptionPlan ?? 'free',
+    createdAt: dbUser.createdAt,
+  };
+
+  return <ProfilePage user={userProfile} />;
 }

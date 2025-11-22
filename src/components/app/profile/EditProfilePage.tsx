@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -15,6 +15,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ArrowLeft, Camera, Upload } from 'lucide-react';
+
+interface City {
+  name: string;
+  country: string;
+}
 
 interface UserProfile {
   id: string;
@@ -37,7 +42,7 @@ export function EditProfilePage({ user }: EditProfilePageProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
-    fullName: user.fullName || '',
+    fullName: user.fullName || user.name || '',
     nickname: user.nickname || '',
     domicile: user.domicile || '',
     institution: user.institution || '',
@@ -47,8 +52,17 @@ export function EditProfilePage({ user }: EditProfilePageProps) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cities, setCities] = useState<City[]>([]);
 
-  const displayName = user.fullName || user.nickname || user.name || 'User';
+  useEffect(() => {
+    fetch('/api/cities')
+      .then(res => res.json())
+      .then(data => setCities(data.cities))
+      .catch(err => console.error('Failed to load cities:', err));
+  }, []);
+
+  // Display full name first, fallback to Google account name
+  const displayName = user.fullName || user.name || 'User';
   const initials = displayName
     .split(' ')
     .map(n => n[0])
@@ -119,7 +133,7 @@ export function EditProfilePage({ user }: EditProfilePageProps) {
         throw new Error('Failed to update profile');
       }
 
-      router.push('/app/profile/settings');
+      router.push('/app/profile');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
@@ -202,26 +216,24 @@ export function EditProfilePage({ user }: EditProfilePageProps) {
             <CardDescription>Data diri dan informasi belajar</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Nama Lengkap</Label>
-                <Input
-                  id="fullName"
-                  value={formData.fullName}
-                  onChange={e => setFormData({ ...formData, fullName: e.target.value })}
-                  placeholder="Masukkan nama lengkap"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Nama Lengkap</Label>
+              <Input
+                id="fullName"
+                value={formData.fullName}
+                onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                placeholder="Masukkan nama lengkap"
+              />
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="nickname">Nama Panggilan</Label>
-                <Input
-                  id="nickname"
-                  value={formData.nickname}
-                  onChange={e => setFormData({ ...formData, nickname: e.target.value })}
-                  placeholder="Masukkan nama panggilan"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="nickname">Nama Panggilan</Label>
+              <Input
+                id="nickname"
+                value={formData.nickname}
+                onChange={e => setFormData({ ...formData, nickname: e.target.value })}
+                placeholder="Masukkan nama panggilan"
+              />
             </div>
 
             <div className="space-y-2">
@@ -230,26 +242,30 @@ export function EditProfilePage({ user }: EditProfilePageProps) {
               <p className="text-sm text-muted-foreground">Email tidak dapat diubah</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="domicile">Domisili</Label>
-                <Input
-                  id="domicile"
-                  value={formData.domicile}
-                  onChange={e => setFormData({ ...formData, domicile: e.target.value })}
-                  placeholder="Contoh: Jakarta, Bandung"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="domicile">Domisili</Label>
+              <Input
+                id="domicile"
+                value={formData.domicile}
+                onChange={e => setFormData({ ...formData, domicile: e.target.value })}
+                placeholder="Masukkan kota domisili"
+                list="cities-list"
+              />
+              <datalist id="cities-list">
+                {cities.map(city => (
+                  <option key={city.name} value={city.name} />
+                ))}
+              </datalist>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="institution">Institusi</Label>
-                <Input
-                  id="institution"
-                  value={formData.institution}
-                  onChange={e => setFormData({ ...formData, institution: e.target.value })}
-                  placeholder="Sekolah/Universitas/Tempat Kerja"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="institution">Institusi</Label>
+              <Input
+                id="institution"
+                value={formData.institution}
+                onChange={e => setFormData({ ...formData, institution: e.target.value })}
+                placeholder="Sekolah/Universitas/Tempat Kerja"
+              />
             </div>
 
             <div className="space-y-2">

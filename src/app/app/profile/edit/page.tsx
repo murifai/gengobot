@@ -23,6 +23,10 @@ export default async function EditProfileRoute() {
       name: true,
       email: true,
       image: true,
+      fullName: true,
+      nickname: true,
+      domicile: true,
+      institution: true,
       proficiency: true,
       createdAt: true,
     },
@@ -32,26 +36,17 @@ export default async function EditProfileRoute() {
     redirect('/login');
   }
 
-  // Cast to extended type until Prisma client is regenerated
-  const userWithNewFields = dbUser as typeof dbUser & {
-    fullName?: string | null;
-    nickname?: string | null;
-    domicile?: string | null;
-    institution?: string | null;
-    subscriptionPlan?: string;
-  };
-
   // Map database user to EditProfilePage props
   const userProfile = {
-    id: userWithNewFields.id,
-    email: userWithNewFields.email,
-    name: userWithNewFields.name,
-    image: userWithNewFields.image,
-    fullName: userWithNewFields.fullName ?? null,
-    nickname: userWithNewFields.nickname ?? null,
-    domicile: userWithNewFields.domicile ?? null,
-    institution: userWithNewFields.institution ?? null,
-    proficiency: userWithNewFields.proficiency,
+    id: dbUser.id,
+    email: dbUser.email,
+    name: dbUser.name,
+    image: dbUser.image,
+    fullName: dbUser.fullName,
+    nickname: dbUser.nickname,
+    domicile: dbUser.domicile,
+    institution: dbUser.institution,
+    proficiency: dbUser.proficiency,
   };
 
   return <EditProfilePage user={userProfile} />;

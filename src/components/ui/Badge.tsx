@@ -11,7 +11,7 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
     const variants = {
       default: 'bg-muted text-muted-foreground',
       primary: 'bg-primary/10 text-primary',
-      secondary: 'bg-secondary/10 text-secondary',
+      secondary: 'bg-muted text-foreground',
       success: 'bg-tertiary-green/10 text-tertiary-green',
       warning: 'bg-tertiary-yellow/10 text-tertiary-yellow',
       danger: 'bg-primary/10 text-primary',

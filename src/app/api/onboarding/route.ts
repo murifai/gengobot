@@ -12,19 +12,42 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       userId,
+      nickname,
+      domicile,
+      institution,
       ageRange,
       gender,
       learningDuration,
       currentLevel,
       learningGoals,
+      learningGoalsOther,
       usageOpportunities,
+      usageOpportunitiesOther,
       hasAppExperience,
       previousApps,
       conversationPracticeExp,
       appOpinion,
       hasLivedInJapan,
       japanStayDuration,
+      subscriptionPlan,
     } = body;
+
+    // Combine goals with "other" text if provided
+    const finalLearningGoals =
+      learningGoals.includes('Lainnya') && learningGoalsOther
+        ? [
+            ...learningGoals.filter((g: string) => g !== 'Lainnya'),
+            `Lainnya: ${learningGoalsOther}`,
+          ]
+        : learningGoals;
+
+    const finalUsageOpportunities =
+      usageOpportunities.includes('Lainnya') && usageOpportunitiesOther
+        ? [
+            ...usageOpportunities.filter((u: string) => u !== 'Lainnya'),
+            `Lainnya: ${usageOpportunitiesOther}`,
+          ]
+        : usageOpportunities;
 
     // Verify that the user is updating their own data
     const user = await prisma.user.findUnique({
@@ -40,18 +63,22 @@ export async function POST(request: NextRequest) {
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
+        nickname,
+        domicile,
+        institution,
         ageRange,
         gender,
         learningDuration,
         proficiency: currentLevel === 'unknown' ? 'N5' : currentLevel,
-        learningGoals,
-        japaneseUsageOpportunities: usageOpportunities,
+        learningGoals: finalLearningGoals,
+        japaneseUsageOpportunities: finalUsageOpportunities,
         hasAppExperience,
         previousApps,
         conversationPracticeExp,
         appOpinion,
         hasLivedInJapan,
         japanStayDuration,
+        subscriptionPlan: subscriptionPlan || 'free',
         onboardingCompleted: true,
       },
     });
