@@ -6,6 +6,7 @@ import { PersonalTab } from './tabs/PersonalTab';
 import { AccountSecurityTab } from './tabs/AccountSecurityTab';
 import { AppearanceTab } from './tabs/AppearanceTab';
 import { CharactersTab } from './tabs/CharactersTab';
+import { SubscriptionTab } from './tabs/SubscriptionTab';
 
 export interface UserProfile {
   id: string;
@@ -31,10 +32,11 @@ export function ProfilePage({ user }: ProfilePageProps) {
       <ProfileHeader user={user} />
 
       <Tabs defaultValue="personal" className="mt-8">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="personal">Personal</TabsTrigger>
-          <TabsTrigger value="account">Account & Security</TabsTrigger>
-          <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          <TabsTrigger value="account">Akun</TabsTrigger>
+          <TabsTrigger value="subscription">Langganan</TabsTrigger>
+          <TabsTrigger value="appearance">Tampilan</TabsTrigger>
           <TabsTrigger value="characters">Karakter</TabsTrigger>
         </TabsList>
 
@@ -44,6 +46,10 @@ export function ProfilePage({ user }: ProfilePageProps) {
 
         <TabsContent value="account" className="mt-6">
           <AccountSecurityTab user={user} />
+        </TabsContent>
+
+        <TabsContent value="subscription" className="mt-6">
+          <SubscriptionTab />
         </TabsContent>
 
         <TabsContent value="appearance" className="mt-6">
