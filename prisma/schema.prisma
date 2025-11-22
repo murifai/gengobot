@@ -235,6 +235,7 @@ model Character {
   id               String  @id @default(cuid())
   name             String
   description      String? @db.Text
+  avatar           String? // Avatar image URL
   voice            String? // OpenAI TTS voice (alloy, echo, fable, onyx, nova, shimmer)
   personality      Json // Personality traits
   speakingStyle    String? @db.Text

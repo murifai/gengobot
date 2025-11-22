@@ -23,6 +23,7 @@ export interface CharacterPersonality {
 export interface CharacterCreationData {
   name: string;
   description: string;
+  avatar?: string;
   voice?: string;
   personality: CharacterPersonality;
   relationshipType: RelationshipType;
@@ -34,6 +35,7 @@ export interface Character {
   id: string;
   name: string;
   description?: string;
+  avatar?: string;
   voice?: string;
   personality: CharacterPersonality;
   speakingStyle?: string;

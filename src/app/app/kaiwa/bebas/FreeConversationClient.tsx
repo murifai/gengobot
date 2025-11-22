@@ -3,12 +3,13 @@
 import { User } from '@/types/user';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import StreamingChatInterface from '@/components/chat/StreamingChatInterface';
 import { useStreamingChat } from '@/hooks/useStreamingChat';
-import { CharacterQuickCreateModal } from '@/components/kaiwa/bebas/character-quick-create-modal';
 import { EmptyCharacterState } from '@/components/kaiwa/bebas/empty-character-state';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Plus, Settings } from 'lucide-react';
 
 // Component to hide mobile navbar
 function HideMobileNav() {
@@ -28,10 +29,22 @@ interface Character {
   id: string;
   name: string;
   description: string | null;
+  avatar: string | null;
   voice: string | null;
   personality: Record<string, unknown>;
   speakingStyle: string | null;
   relationshipType: string | null;
+}
+
+// Helper function to get initials from name
+function getInitials(name: string): string {
+  if (!name) return '?';
+  return name
+    .split(' ')
+    .map(word => word[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 }
 
 interface ConversationSession {
@@ -67,7 +80,6 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [voiceError, setVoiceError] = useState<string | null>(null);
-  const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false);
 
   // Initialize streaming chat with custom endpoint
   const {
@@ -147,13 +159,6 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   const handleBackToCharacterSelect = () => {
     setSession(null);
     setSelectedCharacter(null);
-  };
-
-  const handleCharacterCreated = async (character: Character) => {
-    // Add to characters list
-    setCharacters(prev => [...prev, character]);
-    // Auto-select and start session
-    await handleCharacterSelect(character);
   };
 
   const handleVoiceRecording = async (audioBlob: Blob, duration: number) => {
@@ -254,77 +259,68 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              会話相手を選んでください / Select Your Conversation Partner
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              キャラクターを選んで、自由に日本語で会話しましょう！ / Choose a character and start
-              your free conversation in Japanese!
-            </p>
-          </div>
-
           {characters.length === 0 ? (
-            <EmptyCharacterState onQuickCreate={() => setIsQuickCreateOpen(true)} />
+            <EmptyCharacterState />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {characters.map(character => (
-                <div
-                  key={character.id}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden"
-                >
-                  <div className="p-6">
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <>
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Daftar Karakter</h2>
+                <div className="flex items-center gap-2">
+                  <Link href="/app/profile/characters/new">
+                    <Button size="sm" className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Buat Karakter
+                    </Button>
+                  </Link>
+                  <Link href="/app/profile/characters">
+                    <Button size="sm" variant="outline" className="gap-2">
+                      <Settings className="h-4 w-4" />
+                      Kelola
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {characters.map(character => (
+                  <div
+                    key={character.id}
+                    className="flex flex-col items-center p-4 rounded-lg border bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <div className="relative w-16 h-16 mb-3">
+                      <Avatar className="w-full h-full rounded-md">
+                        {character.avatar && (
+                          <AvatarImage
+                            src={character.avatar}
+                            alt={character.name}
+                            className="rounded-md"
+                          />
+                        )}
+                        <AvatarFallback className="bg-primary/10 text-primary font-medium text-lg rounded-md">
+                          {getInitials(character.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white text-center truncate w-full mb-3">
                       {character.name}
-                    </h3>
-
-                    {character.description && (
-                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
-                        {character.description}
-                      </p>
-                    )}
-
-                    {character.relationshipType && (
-                      <div className="mb-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                          {character.relationshipType}
-                        </span>
-                      </div>
-                    )}
-
-                    {character.speakingStyle && (
-                      <p className="text-xs text-gray-500 dark:text-gray-500 mb-4 italic">
-                        &ldquo;{character.speakingStyle}&rdquo;
-                      </p>
-                    )}
-
+                    </span>
                     <Button
                       onClick={() => handleCharacterSelect(character)}
+                      disabled={loading && selectedCharacter?.id === character.id}
+                      size="sm"
                       className="w-full"
-                      disabled={loading}
                     >
                       {loading && selectedCharacter?.id === character.id ? (
-                        <>
-                          <div className="inline-block h-4 w-4 mr-2 animate-spin rounded-full border-2 border-solid border-current border-r-transparent"></div>
-                          準備中... / Loading...
-                        </>
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-r-transparent"></div>
                       ) : (
-                        <>会話を始める / Start Conversation</>
+                        'Mulai Chat'
                       )}
                     </Button>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
-
-          {/* Quick Create Modal */}
-          <CharacterQuickCreateModal
-            isOpen={isQuickCreateOpen}
-            onClose={() => setIsQuickCreateOpen(false)}
-            onCharacterCreated={handleCharacterCreated}
-            userId={user.id}
-          />
         </main>
       </div>
     );

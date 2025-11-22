@@ -14,7 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, Camera, Upload } from 'lucide-react';
+import { ArrowLeft, Camera, Upload, Check } from 'lucide-react';
+import {
+  ImageCrop,
+  ImageCropContent,
+  ImageCropApply,
+  ImageCropReset,
+} from '@/components/ui/shadcn-io/image-crop';
 
 interface City {
   name: string;
@@ -50,6 +56,8 @@ export function EditProfilePage({ user }: EditProfilePageProps) {
   });
   const [imagePreview, setImagePreview] = useState<string | null>(user.image);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [fileToCrop, setFileToCrop] = useState<File | null>(null);
+  const [isCropping, setIsCropping] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cities, setCities] = useState<City[]>([]);
@@ -84,14 +92,56 @@ export function EditProfilePage({ user }: EditProfilePageProps) {
         return;
       }
 
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      setFileToCrop(file);
+      setIsCropping(true);
       setError(null);
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
+  };
+
+  const handleCroppedImage = async (croppedImageDataUrl: string) => {
+    setError(null);
+
+    try {
+      // Convert data URL to blob
+      const response = await fetch(croppedImageDataUrl);
+      const blob = await response.blob();
+      const file = new File([blob], 'avatar.png', { type: 'image/png' });
+
+      // Upload immediately
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const uploadResponse = await fetch('/api/upload/avatar', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        const data = await uploadResponse.json();
+        throw new Error(data.error || 'Failed to upload image');
+      }
+
+      const data = await uploadResponse.json();
+
+      // Update preview with the uploaded URL
+      setImagePreview(data.url);
+      setImageFile(null); // Clear the file since it's already uploaded
+      setFileToCrop(null);
+      setIsCropping(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload image');
+      setFileToCrop(null);
+      setIsCropping(false);
+    }
+  };
+
+  const handleCancelCrop = () => {
+    setFileToCrop(null);
+    setIsCropping(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -164,48 +214,64 @@ export function EditProfilePage({ user }: EditProfilePageProps) {
         <Card>
           <CardHeader>
             <CardTitle>Foto Profil</CardTitle>
-            <CardDescription>Klik foto untuk mengubah</CardDescription>
+            <CardDescription>
+              {isCropping ? 'Sesuaikan area foto' : 'Klik foto untuk mengubah'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-6">
-              <div className="relative">
-                <Avatar
-                  className="h-24 w-24 cursor-pointer"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <AvatarImage src={imagePreview || undefined} alt={displayName} />
-                  <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
-                </Avatar>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="absolute bottom-0 right-0 p-2 bg-primary text-primary-foreground rounded-full shadow-lg hover:bg-primary/90 transition-colors"
-                >
-                  <Camera className="h-4 w-4" />
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
+            {isCropping && fileToCrop ? (
+              <div className="space-y-4">
+                <ImageCrop file={fileToCrop} onCrop={handleCroppedImage} aspect={1} circularCrop>
+                  <div className="flex flex-col items-center gap-4">
+                    <ImageCropContent className="max-h-[300px] rounded-lg overflow-hidden" />
+                    <div className="flex items-center gap-2">
+                      <ImageCropReset type="button" />
+                      <ImageCropApply type="button">
+                        <Check className="h-4 w-4" />
+                      </ImageCropApply>
+                    </div>
+                  </div>
+                </ImageCrop>
+                <div className="flex justify-center">
+                  <Button type="button" variant="ghost" size="sm" onClick={handleCancelCrop}>
+                    Batal
+                  </Button>
+                </div>
               </div>
-              <div className="flex-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="gap-2"
-                >
-                  <Upload className="h-4 w-4" />
-                  Upload Foto
-                </Button>
-                <p className="text-sm text-muted-foreground mt-2">
-                  JPG, PNG atau GIF. Maksimal 5MB.
-                </p>
+            ) : (
+              <div className="flex items-center gap-6">
+                <div className="relative">
+                  <Avatar
+                    className="h-24 w-24 cursor-pointer"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <AvatarImage src={imagePreview || undefined} alt={displayName} />
+                    <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
+                  </Avatar>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                </div>
+                <div className="flex-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="gap-2"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Upload Foto
+                  </Button>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    JPG, PNG atau GIF. Maksimal 5MB.
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 

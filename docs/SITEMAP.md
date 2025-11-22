@@ -2,12 +2,25 @@
 
 ## 📋 Daftar Isi
 
+- [Route Overview](#route-overview)
 - [Struktur User States](#struktur-user-states)
 - [Arsitektur Aplikasi](#arsitektur-aplikasi)
 - [Sitemap Lengkap](#sitemap-lengkap)
+- [API Routes](#api-routes)
 - [User Flow Diagrams](#user-flow-diagrams)
 - [Authentication Flow](#authentication-flow)
 - [Feature Routes](#feature-routes)
+
+---
+
+## 📊 Route Overview
+
+| Category        | Count | Description                                  |
+| --------------- | ----- | -------------------------------------------- |
+| Public Pages    | 6     | Landing, auth, legal                         |
+| Protected Pages | 20+   | Main app features (kaiwa, fukushuu, profile) |
+| Admin Pages     | 6     | Admin dashboard                              |
+| API Routes      | 50+   | Backend endpoints                            |
 
 ---
 
@@ -91,71 +104,117 @@ Root Layout (src/app/layout.tsx)
 /privacypolicy
 └── privacy policy
 
+/(auth)/login               → Login page
+/(auth)/register            → Registration page
+/(auth)/verify-email        → Email verification
+/(auth)/forgot-password     → Password reset request
+/(auth)/reset-password      → Password reset form
 ```
 
 ---
 
-### **Dashboard Routes** (Authenticated Users)
+### **App Routes** (Authenticated Users)
 
 ```
-/dashboard                  → Main Dashboard
-├── Halo $username!
-├── Menit latihan kaiwa
-├── Kartu yang sudah hafal
-├── Stats satu minggu
-└── Recent Activity ()
+/app                        → Main Dashboard
+├── Welcome message
+├── Learning statistics
+├── Quick actions
+└── Recent activity
 
-/dashboard/kaiwa            → Latihan kaiwa
-/kaiwa/bebas (Ngobrol bebas)
-├── AI Character Selection (can create character here)
-└── Message History
+/app/onboarding             → New user onboarding
+├── JLPT level selection
+├── Learning goals
+└── Initial preferences
 
-/kaiwa/Roleplay
-├── Available Tasks
-├── Task Filters (JLPT Level, Category)
-└── → Start Task (with all pretask and feedback. its for menu understanding)
+/app/kaiwa                  → Conversation mode selection
+├── Bebas (Free conversation)
+├── Roleplay (Task-based)
+└── Topic (Topic discussion)
 
-/dashboard/profile
-settings         → User Settings
-├── Profile Management
+/app/kaiwa/bebas            → Free conversation
+├── Character selection
+├── Chat interface
+├── Voice input/output
+└── Feedback panel
+
+/app/kaiwa/roleplay         → Scenario selection
+├── Scenario cards
+├── Difficulty filters
+└── JLPT level filters
+
+/app/kaiwa/roleplay/[id]    → Active roleplay session
+├── Chat interface
+├── Task objectives
+├── Progress tracking
+└── Assessment results
+
+/app/kaiwa/topic            → Topic discussion
+├── Topic selection
+├── Discussion interface
+└── Feedback panel
+
+/app/fukushuu               → Review/Flashcard home
+├── Due cards overview
+├── Study decks
+└── Statistics
+
+/app/fukushuu/drill         → Flashcard drill session
+├── Card interface
+├── Rating buttons (1-4)
+├── Progress indicator
+└── Session stats
+
+/app/fukushuu/study-deck    → Study deck manager
+├── Deck list
+├── Create/Edit decks
+└── Card management
+
+/app/scenarios              → Scenario browsing
+├── Scenario cards
+├── Filters (difficulty, JLPT)
+└── Categories
+
+/app/scenarios/[id]         → Scenario detail
+├── Description
+├── Objectives
+├── Start button
+└── Related scenarios
+
+/app/profile                → User profile overview
+├── User info
+├── Statistics
+├── Achievements
+└── Tab navigation
+
+/app/profile/settings       → User settings
+├── Profile management
 ├── Preferences
-└── Account Settings
-/profile/progress         → Progress Tracking
-├── Learning Statistics
-├── Completed Tasks
-├── Achievement Badges
-└── Skill Assessment Charts
-/profile/characters       → Character Management
-├── Character List
-├── → /new
-│   └── Create New Character
-└── → {id}/edit
-    └── Edit Character Profile
-```
+├── Account settings
+└── Theme selection
 
-/drill → Study Hub
-├── Available Study Decks
-/drill/my-decks → My Deck Collection
-├── Personal Decks
-├── Progress per Deck
-└── Quick Study Actions
-/drill/decks/new → Create New Deck
-├── Deck Configuration
-├── Card Templates
-└── Initial Content Setup
-/drill/decks/{deckId} → View Deck Details
-├── Deck Overview
-├── Card List
-├── Study Statistics
-└── → /study/decks/{deckId}/edit
-├── Edit Deck Settings
-├── Add/Remove Cards
-└── Manage Vocabulary
-/drill/{deckId} → Active Study Session
-├── Flashcard Interface
-├── Spaced Repetition Algorithm
-├── Answer Grading (hafal/belum hafal)
-└── Session Statistics
+/app/profile/characters     → Character list
+├── Character cards
+├── Create new button
+└── Edit/Delete actions
+
+/app/profile/characters/new → Create character
+├── Name & description
+├── Avatar picker
+├── Personality traits
+└── Speaking style
+
+/app/profile/characters/[id]/edit → Edit character
+├── Edit form
+├── Avatar change
+└── Delete option
+
+/app/history                → Conversation history
+├── Conversation list
+├── Filters
+├── Search
+└── Delete actions
+```
 
 ---
 
@@ -216,6 +275,125 @@ settings         → User Settings
 ├── Feature Flags
 └── System Maintenance
 ```
+
+---
+
+## 🔌 API Routes
+
+### Authentication
+
+| Method | Endpoint                        | Description               |
+| ------ | ------------------------------- | ------------------------- |
+| `*`    | `/api/auth/[...nextauth]`       | NextAuth handlers         |
+| `POST` | `/api/auth/register`            | User registration         |
+| `POST` | `/api/auth/verify-email`        | Verify email token        |
+| `POST` | `/api/auth/resend-verification` | Resend verification email |
+| `POST` | `/api/auth/forgot-password`     | Request password reset    |
+| `POST` | `/api/auth/reset-password`      | Reset password            |
+
+### Chat & AI
+
+| Method | Endpoint             | Description              |
+| ------ | -------------------- | ------------------------ |
+| `POST` | `/api/chat`          | Send message (free chat) |
+| `POST` | `/api/chat/stream`   | SSE streaming chat       |
+| `POST` | `/api/chat/roleplay` | Roleplay chat message    |
+| `POST` | `/api/chat/topic`    | Topic discussion message |
+
+### Voice
+
+| Method | Endpoint                | Description              |
+| ------ | ----------------------- | ------------------------ |
+| `POST` | `/api/voice/transcribe` | Speech-to-text (Whisper) |
+| `POST` | `/api/voice/synthesize` | Text-to-speech (TTS)     |
+
+### Conversations
+
+| Method   | Endpoint                           | Description             |
+| -------- | ---------------------------------- | ----------------------- |
+| `GET`    | `/api/conversations`               | List user conversations |
+| `POST`   | `/api/conversations`               | Create conversation     |
+| `GET`    | `/api/conversations/[id]`          | Get conversation        |
+| `PUT`    | `/api/conversations/[id]`          | Update conversation     |
+| `DELETE` | `/api/conversations/[id]`          | Delete conversation     |
+| `GET`    | `/api/conversations/[id]/messages` | Get messages            |
+| `POST`   | `/api/conversations/[id]/messages` | Add message             |
+
+### Flashcards
+
+| Method   | Endpoint                 | Description      |
+| -------- | ------------------------ | ---------------- |
+| `GET`    | `/api/flashcards`        | List flashcards  |
+| `POST`   | `/api/flashcards`        | Create flashcard |
+| `GET`    | `/api/flashcards/[id]`   | Get flashcard    |
+| `PUT`    | `/api/flashcards/[id]`   | Update flashcard |
+| `DELETE` | `/api/flashcards/[id]`   | Delete flashcard |
+| `GET`    | `/api/flashcards/due`    | Get due cards    |
+| `POST`   | `/api/flashcards/review` | Submit review    |
+| `GET`    | `/api/flashcards/stats`  | Get statistics   |
+
+### Study Decks
+
+| Method   | Endpoint                | Description       |
+| -------- | ----------------------- | ----------------- |
+| `GET`    | `/api/study-decks`      | List study decks  |
+| `POST`   | `/api/study-decks`      | Create study deck |
+| `GET`    | `/api/study-decks/[id]` | Get study deck    |
+| `PUT`    | `/api/study-decks/[id]` | Update study deck |
+| `DELETE` | `/api/study-decks/[id]` | Delete study deck |
+
+### Characters
+
+| Method   | Endpoint               | Description      |
+| -------- | ---------------------- | ---------------- |
+| `GET`    | `/api/characters`      | List characters  |
+| `POST`   | `/api/characters`      | Create character |
+| `GET`    | `/api/characters/[id]` | Get character    |
+| `PUT`    | `/api/characters/[id]` | Update character |
+| `DELETE` | `/api/characters/[id]` | Delete character |
+
+### Scenarios
+
+| Method   | Endpoint                    | Description             |
+| -------- | --------------------------- | ----------------------- |
+| `GET`    | `/api/scenarios`            | List scenarios          |
+| `POST`   | `/api/scenarios`            | Create scenario (admin) |
+| `GET`    | `/api/scenarios/[id]`       | Get scenario            |
+| `PUT`    | `/api/scenarios/[id]`       | Update scenario (admin) |
+| `DELETE` | `/api/scenarios/[id]`       | Delete scenario (admin) |
+| `POST`   | `/api/scenarios/[id]/start` | Start scenario          |
+
+### User
+
+| Method | Endpoint               | Description           |
+| ------ | ---------------------- | --------------------- |
+| `GET`  | `/api/user`            | Get current user      |
+| `PUT`  | `/api/user`            | Update profile        |
+| `GET`  | `/api/user/progress`   | Get learning progress |
+| `PUT`  | `/api/user/progress`   | Update progress       |
+| `GET`  | `/api/user/stats`      | Get user statistics   |
+| `GET`  | `/api/user/settings`   | Get settings          |
+| `PUT`  | `/api/user/settings`   | Update settings       |
+| `POST` | `/api/user/onboarding` | Complete onboarding   |
+
+### Upload
+
+| Method | Endpoint             | Description         |
+| ------ | -------------------- | ------------------- |
+| `POST` | `/api/upload/avatar` | Upload avatar image |
+
+### Admin APIs
+
+| Method   | Endpoint                    | Description        |
+| -------- | --------------------------- | ------------------ |
+| `GET`    | `/api/admin/users`          | List all users     |
+| `PUT`    | `/api/admin/users/[id]`     | Update user        |
+| `DELETE` | `/api/admin/users/[id]`     | Delete user        |
+| `GET`    | `/api/admin/analytics`      | Get analytics data |
+| `GET`    | `/api/admin/scenarios`      | List all scenarios |
+| `POST`   | `/api/admin/scenarios`      | Create scenario    |
+| `PUT`    | `/api/admin/scenarios/[id]` | Update scenario    |
+| `DELETE` | `/api/admin/scenarios/[id]` | Delete scenario    |
 
 ---
 
@@ -595,6 +773,6 @@ Admin Sidebar
 
 ---
 
-**Last Updated:** 2025-01-17
-**Version:** 1.0
+**Last Updated:** 2025-11-23
+**Version:** 2.0
 **Maintainer:** GengoBot Team

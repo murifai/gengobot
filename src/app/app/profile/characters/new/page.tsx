@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/Card';
-import { ArrowLeft } from 'lucide-react';
+import { AvatarPicker } from '@/components/ui/avatar-picker';
+import { ChevronLeft } from 'lucide-react';
 // OpenAI TTS voices
 const OPENAI_VOICES = [
   { value: 'alloy', label: 'Alloy', description: 'Neutral and balanced' },
@@ -51,6 +52,7 @@ export default function NewCharacterPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    avatar: '',
     voice: 'alloy',
     personalityType: 'Friend',
     traits: [] as string[],
@@ -78,6 +80,7 @@ export default function NewCharacterPage() {
         body: JSON.stringify({
           name: formData.name,
           description: formData.description,
+          avatar: formData.avatar || undefined,
           voice: formData.voice,
           personality: {
             type: formData.personalityType,
@@ -117,12 +120,11 @@ export default function NewCharacterPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Create Character</h1>
-            <Button onClick={() => router.push('/app/profile/characters')} variant="secondary">
-              <ArrowLeft className="mr-2" size={16} />
-              Back to Characters
+          <div className="flex items-center gap-4 h-16">
+            <Button onClick={() => router.back()} variant="ghost" size="icon">
+              <ChevronLeft size={24} />
             </Button>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Buat Karakter</h1>
           </div>
         </div>
       </nav>
@@ -136,15 +138,26 @@ export default function NewCharacterPage() {
                 Basic Information
               </h2>
 
-              <div>
-                <Label htmlFor="name">Character Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Tanaka-san"
-                  required
-                />
+              <div className="flex items-start gap-6">
+                <div className="flex flex-col items-center gap-2">
+                  <AvatarPicker
+                    value={formData.avatar}
+                    onChange={url => setFormData({ ...formData, avatar: url })}
+                    name={formData.name || 'Character'}
+                    size="lg"
+                  />
+                  <span className="text-xs text-muted-foreground">Klik untuk ubah</span>
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor="name">Character Name *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="e.g., Tanaka-san"
+                    required
+                  />
+                </div>
               </div>
 
               <div>
@@ -245,15 +258,15 @@ export default function NewCharacterPage() {
             {/* Submit */}
             <div className="flex gap-4 pt-4">
               <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? 'Creating...' : 'Create Character'}
+                {loading ? 'Menyimpan...' : 'Buat Karakter'}
               </Button>
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => router.push('/app/profile/characters')}
+                onClick={() => router.back()}
                 disabled={loading}
               >
-                Cancel
+                Batal
               </Button>
             </div>
           </form>

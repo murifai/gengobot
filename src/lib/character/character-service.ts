@@ -16,6 +16,7 @@ export class CharacterService {
       data: {
         name: data.name,
         description: data.description,
+        avatar: data.avatar,
         voice: data.voice,
         personality: data.personality as object,
         speakingStyle: data.personality.speakingStyle,
@@ -96,7 +97,8 @@ export class CharacterService {
     const updateData: Record<string, unknown> = {};
 
     if (data.name) updateData.name = data.name;
-    if (data.description) updateData.description = data.description;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.avatar !== undefined) updateData.avatar = data.avatar || null;
     if (data.voice) updateData.voice = data.voice;
     if (data.personality) {
       updateData.personality = data.personality as object;
@@ -167,6 +169,7 @@ export class CharacterService {
       id: character.id as string,
       name: character.name as string,
       description: (character.description as string) || undefined,
+      avatar: (character.avatar as string) || undefined,
       voice: (character.voice as string) || undefined,
       personality: character.personality as {
         type: PersonalityType;

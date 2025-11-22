@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import DeckBrowser from '@/components/deck/DeckBrowser';
 import { LoadingState } from '@/components/ui/LoadingState';
+import { Button } from '@/components/ui/Button';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,19 +23,10 @@ export default function DrillHubPage() {
         </div>
         <div className="flex gap-3">
           <Link href="/app/drill/decks/new">
-            <button className="px-4 py-2 bg-tertiary-green hover:brightness-90 text-white rounded-lg transition-all">
-              Buat Dek
-            </button>
+            <Button>Buat Dek</Button>
           </Link>
           <Link href="/app/drill/my-decks">
-            <button className="px-4 py-2 bg-tertiary-purple hover:brightness-90 text-white rounded-lg transition-all">
-              Dek Saya
-            </button>
-          </Link>
-          <Link href="/app/profile/progress">
-            <button className="px-4 py-2 bg-secondary hover:brightness-90 text-white rounded-lg transition-all">
-              Lihat Statistik
-            </button>
+            <Button variant="outline">Dek Saya</Button>
           </Link>
         </div>
       </div>
