@@ -35,3 +35,6 @@ export {
   getAudioDuration,
   checkAudioSupport,
 } from './audio-processor';
+
+// Duration Tracking (for credit calculation)
+export { VoiceDurationTracker, createDurationTracker } from './duration-tracker';

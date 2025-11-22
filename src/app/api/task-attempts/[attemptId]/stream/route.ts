@@ -6,6 +6,8 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import OpenAI from 'openai';
 import { taskVoiceService } from '@/lib/voice/task-voice-service';
+import { UsageType } from '@prisma/client';
+import { creditService, TIER_CONFIG } from '@/lib/subscription';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -56,6 +58,41 @@ export async function POST(
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
+    }
+
+    // Check credits for text chat
+    const creditCheck = await creditService.checkCredits(attempt.userId, UsageType.TEXT_CHAT, 1);
+
+    if (!creditCheck.allowed) {
+      // For free tier, check daily message limit
+      const subscription = await creditService.getOrCreateSubscription(attempt.userId);
+      if (subscription.tier === 'FREE') {
+        const tierConfig = TIER_CONFIG.FREE;
+        return new Response(
+          JSON.stringify({
+            error: 'Daily message limit reached',
+            message: `Free tier limit is ${tierConfig.textDailyLimit} messages per day. Upgrade for unlimited messages.`,
+            isTrialUser: true,
+          }),
+          {
+            status: 402,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          error: 'Insufficient credits',
+          message: creditCheck.reason,
+          creditsRequired: creditCheck.creditsRequired,
+          creditsAvailable: creditCheck.creditsAvailable,
+        }),
+        {
+          status: 402,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Build conversation context
@@ -214,6 +251,15 @@ Respond ONLY in Japanese unless explaining a complex grammar point.`;
               conversationHistory: updatedHistory as never,
             },
           });
+
+          // Deduct credit for text chat message
+          await creditService.deductCredits(
+            attempt.userId,
+            UsageType.TEXT_CHAT,
+            1,
+            attemptId,
+            'task_attempt'
+          );
 
           // Send completion event with audio data (base64)
           const doneData = JSON.stringify({

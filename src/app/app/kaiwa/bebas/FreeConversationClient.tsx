@@ -9,7 +9,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import StreamingChatInterface from '@/components/chat/StreamingChatInterface';
 import { useStreamingChat } from '@/hooks/useStreamingChat';
 import { EmptyCharacterState } from '@/components/kaiwa/bebas/empty-character-state';
-import { RotateCcw, Plus, Settings } from 'lucide-react';
+import { RotateCcw, Plus, Settings, Mic, MessageSquare, Radio } from 'lucide-react';
+import useWebRTCAudioSession from '@/hooks/use-webrtc';
+import { Tool } from '@/types/conversation';
+import { Input } from '@/components/ui/Input';
+import { motion } from 'framer-motion';
+import { Send, ArrowLeft } from 'lucide-react';
+
+// Chat mode type
+type ChatMode = 'normal' | 'realtime';
 
 // Component to hide mobile navbar
 function HideMobileNav() {
@@ -24,6 +32,9 @@ function HideMobileNav() {
   }, []);
   return null;
 }
+
+// WebRTC tools (can be extended later)
+const webrtcTools: Tool[] = [];
 
 interface Character {
   id: string;
@@ -80,8 +91,10 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [voiceError, setVoiceError] = useState<string | null>(null);
+  const [chatMode, setChatMode] = useState<ChatMode>('normal');
+  const [textInput, setTextInput] = useState('');
 
-  // Initialize streaming chat with custom endpoint
+  // Initialize streaming chat with custom endpoint (for normal mode)
   const {
     messages: streamingMessages,
     isStreaming,
@@ -99,6 +112,63 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
     undefined, // No objective detection for free conversation
     session ? `/api/free-conversation/${session.id}/stream` : undefined
   );
+
+  // WebRTC Audio Session Hook (for realtime mode)
+  const {
+    isSessionActive,
+    handleStartStopClick,
+    conversation: webrtcConversation,
+    sendTextMessage: sendWebRTCTextMessage,
+    isPushToTalkActive,
+    startPushToTalk,
+    stopPushToTalk,
+  } = useWebRTCAudioSession(selectedCharacter?.voice || 'alloy', webrtcTools);
+
+  // Spacebar keyboard shortcut for PTT in realtime mode
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (chatMode === 'realtime' && e.code === 'Space' && isSessionActive && !isPushToTalkActive) {
+        // Don't trigger if user is typing in input
+        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+          return;
+        }
+        e.preventDefault();
+        startPushToTalk();
+      }
+    },
+    [chatMode, isSessionActive, isPushToTalkActive, startPushToTalk]
+  );
+
+  const handleKeyUp = useCallback(
+    (e: KeyboardEvent) => {
+      if (chatMode === 'realtime' && e.code === 'Space' && isSessionActive && isPushToTalkActive) {
+        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+          return;
+        }
+        e.preventDefault();
+        stopPushToTalk();
+      }
+    },
+    [chatMode, isSessionActive, isPushToTalkActive, stopPushToTalk]
+  );
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [handleKeyDown, handleKeyUp]);
+
+  // Handle sending text in realtime mode
+  const handleSendWebRTCText = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (textInput.trim() && isSessionActive) {
+      sendWebRTCTextMessage(textInput);
+      setTextInput('');
+    }
+  };
 
   const loadCharacters = useCallback(async () => {
     try {
@@ -124,13 +194,20 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
     loadCharacters();
   }, [loadCharacters]);
 
-  const handleCharacterSelect = async (character: Character) => {
+  const handleCharacterSelect = async (character: Character, mode: ChatMode) => {
     setSelectedCharacter(character);
+    setChatMode(mode);
     setLoading(true);
     setError(null);
 
+    // For realtime mode, we don't need a session - just set the character
+    if (mode === 'realtime') {
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Create or get active free conversation session for this character
+      // Create or get active free conversation session for this character (normal mode only)
       const response = await fetch('/api/free-conversation/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -254,8 +331,8 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
     );
   }
 
-  // Character selection screen
-  if (!session) {
+  // Character selection screen (show when no session AND not in realtime mode with character)
+  if (!session && !(chatMode === 'realtime' && selectedCharacter)) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -304,18 +381,43 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
                     <span className="text-sm font-medium text-gray-900 dark:text-white text-center truncate w-full mb-3">
                       {character.name}
                     </span>
-                    <Button
-                      onClick={() => handleCharacterSelect(character)}
-                      disabled={loading && selectedCharacter?.id === character.id}
-                      size="sm"
-                      className="w-full"
-                    >
-                      {loading && selectedCharacter?.id === character.id ? (
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-r-transparent"></div>
-                      ) : (
-                        'Mulai Chat'
-                      )}
-                    </Button>
+                    <div className="flex flex-col gap-2 w-full">
+                      <Button
+                        onClick={() => handleCharacterSelect(character, 'normal')}
+                        disabled={loading && selectedCharacter?.id === character.id}
+                        size="sm"
+                        className="w-full gap-1"
+                        variant="outline"
+                      >
+                        {loading &&
+                        selectedCharacter?.id === character.id &&
+                        chatMode === 'normal' ? (
+                          <div className="h-3 w-3 animate-spin rounded-full border-2 border-solid border-current border-r-transparent"></div>
+                        ) : (
+                          <>
+                            <MessageSquare className="h-3 w-3" />
+                            Chat
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        onClick={() => handleCharacterSelect(character, 'realtime')}
+                        disabled={loading && selectedCharacter?.id === character.id}
+                        size="sm"
+                        className="w-full gap-1"
+                      >
+                        {loading &&
+                        selectedCharacter?.id === character.id &&
+                        chatMode === 'realtime' ? (
+                          <div className="h-3 w-3 animate-spin rounded-full border-2 border-solid border-white border-r-transparent"></div>
+                        ) : (
+                          <>
+                            <Radio className="h-3 w-3" />
+                            Realtime
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -326,37 +428,195 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
     );
   }
 
-  // Chat interface (when session exists)
-  return (
-    <>
-      <HideMobileNav />
-      <StreamingChatInterface
-        title={`${session.character.name}と会話 / Chat with ${session.character.name}`}
-        subtitle="日本語で自由に話しましょう / Let's talk freely in Japanese"
-        onBack={handleBackToCharacterSelect}
-        headerActions={
-          <Button
-            onClick={resetChat}
-            variant="outline"
-            size="icon"
-            title="リセット / Reset"
-            aria-label="リセット / Reset"
-          >
-            <RotateCcw className="h-4 w-4" />
-          </Button>
-        }
-        messages={streamingMessages}
-        isStreaming={isStreaming}
-        onSendMessage={sendMessage}
-        onVoiceRecording={handleVoiceRecording}
-        placeholder="日本語でメッセージを入力... / Type your message in Japanese..."
-        disabled={false}
-        enableVoice={true}
-        emptyStateMessage="自由に会話を始めましょう！ / Start your free conversation!"
-        error={streamingError}
-        onClearError={clearStreamingError}
-        attemptId={session.id}
-      />
-    </>
-  );
+  // Realtime chat interface
+  if (chatMode === 'realtime' && selectedCharacter) {
+    return (
+      <>
+        <HideMobileNav />
+        <div className="fixed inset-0 flex flex-col bg-gray-50 dark:bg-gray-900">
+          {/* Header */}
+          <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 shrink-0">
+            <button
+              onClick={handleBackToCharacterSelect}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="w-6 h-6 text-gray-900 dark:text-white" />
+            </button>
+            <div className="flex-1">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                {selectedCharacter.name}と会話
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                リアルタイム音声会話 / Realtime Voice Chat
+              </p>
+            </div>
+            {isSessionActive && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-xs text-green-700 dark:text-green-400 font-medium">Live</span>
+              </div>
+            )}
+          </div>
+
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto p-4">
+            {webrtcConversation.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 dark:text-gray-400">
+                <Mic className="h-16 w-16 mb-4 opacity-50" />
+                <p className="text-lg font-medium">Tekan Space atau Tahan Tombol untuk Bicara</p>
+                <p className="text-sm mt-2">Mode Push-to-Talk menghemat ~50-75% biaya</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {webrtcConversation
+                  .filter(msg => {
+                    if (msg.isFinal && msg.text) return true;
+                    if (msg.role === 'assistant' && !msg.isFinal) return true;
+                    return false;
+                  })
+                  .map(msg => (
+                    <motion.div
+                      key={msg.id}
+                      initial={{ opacity: 0, x: msg.role === 'user' ? 20 : -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${
+                          msg.role === 'user'
+                            ? 'bg-secondary text-white'
+                            : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700'
+                        }`}
+                      >
+                        <p className="text-sm whitespace-pre-wrap">{msg.text || '...'}</p>
+                        {!msg.isFinal && (
+                          <span className="text-xs opacity-70 ml-2">
+                            {msg.status === 'speaking'
+                              ? '🎤'
+                              : msg.status === 'processing'
+                                ? '⏳'
+                                : ''}
+                          </span>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+              </div>
+            )}
+          </div>
+
+          {/* Controls Area */}
+          <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 space-y-3">
+            {/* PTT Status */}
+            {isSessionActive && isPushToTalkActive && (
+              <div className="bg-primary/10 border border-primary/30 rounded-lg p-2 text-center">
+                <div className="flex items-center justify-center gap-2">
+                  <Mic className="h-4 w-4 text-primary animate-pulse" />
+                  <span className="text-sm font-medium text-primary">
+                    Merekam... Lepas untuk mengirim
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Control Buttons */}
+            {!isSessionActive ? (
+              <Button
+                onClick={handleStartStopClick}
+                className="w-full h-12 text-lg font-semibold"
+                variant="default"
+              >
+                <Mic className="mr-2 h-5 w-5" />
+                Mulai Session
+              </Button>
+            ) : (
+              <div className="space-y-2">
+                <Button
+                  onMouseDown={startPushToTalk}
+                  onMouseUp={stopPushToTalk}
+                  onTouchStart={startPushToTalk}
+                  onTouchEnd={stopPushToTalk}
+                  className="w-full h-16 text-lg font-semibold"
+                  variant={isPushToTalkActive ? 'destructive' : 'default'}
+                >
+                  <Mic className="mr-2 h-6 w-6" />
+                  {isPushToTalkActive ? 'Merekam...' : 'Tahan untuk Bicara (atau Space)'}
+                </Button>
+                <Button
+                  onClick={handleStartStopClick}
+                  className="w-full"
+                  variant="outline"
+                  size="sm"
+                >
+                  Akhiri Session
+                </Button>
+              </div>
+            )}
+
+            {/* Text Input */}
+            {isSessionActive && (
+              <motion.form
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                onSubmit={handleSendWebRTCText}
+                className="flex gap-2"
+              >
+                <Input
+                  value={textInput}
+                  onChange={e => setTextInput(e.target.value)}
+                  placeholder="Ketik pesan..."
+                  className="flex-1"
+                />
+                <Button type="submit" size="icon">
+                  <Send className="h-4 w-4" />
+                </Button>
+              </motion.form>
+            )}
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Normal chat interface (when session exists)
+  if (session) {
+    return (
+      <>
+        <HideMobileNav />
+        <StreamingChatInterface
+          title={`${session.character.name}と会話 / Chat with ${session.character.name}`}
+          subtitle="日本語で自由に話しましょう / Let's talk freely in Japanese"
+          onBack={handleBackToCharacterSelect}
+          headerActions={
+            <Button
+              onClick={resetChat}
+              variant="outline"
+              size="icon"
+              title="リセット / Reset"
+              aria-label="リセット / Reset"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          }
+          messages={streamingMessages}
+          isStreaming={isStreaming}
+          onSendMessage={sendMessage}
+          onVoiceRecording={handleVoiceRecording}
+          placeholder="日本語でメッセージを入力... / Type your message in Japanese..."
+          disabled={false}
+          enableVoice={true}
+          emptyStateMessage="自由に会話を始めましょう！ / Start your free conversation!"
+          error={streamingError}
+          onClearError={clearStreamingError}
+          attemptId={session.id}
+        />
+      </>
+    );
+  }
+
+  // Fallback - should not reach here
+  return null;
 }

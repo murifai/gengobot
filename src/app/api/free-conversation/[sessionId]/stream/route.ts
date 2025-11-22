@@ -5,6 +5,8 @@ import 'openai/shims/node';
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import OpenAI from 'openai';
+import { UsageType } from '@prisma/client';
+import { creditService, TIER_CONFIG } from '@/lib/subscription';
 
 export const runtime = 'nodejs';
 
@@ -46,6 +48,41 @@ export async function POST(
         status: 404,
         headers: { 'Content-Type': 'application/json' },
       });
+    }
+
+    // Check credits for text chat
+    const creditCheck = await creditService.checkCredits(session.userId, UsageType.TEXT_CHAT, 1);
+
+    if (!creditCheck.allowed) {
+      // For free tier, check daily message limit
+      const subscription = await creditService.getOrCreateSubscription(session.userId);
+      if (subscription.tier === 'FREE') {
+        const tierConfig = TIER_CONFIG.FREE;
+        return new Response(
+          JSON.stringify({
+            error: 'Daily message limit reached',
+            message: `Free tier limit is ${tierConfig.textDailyLimit} messages per day. Upgrade for unlimited messages.`,
+            isTrialUser: true,
+          }),
+          {
+            status: 402,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          error: 'Insufficient credits',
+          message: creditCheck.reason,
+          creditsRequired: creditCheck.creditsRequired,
+          creditsAvailable: creditCheck.creditsAvailable,
+        }),
+        {
+          status: 402,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Build conversation context
@@ -161,6 +198,15 @@ Respond primarily in Japanese. Only use English if explaining something complex 
               },
             },
           });
+
+          // Deduct credit for text chat message
+          await creditService.deductCredits(
+            session.userId,
+            UsageType.TEXT_CHAT,
+            1,
+            sessionId,
+            'free_conversation'
+          );
 
           console.log('[Free Conversation Stream] Saved messages:', {
             sessionId,

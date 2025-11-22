@@ -1,12 +1,21 @@
 // API Route: Speech-to-Text using Whisper
 import { NextRequest, NextResponse } from 'next/server';
 import { whisperService } from '@/lib/voice/whisper-service';
+import { auth } from '@/lib/auth/auth';
+import { UsageType } from '@prisma/client';
+import { creditService } from '@/lib/subscription';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60; // 60 seconds timeout
 
 export async function POST(request: NextRequest) {
   try {
+    // Check user authentication
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     // Get audio file from form data
     const formData = await request.formData();
     const audioFile = formData.get('audio') as File | null;
@@ -16,6 +25,29 @@ export async function POST(request: NextRequest) {
 
     if (!audioFile) {
       return NextResponse.json({ error: 'No audio file provided' }, { status: 400 });
+    }
+
+    // Estimate duration from file size (rough estimate: ~16KB per second for webm)
+    const estimatedSeconds = Math.max(1, Math.ceil(audioFile.size / 16000));
+
+    // Check credits before transcription
+    const creditCheck = await creditService.checkCredits(
+      session.user.id,
+      UsageType.VOICE_STANDARD,
+      estimatedSeconds
+    );
+
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Insufficient credits',
+          message: creditCheck.reason,
+          creditsRequired: creditCheck.creditsRequired,
+          creditsAvailable: creditCheck.creditsAvailable,
+          isTrialUser: creditCheck.isTrialUser,
+        },
+        { status: 402 }
+      );
     }
 
     // Validate audio file
@@ -41,12 +73,23 @@ export async function POST(request: NextRequest) {
       language: result.language,
     });
 
+    // Deduct credits based on actual duration
+    const actualDurationSeconds = Math.ceil(result.duration || estimatedSeconds);
+    await creditService.deductCredits(
+      session.user.id,
+      UsageType.VOICE_STANDARD,
+      actualDurationSeconds,
+      undefined, // referenceId
+      'voice_transcription'
+    );
+
     return NextResponse.json({
       success: true,
       transcript: result.text,
       language: result.language,
       duration: result.duration,
       segments: result.segments,
+      creditsUsed: creditCheck.creditsRequired,
     });
   } catch (error) {
     console.error('[Whisper API] Error:', error);

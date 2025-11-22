@@ -1,10 +1,41 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth/auth';
+import { UsageType } from '@prisma/client';
+import { creditService } from '@/lib/subscription';
 
 export async function POST() {
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
     return NextResponse.json({ error: 'OPENAI_API_KEY not configured' }, { status: 500 });
+  }
+
+  // Check user authentication and credits
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Check if user has credits for realtime (estimate 5 minutes minimum)
+  const estimatedMinutes = 5;
+  const estimatedSeconds = estimatedMinutes * 60;
+  const creditCheck = await creditService.checkCredits(
+    session.user.id,
+    UsageType.REALTIME,
+    estimatedSeconds
+  );
+
+  if (!creditCheck.allowed) {
+    return NextResponse.json(
+      {
+        error: 'Insufficient credits',
+        message: creditCheck.reason,
+        creditsRequired: creditCheck.creditsRequired,
+        creditsAvailable: creditCheck.creditsAvailable,
+        isTrialUser: creditCheck.isTrialUser,
+      },
+      { status: 402 }
+    );
   }
 
   try {

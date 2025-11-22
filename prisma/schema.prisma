@@ -157,6 +157,9 @@ model User {
   studySessions      StudySession[]
   freeConversations  FreeConversation[]
   analyticsEvents    AnalyticsEvent[]
+  subscription       Subscription?
+  creditTransactions CreditTransaction[]
+  voucherRedemptions VoucherRedemption[]
 
   @@index([email])
   @@index([isAdmin])
@@ -466,4 +469,187 @@ model AnalyticsEvent {
   @@index([userId])
   @@index([eventName])
   @@index([timestamp])
+}
+
+// Subscription model - User subscription and credit tracking
+model Subscription {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tier   SubscriptionTier   @default(FREE)
+  status SubscriptionStatus @default(ACTIVE)
+
+  // Billing
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+
+  // Credits
+  creditsTotal     Int @default(0)
+  creditsUsed      Int @default(0)
+  creditsRemaining Int @default(0)
+
+  // Trial tracking
+  trialStartDate   DateTime?
+  trialEndDate     DateTime?
+  trialCreditsUsed Int       @default(0)
+  trialDailyUsed   Int       @default(0)
+  trialDailyReset  DateTime?
+
+  // Character limits
+  customCharactersUsed Int @default(0)
+
+  // Metadata
+  xenditCustomerId  String?
+  xenditRecurringId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tier])
+  @@index([status])
+}
+
+// CreditTransaction model - Track all credit movements
+model CreditTransaction {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type    CreditTransactionType
+  amount  Int // Positive = add, Negative = deduct
+  balance Int // Balance after transaction
+
+  // Usage details
+  usageType    UsageType?
+  durationSecs Int? // For voice/realtime
+
+  // Reference
+  referenceId   String? // Conversation ID, etc.
+  referenceType String?
+
+  description String?
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+}
+
+// Voucher model - Discount codes and promotions
+model Voucher {
+  id String @id @default(cuid())
+
+  // Voucher details
+  code        String  @unique
+  name        String
+  description String?
+
+  // Type and value
+  type  VoucherType
+  value Int // Percentage, amount, or credits
+
+  // Constraints
+  maxUses     Int? // Null = unlimited
+  usesPerUser Int  @default(1)
+  currentUses Int  @default(0)
+
+  // Validity
+  startDate DateTime @default(now())
+  endDate   DateTime?
+  isActive  Boolean  @default(true)
+
+  // Eligibility
+  newUsersOnly    Boolean            @default(false)
+  applicableTiers SubscriptionTier[]
+  minMonths       Int? // Min subscription months required
+
+  // Stacking
+  isStackable Boolean @default(false)
+  isExclusive Boolean @default(false)
+
+  // Metadata
+  createdBy String? // Admin userId
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  redemptions VoucherRedemption[]
+
+  @@index([code])
+  @@index([isActive, endDate])
+}
+
+// VoucherRedemption model - Track voucher usage
+model VoucherRedemption {
+  id String @id @default(cuid())
+
+  voucherId String
+  voucher   Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Applied to
+  subscriptionId String?
+
+  // Discount details
+  discountType   VoucherType
+  discountValue  Int
+  originalAmount Int? // Original price in Rupiah
+  finalAmount    Int? // After discount
+
+  // Status
+  status RedemptionStatus @default(APPLIED)
+
+  createdAt DateTime @default(now())
+
+  @@unique([voucherId, userId]) // One redemption per user per voucher
+  @@index([userId])
+  @@index([voucherId])
+}
+
+// Enums for Subscription System
+enum SubscriptionTier {
+  FREE
+  BASIC
+  PRO
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+enum CreditTransactionType {
+  GRANT // Monthly credit allocation
+  TRIAL_GRANT // Trial credits
+  USAGE // Credit deduction
+  REFUND // Credit refund
+  ADJUSTMENT // Manual adjustment
+  BONUS // Promotional credits
+}
+
+enum UsageType {
+  VOICE_STANDARD
+  REALTIME
+  TEXT_CHAT
+}
+
+enum VoucherType {
+  PERCENTAGE // Discount percentage
+  FIXED_AMOUNT // Fixed Rupiah discount
+  BONUS_CREDITS // Extra credits
+  TRIAL_EXTENSION // Extend trial days
+  TIER_UPGRADE // Temporary tier upgrade
+}
+
+enum RedemptionStatus {
+  APPLIED // Successfully applied
+  EXPIRED // Voucher expired before use
+  REVOKED // Manually revoked
 }
