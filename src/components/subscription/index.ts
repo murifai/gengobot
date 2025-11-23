@@ -20,3 +20,8 @@ export {
 
 // Pricing
 export { PricingTable, PricingComparison } from './PricingTable';
+
+// Voucher
+export { VoucherInput } from './VoucherInput';
+export { VoucherApplied } from './VoucherApplied';
+export { VoucherHistory } from './VoucherHistory';

@@ -3,7 +3,17 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { BarChart3, Users, FolderKanban, Bot, Settings, BookOpen, Layers } from 'lucide-react';
+import {
+  BarChart3,
+  Users,
+  FolderKanban,
+  Bot,
+  Settings,
+  BookOpen,
+  Layers,
+  CreditCard,
+  Tag,
+} from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,6 +59,20 @@ const adminCards = [
     icon: Bot,
     href: '/admin/characters',
     buttonText: 'Manage Characters',
+  },
+  {
+    title: 'Subscription',
+    description: 'Monitor subscription metrics and revenue',
+    icon: CreditCard,
+    href: '/admin/subscription',
+    buttonText: 'View Metrics',
+  },
+  {
+    title: 'Vouchers',
+    description: 'Manage voucher codes and promotions',
+    icon: Tag,
+    href: '/admin/vouchers',
+    buttonText: 'Manage Vouchers',
   },
   {
     title: 'Settings',

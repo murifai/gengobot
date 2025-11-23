@@ -14,6 +14,7 @@ import {
   CreditBalance,
   HistoryOptions,
 } from './credit-config';
+import { notifyCreditUsage } from '@/lib/notification/notification-service';
 
 export class CreditService {
   /**
@@ -186,7 +187,7 @@ export class CreditService {
       },
     });
 
-    return prisma.creditTransaction.create({
+    const transaction = await prisma.creditTransaction.create({
       data: {
         userId,
         type: CreditTransactionType.USAGE,
@@ -199,6 +200,49 @@ export class CreditService {
         description: `Usage: ${type}`,
       },
     });
+
+    // Check usage thresholds and send notifications
+    await this.checkUsageThresholdsAndNotify(userId, subscription, newCreditsUsed);
+
+    return transaction;
+  }
+
+  /**
+   * Check usage thresholds and send notifications if crossed
+   */
+  private async checkUsageThresholdsAndNotify(
+    userId: string,
+    subscription: Subscription,
+    newCreditsUsed: number
+  ): Promise<void> {
+    const total = subscription.creditsTotal;
+    if (total === 0) return;
+
+    const oldPercentage = Math.floor((subscription.creditsUsed / total) * 100);
+    const newPercentage = Math.floor((newCreditsUsed / total) * 100);
+
+    // Calculate days until reset
+    const now = new Date();
+    const daysRemaining = Math.max(
+      0,
+      Math.ceil((subscription.currentPeriodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    );
+
+    const remaining = total - newCreditsUsed;
+
+    // Check if we crossed thresholds
+    // 100% (depleted)
+    if (oldPercentage < 100 && newPercentage >= 100) {
+      await notifyCreditUsage(userId, 100, remaining, daysRemaining);
+    }
+    // 95%
+    else if (oldPercentage < 95 && newPercentage >= 95) {
+      await notifyCreditUsage(userId, 95, remaining, daysRemaining);
+    }
+    // 80%
+    else if (oldPercentage < 80 && newPercentage >= 80) {
+      await notifyCreditUsage(userId, 80, remaining, daysRemaining);
+    }
   }
 
   /**

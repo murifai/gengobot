@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { trialService } from '@/lib/subscription/trial-service';
+import { notifyTrialStatus } from '@/lib/notification/notification-service';
 
 // Verify cron secret to ensure request is from Vercel Cron
 function verifyCronSecret(request: NextRequest): boolean {
@@ -32,12 +33,49 @@ export async function GET(request: NextRequest) {
     // Process expired trials
     const result = await trialService.processExpiredTrials();
 
-    // Get trials expiring soon (for notification purposes)
-    // This can be used to trigger email notifications
+    // Get trials expiring soon for notifications
     const expiringSoon = {
       in1Day: await trialService.getExpiringTrials(1),
       in3Days: await trialService.getExpiringTrials(3),
     };
+
+    // Send notifications for trials ending in 1 day
+    const notifications1Day: string[] = [];
+    for (const trial of expiringSoon.in1Day) {
+      try {
+        await notifyTrialStatus(trial.userId, 'ending_1_day');
+        notifications1Day.push(trial.userId);
+      } catch (error) {
+        console.error(`Failed to notify user ${trial.userId} about trial ending:`, error);
+      }
+    }
+
+    // Send notifications for trials ending in 3 days (but not those ending in 1 day)
+    const notifications3Days: string[] = [];
+    const userIds1Day = new Set(expiringSoon.in1Day.map(t => t.userId));
+    for (const trial of expiringSoon.in3Days) {
+      if (!userIds1Day.has(trial.userId)) {
+        try {
+          await notifyTrialStatus(trial.userId, 'ending_3_days');
+          notifications3Days.push(trial.userId);
+        } catch (error) {
+          console.error(`Failed to notify user ${trial.userId} about trial ending:`, error);
+        }
+      }
+    }
+
+    // Send notifications for expired trials
+    // These are users whose trials were just marked as expired
+    const expiredTrials = await trialService.getExpiringTrials(0);
+    const notificationsExpired: string[] = [];
+    for (const trial of expiredTrials) {
+      try {
+        await notifyTrialStatus(trial.userId, 'ended');
+        notificationsExpired.push(trial.userId);
+      } catch (error) {
+        console.error(`Failed to notify user ${trial.userId} about expired trial:`, error);
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -47,6 +85,11 @@ export async function GET(request: NextRequest) {
       expiringSoon: {
         in1Day: expiringSoon.in1Day.length,
         in3Days: expiringSoon.in3Days.length,
+      },
+      notifications: {
+        ending1Day: notifications1Day.length,
+        ending3Days: notifications3Days.length,
+        expired: notificationsExpired.length,
       },
     });
   } catch (error) {

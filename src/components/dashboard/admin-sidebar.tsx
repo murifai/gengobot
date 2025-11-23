@@ -10,6 +10,8 @@ import {
   Users,
   Layers,
   Home,
+  CreditCard,
+  Tag,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -64,6 +66,16 @@ const items = [
     title: 'Characters',
     url: '/admin/characters',
     icon: Users,
+  },
+  {
+    title: 'Subscription',
+    url: '/admin/subscription',
+    icon: CreditCard,
+  },
+  {
+    title: 'Vouchers',
+    url: '/admin/vouchers',
+    icon: Tag,
   },
 ];
 

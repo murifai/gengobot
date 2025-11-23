@@ -160,6 +160,8 @@ model User {
   subscription       Subscription?
   creditTransactions CreditTransaction[]
   voucherRedemptions VoucherRedemption[]
+  pendingPayments    PendingPayment[]
+  notifications      Notification[]
 
   @@index([email])
   @@index([isAdmin])
@@ -500,8 +502,8 @@ model Subscription {
   customCharactersUsed Int @default(0)
 
   // Metadata
-  xenditCustomerId  String?
-  xenditRecurringId String?
+  paymentCustomerId  String?
+  paymentRecurringId String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -652,4 +654,113 @@ enum RedemptionStatus {
   APPLIED // Successfully applied
   EXPIRED // Voucher expired before use
   REVOKED // Manually revoked
+}
+
+// Payment System Models
+model PendingPayment {
+  id        String   @id @default(cuid())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Invoice details
+  externalId    String   @unique
+  invoiceId     String   @unique
+  invoiceUrl    String
+
+  // Subscription details
+  tier          SubscriptionTier
+  durationMonths Int
+  amount        Int      // Amount in IDR
+
+  // Status
+  status        PaymentStatus @default(PENDING)
+
+  // Payment details
+  paidAt        DateTime?
+  paymentMethod String?
+  paymentChannel String?
+
+  // Metadata
+  metadata      Json?
+  expiresAt     DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([externalId])
+}
+
+model MockInvoice {
+  id        String   @id @default(cuid())
+
+  invoiceId  String   @unique
+  externalId String   @unique
+  data       Json
+
+  createdAt DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([externalId])
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  EXPIRED
+  FAILED
+  REFUNDED
+}
+
+// Notification model - In-app notifications for users
+model Notification {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type    NotificationType
+  title   String
+  message String           @db.Text
+
+  // Action
+  actionUrl String?
+  actionLabel String?
+
+  // Status
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
+
+  // Metadata
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@index([type])
+}
+
+enum NotificationType {
+  // Credit notifications
+  CREDITS_80_PERCENT
+  CREDITS_95_PERCENT
+  CREDITS_DEPLETED
+  CREDITS_RENEWED
+
+  // Trial notifications
+  TRIAL_STARTED
+  TRIAL_ENDING_3_DAYS
+  TRIAL_ENDING_1_DAY
+  TRIAL_ENDED
+
+  // Payment notifications
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  PAYMENT_EXPIRED
+
+  // System notifications
+  SYSTEM_ANNOUNCEMENT
+  FEATURE_UPDATE
 }
