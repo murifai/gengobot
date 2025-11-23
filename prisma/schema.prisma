@@ -167,6 +167,34 @@ model User {
   @@index([isAdmin])
 }
 
+// Admin model - Separate admin authentication (email/password)
+model Admin {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String    // Hashed password
+  name      String
+  role      AdminRole @default(ADMIN)
+  isActive  Boolean   @default(true)
+  lastLogin DateTime?
+
+  // Password reset
+  resetToken       String?
+  resetTokenExpiry DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  VIEWER
+}
+
 // NextAuth Account model
 model Account {
   id                String  @id @default(cuid())

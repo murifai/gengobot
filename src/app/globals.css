@@ -360,7 +360,6 @@ html {
   }
 }
 
-
 @layer base {
   * {
     @apply border-border;
@@ -399,4 +398,13 @@ ruby rt {
   display: block;
   text-align: center;
   white-space: nowrap;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
