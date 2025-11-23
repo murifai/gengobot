@@ -114,7 +114,6 @@ export async function GET(
     const candidateTasks = await prisma.task.findMany({
       where,
       include: {
-        character: true,
         _count: {
           select: {
             taskAttempts: true,

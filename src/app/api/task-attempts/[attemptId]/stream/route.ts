@@ -37,11 +37,7 @@ export async function POST(
     const attempt = await prisma.taskAttempt.findUnique({
       where: { id: attemptId },
       include: {
-        task: {
-          include: {
-            character: true,
-          },
-        },
+        task: true,
         user: true,
       },
     });
@@ -121,8 +117,7 @@ export async function POST(
 **Learning Objectives**:
 ${learningObjectives.map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
 
-**Character**: ${attempt.task.character?.name || 'Friendly tutor'}
-${attempt.task.character?.description ? `Description: ${attempt.task.character.description}` : ''}
+**Character**: Friendly tutor
 
 **Completed Objectives**: ${completedObjectives.join(', ') || 'None yet'}
 
@@ -203,9 +198,17 @@ Respond ONLY in Japanese unless explaining a complex grammar point.`;
 
           try {
             console.log('[Streaming] Generating TTS for response...');
+            // Cast task to access voice/speakingSpeed fields added in schema migration
+            const taskWithVoice = attempt.task as typeof attempt.task & {
+              voice?: string;
+              speakingSpeed?: number;
+            };
             synthesis = await taskVoiceService.synthesizeResponse(
               fullResponse,
-              attempt.task.character,
+              {
+                voice: taskWithVoice.voice,
+                speakingSpeed: taskWithVoice.speakingSpeed,
+              },
               attempt.user.proficiency
             );
 

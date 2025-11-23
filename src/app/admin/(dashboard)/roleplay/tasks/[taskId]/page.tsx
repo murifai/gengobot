@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { Edit, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
+export const dynamic = 'force-dynamic';
+
 interface Task {
   id: string;
   title: string;
@@ -82,7 +84,7 @@ export default function ViewTaskPage({ params }: { params: Promise<{ taskId: str
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push('/admin/tasks')}
+            onClick={() => router.push('/admin/roleplay/tasks')}
             className="mb-4"
           >
             <ArrowLeft size={16} className="mr-2" />
@@ -119,7 +121,10 @@ export default function ViewTaskPage({ params }: { params: Promise<{ taskId: str
                 </span>
               </div>
             </div>
-            <Button variant="default" onClick={() => router.push(`/admin/tasks/${task.id}/edit`)}>
+            <Button
+              variant="default"
+              onClick={() => router.push(`/admin/roleplay/tasks/${task.id}/edit`)}
+            >
               <Edit size={16} className="mr-2" />
               Edit Task
             </Button>

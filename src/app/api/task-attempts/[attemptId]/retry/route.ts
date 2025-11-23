@@ -77,7 +77,6 @@ export async function POST(
             learningObjectives: true,
             conversationExample: true,
             estimatedDuration: true,
-            character: true,
           },
         },
         user: {

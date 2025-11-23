@@ -30,7 +30,6 @@ export async function GET(
             learningObjectives: true,
             conversationExample: true,
             estimatedDuration: true,
-            character: true,
           },
         },
         user: {

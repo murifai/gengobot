@@ -24,11 +24,7 @@ export async function POST(
     const attempt = await prisma.taskAttempt.findUnique({
       where: { id: attemptId },
       include: {
-        task: {
-          include: {
-            character: true,
-          },
-        },
+        task: true,
         user: true,
       },
     });
@@ -117,9 +113,7 @@ export async function POST(
       progress: {
         completedObjectives: completedObjectives.length,
         totalObjectives: learningObjectives.length,
-        percentage: Math.round(
-          (completedObjectives.length / learningObjectives.length) * 100
-        ),
+        percentage: Math.round((completedObjectives.length / learningObjectives.length) * 100),
         messageCount: updatedMessages.length,
       },
     });

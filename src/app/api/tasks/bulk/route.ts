@@ -135,7 +135,6 @@ export async function POST(request: NextRequest) {
                 learningObjectives: task.learningObjectives as never,
                 conversationExample: task.conversationExample as never,
                 estimatedDuration: task.estimatedDuration,
-                characterId: task.characterId,
                 createdBy: adminId || null,
                 isActive: task.isActive,
                 usageCount: 0,

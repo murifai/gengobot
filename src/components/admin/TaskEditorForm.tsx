@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import DeckSelector from '@/components/admin/DeckSelector';
+import VoiceSelector from '@/components/admin/VoiceSelector';
+import AudioUploader from '@/components/admin/AudioUploader';
+import PromptEditor from '@/components/admin/PromptEditor';
 
 interface TaskFormData {
   title: string;
@@ -17,13 +20,12 @@ interface TaskFormData {
   conversationExample: string;
   estimatedDuration: number;
   studyDeckIds: string[];
-  characterId: string | null;
+  // New voice settings (replaces characterId)
+  prompt: string;
+  voice: string;
+  speakingSpeed: number;
+  audioExample: string | null;
   isActive: boolean;
-}
-
-interface Character {
-  id: string;
-  name: string;
 }
 
 interface TaskSubcategory {
@@ -45,7 +47,6 @@ interface TaskEditorFormProps {
 export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [characters, setCharacters] = useState<Character[]>([]);
   const [categories, setCategories] = useState<TaskCategory[]>([]);
   const [subcategories, setSubcategories] = useState<TaskSubcategory[]>([]);
   const [formData, setFormData] = useState<TaskFormData>({
@@ -59,29 +60,20 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
     conversationExample: initialData?.conversationExample || '',
     estimatedDuration: initialData?.estimatedDuration || 10,
     studyDeckIds: initialData?.studyDeckIds || [],
-    characterId: initialData?.characterId || null,
+    // New voice settings
+    prompt: initialData?.prompt || '',
+    voice: initialData?.voice || 'alloy',
+    speakingSpeed: initialData?.speakingSpeed || 1.0,
+    audioExample: initialData?.audioExample || null,
     isActive: initialData?.isActive ?? true,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    fetchCharacters();
     fetchCategories();
     fetchSubcategories();
   }, []);
-
-  const fetchCharacters = async () => {
-    try {
-      const response = await fetch('/api/characters');
-      if (response.ok) {
-        const data = await response.json();
-        setCharacters(data);
-      }
-    } catch (error) {
-      console.error('Error fetching characters:', error);
-    }
-  };
 
   const fetchCategories = async () => {
     try {
@@ -139,6 +131,10 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
       newErrors.estimatedDuration = 'Duration must be at least 1 minute';
     }
 
+    if (!formData.prompt.trim()) {
+      newErrors.prompt = 'AI system prompt is required';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -158,7 +154,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
         ...formData,
         learningObjectives: formData.learningObjectives.filter(obj => obj.trim()),
         conversationExample: formData.conversationExample.trim(),
-        // Note: updatedBy is omitted - admin logging will be handled server-side
+        prompt: formData.prompt.trim(),
       };
 
       const url = taskId ? `/api/tasks/${taskId}` : '/api/tasks';
@@ -171,7 +167,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
       });
 
       if (response.ok) {
-        router.push('/admin/tasks');
+        router.push('/admin/roleplay/tasks');
       } else {
         const error = await response.json();
         alert(`Error: ${error.error || 'Failed to save task'}`);
@@ -210,7 +206,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
       {/* Title */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Task Title *
+          Task Title <span className="text-primary">*</span>
         </label>
         <Input
           type="text"
@@ -225,7 +221,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
       {/* Description */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Description *
+          Description <span className="text-primary">*</span>
         </label>
         <textarea
           value={formData.description}
@@ -243,7 +239,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Category *
+            Category <span className="text-primary">*</span>
           </label>
           <select
             value={formData.category}
@@ -277,7 +273,6 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
             <option value="">{formData.category ? 'None' : 'Select a category first'}</option>
             {subcategories
               .filter(sub => {
-                // Find the category by name to get its ID
                 const selectedCategory = categories.find(cat => cat.name === formData.category);
                 return selectedCategory ? sub.categoryId === selectedCategory.id : false;
               })
@@ -290,28 +285,48 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
         </div>
       </div>
 
-      {/* Difficulty */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Difficulty Level *
-        </label>
-        <select
-          value={formData.difficulty}
-          onChange={e => setFormData(prev => ({ ...prev, difficulty: e.target.value }))}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-        >
-          <option value="N5">N5 (Beginner)</option>
-          <option value="N4">N4 (Elementary)</option>
-          <option value="N3">N3 (Intermediate)</option>
-          <option value="N2">N2 (Upper-Intermediate)</option>
-          <option value="N1">N1 (Advanced)</option>
-        </select>
+      {/* Difficulty & Duration */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Difficulty Level <span className="text-primary">*</span>
+          </label>
+          <select
+            value={formData.difficulty}
+            onChange={e => setFormData(prev => ({ ...prev, difficulty: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          >
+            <option value="N5">N5 (Beginner)</option>
+            <option value="N4">N4 (Elementary)</option>
+            <option value="N3">N3 (Intermediate)</option>
+            <option value="N2">N2 (Upper-Intermediate)</option>
+            <option value="N1">N1 (Advanced)</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Estimated Duration (minutes) <span className="text-primary">*</span>
+          </label>
+          <Input
+            type="number"
+            value={formData.estimatedDuration}
+            onChange={e =>
+              setFormData(prev => ({ ...prev, estimatedDuration: parseInt(e.target.value) || 0 }))
+            }
+            min="1"
+            className={errors.estimatedDuration ? 'border-red-500' : ''}
+          />
+          {errors.estimatedDuration && (
+            <p className="text-red-500 text-sm mt-1">{errors.estimatedDuration}</p>
+          )}
+        </div>
       </div>
 
       {/* Scenario */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Scenario *
+          Scenario <span className="text-primary">*</span>
         </label>
         <textarea
           value={formData.scenario}
@@ -328,7 +343,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
       {/* Learning Objectives */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Learning Objectives *
+          Learning Objectives <span className="text-primary">*</span>
         </label>
         {formData.learningObjectives.map((objective, index) => (
           <div key={index} className="flex gap-2 mb-2">
@@ -364,11 +379,37 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
         )}
       </div>
 
+      {/* AI System Prompt */}
+      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">AI Configuration</h3>
+
+        <PromptEditor
+          prompt={formData.prompt}
+          onChange={prompt => setFormData(prev => ({ ...prev, prompt }))}
+        />
+        {errors.prompt && <p className="text-red-500 text-sm mt-2">{errors.prompt}</p>}
+      </div>
+
+      {/* Voice Settings */}
+      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Voice Settings</h3>
+
+        <VoiceSelector
+          voice={formData.voice}
+          speakingSpeed={formData.speakingSpeed}
+          onVoiceChange={voice => setFormData(prev => ({ ...prev, voice }))}
+          onSpeedChange={speakingSpeed => setFormData(prev => ({ ...prev, speakingSpeed }))}
+        />
+      </div>
+
       {/* Conversation Example */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Conversation Example * (Dialog format: T: teacher, G: student)
+          Conversation Example <span className="text-primary">*</span>
         </label>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+          Dialog format: T: teacher, G: student
+        </p>
         <textarea
           value={formData.conversationExample}
           onChange={e => setFormData(prev => ({ ...prev, conversationExample: e.target.value }))}
@@ -379,48 +420,14 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
         {errors.conversationExample && (
           <p className="text-red-500 text-sm mt-1">{errors.conversationExample}</p>
         )}
-        <p className="text-gray-500 text-xs mt-1">
-          Enter conversation dialog with line breaks. Use T: for teacher and G: for student/learner.
-        </p>
       </div>
 
-      {/* Estimated Duration & Character */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Estimated Duration (minutes) *
-          </label>
-          <Input
-            type="number"
-            value={formData.estimatedDuration}
-            onChange={e =>
-              setFormData(prev => ({ ...prev, estimatedDuration: parseInt(e.target.value) || 0 }))
-            }
-            min="1"
-            className={errors.estimatedDuration ? 'border-red-500' : ''}
-          />
-          {errors.estimatedDuration && (
-            <p className="text-red-500 text-sm mt-1">{errors.estimatedDuration}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Character
-          </label>
-          <select
-            value={formData.characterId || ''}
-            onChange={e => setFormData(prev => ({ ...prev, characterId: e.target.value || null }))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-          >
-            <option value="">None</option>
-            {characters.map(char => (
-              <option key={char.id} value={char.id}>
-                {char.name}
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* Audio Example */}
+      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <AudioUploader
+          audioPath={formData.audioExample}
+          onAudioChange={audioExample => setFormData(prev => ({ ...prev, audioExample }))}
+        />
       </div>
 
       {/* Study Decks */}

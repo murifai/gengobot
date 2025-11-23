@@ -119,21 +119,19 @@ export class TaskVoiceService {
    */
   async synthesizeResponse(
     text: string,
-    character: { personality?: unknown } | null,
+    voiceSettings: { voice?: string; speakingSpeed?: number } | null,
     userProficiency: string
   ): Promise<TaskVoiceSynthesis> {
     try {
-      // Use character personality if available
+      // Use voice settings from task or fall back to learning-optimized synthesis
       let result;
 
-      if (character?.personality) {
-        const personality = character.personality as {
-          gender?: 'male' | 'female' | 'neutral';
-          tone?: 'warm' | 'professional' | 'friendly' | 'energetic';
-          formality?: 'casual' | 'formal';
-        };
-
-        result = await ttsService.synthesizeWithPersonality(text, personality);
+      if (voiceSettings?.voice) {
+        // Use specific voice and speed from task settings
+        result = await ttsService.synthesize(text, {
+          voice: voiceSettings.voice as 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer',
+          speed: voiceSettings.speakingSpeed || 1.0,
+        });
       } else {
         // Use learning-optimized synthesis
         result = await ttsService.synthesizeForLearning(

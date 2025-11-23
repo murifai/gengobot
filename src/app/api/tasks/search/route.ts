@@ -99,13 +99,6 @@ export async function GET(request: NextRequest) {
       prisma.task.findMany({
         where,
         include: {
-          character: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-            },
-          },
           _count: {
             select: {
               taskAttempts: true,

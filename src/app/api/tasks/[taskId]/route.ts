@@ -12,15 +12,6 @@ export async function GET(
     const task = await prisma.task.findUnique({
       where: { id: taskId },
       include: {
-        character: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            personality: true,
-            speakingStyle: true,
-          },
-        },
         studyDecks: {
           include: {
             deck: {
@@ -142,14 +133,6 @@ export async function PUT(
     const updatedTask = await prisma.task.update({
       where: { id: taskId },
       data: updateData,
-      include: {
-        character: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
     });
 
     // Handle study deck associations if studyDeckIds provided

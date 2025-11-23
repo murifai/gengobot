@@ -26,11 +26,7 @@ export async function POST(
     const attempt = await prisma.taskAttempt.findUnique({
       where: { id: attemptId },
       include: {
-        task: {
-          include: {
-            character: true,
-          },
-        },
+        task: true,
         user: true,
       },
     });
@@ -167,9 +163,17 @@ export async function POST(
     );
 
     // Synthesize AI response
+    // Cast task to access voice/speakingSpeed fields added in schema migration
+    const taskWithVoice = attempt.task as typeof attempt.task & {
+      voice?: string;
+      speakingSpeed?: number;
+    };
     const synthesis = await taskVoiceService.synthesizeResponse(
       aiResponseText,
-      attempt.task.character,
+      {
+        voice: taskWithVoice.voice,
+        speakingSpeed: taskWithVoice.speakingSpeed,
+      },
       attempt.user.proficiency
     );
 
@@ -274,11 +278,7 @@ export async function GET(
     const attempt = await prisma.taskAttempt.findUnique({
       where: { id: attemptId },
       include: {
-        task: {
-          include: {
-            character: true,
-          },
-        },
+        task: true,
         user: true,
       },
     });
@@ -297,10 +297,11 @@ export async function GET(
       voiceGuidance: true,
       audioFeedback: true,
       voicePersonality: {
-        voice: attempt.task.character?.personality
-          ? getRecommendedVoice(attempt.task.character.personality as Record<string, unknown>)
-          : 'nova',
-        speed: getSpeedForLevel(attempt.user.proficiency),
+        // Cast task to access voice/speakingSpeed fields added in schema migration
+        voice: (attempt.task as typeof attempt.task & { voice?: string }).voice || 'nova',
+        speed:
+          (attempt.task as typeof attempt.task & { speakingSpeed?: number }).speakingSpeed ||
+          getSpeedForLevel(attempt.user.proficiency),
       },
     };
 
@@ -334,26 +335,6 @@ export async function GET(
     console.error('Error getting voice configuration:', error);
     return NextResponse.json({ error: 'Failed to get voice configuration' }, { status: 500 });
   }
-}
-
-// Helper: Get recommended voice based on character personality
-function getRecommendedVoice(personality: Record<string, unknown>): string {
-  const gender = personality.gender as string | undefined;
-  const tone = personality.tone as string | undefined;
-
-  if (gender === 'female') {
-    if (tone === 'friendly' || tone === 'warm') return 'nova';
-    if (tone === 'soft' || tone === 'gentle') return 'shimmer';
-    return 'alloy';
-  }
-
-  if (gender === 'male') {
-    if (tone === 'warm' || tone === 'friendly') return 'echo';
-    if (tone === 'deep' || tone === 'authoritative') return 'onyx';
-    return 'fable';
-  }
-
-  return 'nova'; // Default
 }
 
 // Helper: Get speech speed based on JLPT level

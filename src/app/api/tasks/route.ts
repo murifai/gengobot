@@ -48,13 +48,6 @@ export async function GET(request: NextRequest) {
       prisma.task.findMany({
         where,
         include: {
-          character: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-            },
-          },
           _count: {
             select: {
               taskAttempts: true,
@@ -148,17 +141,8 @@ export async function POST(request: NextRequest) {
         learningObjectives: body.learningObjectives,
         conversationExample: body.conversationExample,
         estimatedDuration: body.estimatedDuration,
-        characterId: body.characterId || null,
         createdBy: body.createdBy || null,
         isActive: body.isActive !== undefined ? body.isActive : true,
-      },
-      include: {
-        character: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
       },
     });
 

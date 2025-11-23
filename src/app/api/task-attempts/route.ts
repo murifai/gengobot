@@ -219,7 +219,6 @@ export async function POST(request: NextRequest) {
             learningObjectives: true,
             conversationExample: true,
             estimatedDuration: true,
-            character: true,
           },
         },
         user: {

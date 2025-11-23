@@ -6,6 +6,8 @@ import { Plus, Search, Edit, Trash2, Eye, Download, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
+export const dynamic = 'force-dynamic';
+
 interface Task {
   id: string;
   title: string;
@@ -259,7 +261,7 @@ export default function AdminTasksPage() {
               <Button
                 variant="default"
                 className="gap-2"
-                onClick={() => router.push('/admin/tasks/new')}
+                onClick={() => router.push('/admin/roleplay/tasks/new')}
               >
                 <Plus size={20} />
                 Create Task
@@ -439,14 +441,14 @@ export default function AdminTasksPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => router.push(`/admin/tasks/${task.id}`)}
+                            onClick={() => router.push(`/admin/roleplay/tasks/${task.id}`)}
                           >
                             <Eye size={16} />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => router.push(`/admin/tasks/${task.id}/edit`)}
+                            onClick={() => router.push(`/admin/roleplay/tasks/${task.id}/edit`)}
                           >
                             <Edit size={16} />
                           </Button>
