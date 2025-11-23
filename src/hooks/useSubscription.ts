@@ -223,3 +223,91 @@ export function useTrialStatus(balance: CreditBalance | null) {
 
   return 'active';
 }
+
+// Hook for detailed trial information
+interface TrialStatusData {
+  isActive: boolean;
+  daysRemaining: number;
+  creditsRemaining: number;
+  creditsUsed: number;
+  dailyUsed: number;
+  dailyLimit: number;
+  startDate: Date | null;
+  endDate: Date | null;
+  hasExpired: boolean;
+  percentageUsed: number;
+  dailyPercentageUsed: number;
+}
+
+interface UseTrialReturn {
+  data: TrialStatusData | null;
+  isLoading: boolean;
+  error: string | null;
+  refresh: () => Promise<void>;
+  extendTrial: (days: number) => Promise<boolean>;
+}
+
+export function useTrial(): UseTrialReturn {
+  const [data, setData] = useState<TrialStatusData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchTrialStatus = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await fetch('/api/subscription/trial');
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch trial status');
+      }
+
+      const trialData = await response.json();
+      setData({
+        ...trialData,
+        startDate: trialData.startDate ? new Date(trialData.startDate) : null,
+        endDate: trialData.endDate ? new Date(trialData.endDate) : null,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const extendTrial = useCallback(
+    async (days: number): Promise<boolean> => {
+      try {
+        const response = await fetch('/api/subscription/trial/extend', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ additionalDays: days }),
+        });
+
+        if (!response.ok) {
+          return false;
+        }
+
+        // Refresh trial status after extension
+        await fetchTrialStatus();
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [fetchTrialStatus]
+  );
+
+  useEffect(() => {
+    fetchTrialStatus();
+  }, [fetchTrialStatus]);
+
+  return {
+    data,
+    isLoading,
+    error,
+    refresh: fetchTrialStatus,
+    extendTrial,
+  };
+}

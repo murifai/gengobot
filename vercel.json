@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/trial-reset",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/trial-expiry",
+      "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/cron/monthly-credits",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}
