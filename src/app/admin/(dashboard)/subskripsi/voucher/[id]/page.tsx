@@ -1,15 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/Badge';
 import {
   Select,
   SelectContent,
@@ -19,21 +20,47 @@ import {
 } from '@/components/ui/select';
 import { VoucherType, SubscriptionTier } from '@prisma/client';
 
-export default function NewVoucherPage() {
+interface VoucherData {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  type: VoucherType;
+  value: number;
+  maxUses: number | null;
+  usesPerUser: number;
+  currentUses: number;
+  startDate: string;
+  endDate: string | null;
+  isActive: boolean;
+  newUsersOnly: boolean;
+  applicableTiers: SubscriptionTier[];
+  minMonths: number | null;
+  isStackable: boolean;
+  isExclusive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export default function EditVoucherPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const params = useParams();
+  const voucherId = params.id as string;
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [voucher, setVoucher] = useState<VoucherData | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
-    code: '',
     name: '',
     description: '',
     type: 'PERCENTAGE' as VoucherType,
     value: 0,
     maxUses: '',
     usesPerUser: 1,
-    startDate: new Date().toISOString().split('T')[0],
+    startDate: '',
     endDate: '',
     isActive: true,
     newUsersOnly: false,
@@ -43,24 +70,64 @@ export default function NewVoucherPage() {
     isExclusive: false,
   });
 
+  // Fetch voucher data
+  useEffect(() => {
+    const fetchVoucher = async () => {
+      try {
+        const response = await fetch(`/api/admin/subskripsi/voucher/${voucherId}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch voucher');
+        }
+
+        setVoucher(data.voucher);
+        // Extract allowedDurations from metadata
+        const metadata = data.voucher.metadata as { allowedDurations?: number[] } | null;
+        setFormData({
+          name: data.voucher.name,
+          description: data.voucher.description || '',
+          type: data.voucher.type,
+          value: data.voucher.value,
+          maxUses: data.voucher.maxUses?.toString() || '',
+          usesPerUser: data.voucher.usesPerUser,
+          startDate: data.voucher.startDate.split('T')[0],
+          endDate: data.voucher.endDate?.split('T')[0] || '',
+          isActive: data.voucher.isActive,
+          newUsersOnly: data.voucher.newUsersOnly,
+          applicableTiers: data.voucher.applicableTiers || [],
+          allowedDurations: metadata?.allowedDurations || [],
+          isStackable: data.voucher.isStackable,
+          isExclusive: data.voucher.isExclusive,
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch voucher');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchVoucher();
+  }, [voucherId]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSaving(true);
     setError(null);
 
     try {
-      const response = await fetch('/api/admin/vouchers', {
-        method: 'POST',
+      const response = await fetch(`/api/admin/subskripsi/voucher/${voucherId}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
           maxUses: formData.maxUses ? parseInt(formData.maxUses) : null,
           // Store allowedDurations in metadata
-          minMonths: formData.allowedDurations.length > 0 ? 1 : null, // Flag to enable duration check
+          minMonths: (formData.allowedDurations || []).length > 0 ? 1 : null, // Flag to enable duration check
           metadata:
-            formData.allowedDurations.length > 0
+            (formData.allowedDurations || []).length > 0
               ? { allowedDurations: formData.allowedDurations }
-              : undefined,
+              : null,
           endDate: formData.endDate || null,
         }),
       });
@@ -68,14 +135,14 @@ export default function NewVoucherPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create voucher');
+        throw new Error(data.error || 'Failed to update voucher');
       }
 
-      router.push('/admin/vouchers');
+      router.push('/admin/subskripsi/voucher');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -89,12 +156,15 @@ export default function NewVoucherPage() {
   };
 
   const handleDurationToggle = (duration: number) => {
-    setFormData(prev => ({
-      ...prev,
-      allowedDurations: prev.allowedDurations.includes(duration)
-        ? prev.allowedDurations.filter(d => d !== duration)
-        : [...prev.allowedDurations, duration],
-    }));
+    setFormData(prev => {
+      const currentDurations = prev.allowedDurations || [];
+      return {
+        ...prev,
+        allowedDurations: currentDurations.includes(duration)
+          ? currentDurations.filter(d => d !== duration)
+          : [...currentDurations, duration],
+      };
+    });
   };
 
   const getValueLabel = () => {
@@ -114,19 +184,100 @@ export default function NewVoucherPage() {
     }
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (error && !voucher) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/subskripsi/voucher">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <h1 className="text-3xl font-bold tracking-tight">Error</h1>
+        </div>
+        <Card>
+          <CardContent className="py-8">
+            <p className="text-center text-red-600">{error}</p>
+            <div className="flex justify-center mt-4">
+              <Link href="/admin/subskripsi/voucher">
+                <Button variant="outline">Kembali ke Daftar Voucher</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/admin/vouchers">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Buat Voucher Baru</h1>
-          <p className="text-muted-foreground">Buat kode voucher untuk diskon atau promo</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/subskripsi/voucher">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Edit Voucher</h1>
+            <p className="text-muted-foreground font-mono">{voucher?.code}</p>
+          </div>
         </div>
+        <Badge variant={voucher?.isActive ? 'success' : 'secondary'}>
+          {voucher?.isActive ? 'Aktif' : 'Nonaktif'}
+        </Badge>
       </div>
+
+      {/* Stats Overview */}
+      {voucher && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Penggunaan</p>
+                <p className="text-2xl font-bold">
+                  {voucher.currentUses}
+                  {voucher.maxUses ? ` / ${voucher.maxUses}` : ''}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Tipe</p>
+                <p className="text-lg font-medium">{formData.type}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Nilai</p>
+                <p className="text-lg font-medium">
+                  {formData.type === 'PERCENTAGE' && `${formData.value}%`}
+                  {formData.type === 'FIXED_AMOUNT' && formatCurrency(formData.value)}
+                  {formData.type === 'BONUS_CREDITS' && `${formData.value} kredit`}
+                  {formData.type === 'TRIAL_EXTENSION' && `${formData.value} hari`}
+                  {formData.type === 'TIER_UPGRADE' && 'Upgrade'}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Dibuat</p>
+                <p className="text-sm">{new Date(voucher.createdAt).toLocaleDateString('id-ID')}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <form onSubmit={handleSubmit}>
         <div className="grid gap-6 lg:grid-cols-2">
@@ -137,23 +288,6 @@ export default function NewVoucherPage() {
               <CardDescription>Detail utama voucher</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="code">Kode Voucher</Label>
-                <Input
-                  id="code"
-                  value={formData.code}
-                  onChange={e =>
-                    setFormData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))
-                  }
-                  placeholder="DISKON20"
-                  className="uppercase"
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  Kode yang akan dimasukkan user. Hanya huruf dan angka.
-                </p>
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="name">Nama Voucher</Label>
                 <Input
@@ -347,7 +481,9 @@ export default function NewVoucherPage() {
                       key={duration.value}
                       type="button"
                       variant={
-                        formData.allowedDurations.includes(duration.value) ? 'default' : 'outline'
+                        (formData.allowedDurations || []).includes(duration.value)
+                          ? 'default'
+                          : 'outline'
                       }
                       size="sm"
                       onClick={() => handleDurationToggle(duration.value)}
@@ -404,14 +540,18 @@ export default function NewVoucherPage() {
         {error && <div className="mt-6 p-4 bg-red-50 text-red-700 rounded-md">{error}</div>}
 
         <div className="flex justify-end gap-4 mt-6">
-          <Link href="/admin/vouchers">
+          <Link href="/admin/subskripsi/voucher">
             <Button variant="outline" type="button">
               Batal
             </Button>
           </Link>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Buat Voucher
+          <Button type="submit" disabled={isSaving}>
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
+            Simpan Perubahan
           </Button>
         </div>
       </form>

@@ -21,9 +21,8 @@ export default function Sidebar({ className }: SidebarProps) {
   ];
 
   const adminItems = [
-    { href: '/admin/dashboard', label: 'Admin Dashboard', icon: '👨‍💼' },
-    { href: '/admin/tasks', label: 'Manage Tasks', icon: '📝' },
-    { href: '/admin/characters', label: 'Characters', icon: '👤' },
+    { href: '/admin', label: 'Admin Dashboard', icon: '👨‍💼' },
+    { href: '/admin/roleplay/tasks', label: 'Manage Tasks', icon: '📝' },
   ];
 
   return (

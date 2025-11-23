@@ -181,7 +181,7 @@ export default function VouchersPage() {
           <h1 className="text-3xl font-bold tracking-tight">Voucher Management</h1>
           <p className="text-muted-foreground">Kelola voucher dan kode promo untuk subscription</p>
         </div>
-        <Link href="/admin/vouchers/new">
+        <Link href="/admin/subskripsi/voucher/new">
           <Button>
             <Plus className="h-4 w-4 mr-2" />
             Buat Voucher
@@ -246,7 +246,7 @@ export default function VouchersPage() {
             <div className="text-center py-8">
               <Tag className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">Belum ada voucher</p>
-              <Link href="/admin/vouchers/new">
+              <Link href="/admin/subskripsi/voucher/new">
                 <Button variant="outline" className="mt-4">
                   <Plus className="h-4 w-4 mr-2" />
                   Buat Voucher Pertama
@@ -305,13 +305,13 @@ export default function VouchersPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <Link href={`/admin/vouchers/${voucher.id}`}>
+                            <Link href={`/admin/subskripsi/voucher/${voucher.id}`}>
                               <DropdownMenuItem>
                                 <Pencil className="h-4 w-4 mr-2" />
                                 Edit
                               </DropdownMenuItem>
                             </Link>
-                            <Link href={`/admin/vouchers/${voucher.id}/redemptions`}>
+                            <Link href={`/admin/subskripsi/voucher/${voucher.id}/redemptions`}>
                               <DropdownMenuItem>
                                 <Eye className="h-4 w-4 mr-2" />
                                 Lihat Redemptions

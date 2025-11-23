@@ -644,6 +644,23 @@ model VoucherRedemption {
   @@index([voucherId])
 }
 
+// SubscriptionTierConfig model - Configurable pricing for subscription tiers
+model SubscriptionTierConfig {
+  id           String           @id @default(cuid())
+  name         SubscriptionTier @unique
+  priceMonthly Int              // in Rupiah
+  priceAnnual  Int              // in Rupiah
+  features     String[]         // feature list
+  isActive     Boolean          @default(true)
+  credits      Int              @default(0) // Monthly credits allocation
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([isActive])
+}
+
 // Enums for Subscription System
 enum SubscriptionTier {
   FREE

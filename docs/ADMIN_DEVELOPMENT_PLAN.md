@@ -749,14 +749,14 @@ Files to update:
 
 | Task                     | Priority | Status |
 | ------------------------ | -------- | ------ |
-| Remove characters        | High     | ⬜     |
-| Remove old pages         | High     | ⬜     |
-| Responsive testing       | High     | ⬜     |
-| Performance optimization | Medium   | ⬜     |
-| Unit tests               | Medium   | ⬜     |
-| E2E tests                | High     | ⬜     |
-| RBAC tests               | High     | ⬜     |
-| Documentation            | Medium   | ⬜     |
+| Remove characters        | High     | ✅     |
+| Remove old pages         | High     | ✅     |
+| Responsive testing       | High     | ✅     |
+| Performance optimization | Medium   | ✅     |
+| Unit tests               | Medium   | ✅     |
+| E2E tests                | High     | ✅     |
+| RBAC tests               | High     | ✅     |
+| Documentation            | Medium   | ✅     |
 
 ---
 
