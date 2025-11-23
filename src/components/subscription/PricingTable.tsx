@@ -106,29 +106,11 @@ export function PricingTable({
 
               {/* Features */}
               <ul className="space-y-2">
-                {/* Credits */}
-                <li className="flex items-center gap-2 text-sm">
-                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
-                  <span>
-                    {tier === SubscriptionTier.FREE
-                      ? `${config.trialCredits.toLocaleString('id-ID')} kredit trial (${config.trialDays} hari)`
-                      : `${config.monthlyCredits.toLocaleString('id-ID')} kredit/bulan`}
-                  </span>
-                </li>
-
-                {/* Voice minutes estimate */}
-                {tier !== SubscriptionTier.FREE && (
-                  <li className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-primary flex-shrink-0" />
-                    <span>~{voiceMinutes} menit voice/bulan</span>
-                  </li>
-                )}
-
-                {/* Daily limit for free */}
+                {/* Trial info for free */}
                 {tier === SubscriptionTier.FREE && (
                   <li className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-primary flex-shrink-0" />
-                    <span>{config.trialDailyLimit} kredit/hari limit</span>
+                    <span>Trial {config.trialDays} hari</span>
                   </li>
                 )}
 
@@ -147,20 +129,37 @@ export function PricingTable({
                   )}
                 </li>
 
+                {/* Voice standard */}
+                <li className="flex items-center gap-2 text-sm">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                  <span>
+                    {tier === SubscriptionTier.FREE ? 'Voice standard (trial)' : 'Voice standard'}
+                  </span>
+                </li>
+
+                {/* Realtime - only for PRO */}
+                <li className="flex items-center gap-2 text-sm">
+                  {tier === SubscriptionTier.PRO ? (
+                    <>
+                      <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                      <span>Realtime chat</span>
+                    </>
+                  ) : (
+                    <>
+                      <X className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-muted-foreground">Realtime chat</span>
+                    </>
+                  )}
+                </li>
+
                 {/* Custom characters */}
                 <li className="flex items-center gap-2 text-sm">
                   <Check className="h-4 w-4 text-primary flex-shrink-0" />
                   <span>
                     {config.customCharactersUnlimited
-                      ? 'Karakter kustom unlimited'
+                      ? 'Karakter unlimited'
                       : `${config.customCharacters} karakter kustom`}
                   </span>
-                </li>
-
-                {/* Voice features */}
-                <li className="flex items-center gap-2 text-sm">
-                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
-                  <span>Voice standard & realtime</span>
                 </li>
               </ul>
 
@@ -206,7 +205,6 @@ export function PricingComparison({
 
   const features = [
     { name: 'Harga/bulan', key: 'price' },
-    { name: 'Kredit/bulan', key: 'credits' },
     { name: 'Chat', key: 'chat' },
     { name: 'Karakter Kustom', key: 'characters' },
     { name: 'Voice Standard', key: 'voice' },
@@ -220,18 +218,14 @@ export function PricingComparison({
     switch (key) {
       case 'price':
         return formatPrice(price);
-      case 'credits':
-        return tier === SubscriptionTier.FREE
-          ? `${config.trialCredits.toLocaleString('id-ID')} (trial)`
-          : config.monthlyCredits.toLocaleString('id-ID');
       case 'chat':
         return config.textUnlimited ? 'Unlimited' : `${config.textDailyLimit}/hari`;
       case 'characters':
         return config.customCharactersUnlimited ? 'Unlimited' : config.customCharacters.toString();
       case 'voice':
-        return true;
+        return tier === SubscriptionTier.FREE ? 'Trial only' : true;
       case 'realtime':
-        return true;
+        return tier === SubscriptionTier.PRO;
       default:
         return '-';
     }

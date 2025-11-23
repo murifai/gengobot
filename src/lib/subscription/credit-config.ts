@@ -18,6 +18,7 @@ export const TIER_CONFIG = {
     customCharacters: 1,
     textUnlimited: false,
     customCharactersUnlimited: false,
+    realtimeEnabled: false, // Realtime not available during trial
   },
   [SubscriptionTier.BASIC]: {
     monthlyCredits: 6000,
@@ -28,6 +29,7 @@ export const TIER_CONFIG = {
     customCharacters: 5,
     textUnlimited: true,
     customCharactersUnlimited: false,
+    realtimeEnabled: false, // Realtime only for Pro
   },
   [SubscriptionTier.PRO]: {
     monthlyCredits: 16500,
@@ -38,15 +40,44 @@ export const TIER_CONFIG = {
     customCharacters: 0, // Unlimited
     textUnlimited: true,
     customCharactersUnlimited: true,
+    realtimeEnabled: true, // Realtime available for Pro
   },
 } as const;
 
 // Pricing in IDR (Indonesian Rupiah)
 export const TIER_PRICING = {
   [SubscriptionTier.FREE]: 0,
-  [SubscriptionTier.BASIC]: 59000, // Rp 59,000/month
-  [SubscriptionTier.PRO]: 149000, // Rp 149,000/month
+  [SubscriptionTier.BASIC]: 29000, // Rp 29,000/month
+  [SubscriptionTier.PRO]: 49000, // Rp 49,000/month
 } as const;
+
+// Subscription duration discounts
+export const SUBSCRIPTION_DISCOUNTS = {
+  1: 0, // Monthly - no discount
+  3: 0.1, // 3 months - 10% discount
+  6: 0.2, // 6 months - 20% discount
+  12: 0.3, // 12 months - 30% discount
+} as const;
+
+// Helper function to calculate discounted price
+export function getDiscountedPrice(
+  tier: SubscriptionTier,
+  months: 1 | 3 | 6 | 12
+): { originalTotal: number; discountedTotal: number; savings: number; monthlyEquivalent: number } {
+  const monthlyPrice = TIER_PRICING[tier];
+  const originalTotal = monthlyPrice * months;
+  const discount = SUBSCRIPTION_DISCOUNTS[months];
+  const discountedTotal = Math.round(originalTotal * (1 - discount));
+  const savings = originalTotal - discountedTotal;
+  const monthlyEquivalent = Math.round(discountedTotal / months);
+
+  return {
+    originalTotal,
+    discountedTotal,
+    savings,
+    monthlyEquivalent,
+  };
+}
 
 // Helper function to get credit cost for usage type
 export function getCreditCost(usageType: UsageType, units: number): number {

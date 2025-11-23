@@ -45,48 +45,53 @@ after_trial:
   upgrade_prompt: shown
 ```
 
-### Basic Tier (Rp 25,000/bulan)
+### Basic Tier (Rp 29,000/bulan)
 
 ```yaml
-credits:
-  monthly: 6,000 credits
-
 features:
   drill_jlpt: unlimited
-  text_chat: unlimited (no credit deduction)
-  voice_standard: 6,000 credits (~60 menit)
-  custom_characters: limited 5 characters
+  text_chat: unlimited
+  voice_standard: available
   realtime: not available
+  custom_characters: 5
 
 cost_analysis:
-  revenue: Rp 25,000
-  max_cost: Rp 6,000 (voice) + Rp 6,000 (text estimate)
-  gross_margin: 52%
+  revenue: Rp 29,000
+  estimated_cost: Rp 12,000
+  gross_margin: 58%
 ```
 
-### Pro Tier (Rp 50,000/bulan)
+### Pro Tier (Rp 49,000/bulan)
 
 ```yaml
-credits:
-  monthly: 16,500 credits
-
 features:
   drill_jlpt: unlimited
-  text_chat: unlimited (no credit deduction)
+  text_chat: unlimited
   voice_standard: available
   realtime: available
   priority_support: yes
   custom_characters: unlimited
 
-credit_allocation:
-  voice_standard: 6,000 credits (~60 menit)
-  realtime: 10,500 credits (~30 menit)
-  total: 16,500 credits
-
 cost_analysis:
-  revenue: Rp 50,000
-  max_cost: Rp 16,500 (credits) + Rp 9,000 (text estimate)
-  gross_margin: 49%
+  revenue: Rp 49,000
+  estimated_cost: Rp 25,500
+  gross_margin: 48%
+```
+
+### Subscription Duration Discounts
+
+```yaml
+discounts:
+  1_month: 0%
+  3_months: 10%
+  6_months: 20%
+  12_months: 30%
+
+examples_pro_tier:
+  1_month: Rp 49,000 (Rp 49,000/bulan)
+  3_months: Rp 132,300 (Rp 44,100/bulan) - hemat Rp 14,700
+  6_months: Rp 235,200 (Rp 39,200/bulan) - hemat Rp 58,800
+  12_months: Rp 411,600 (Rp 34,300/bulan) - hemat Rp 176,400
 ```
 
 ---
@@ -215,20 +220,20 @@ break_even:
 ## Summary Table
 
 ```
-┌─────────┬──────────┬─────────────┬────────────────────────┬─────────────┬─────────┐
-│ Tier    │ Harga    │ Credits     │ Approx Usage           │ Est. Cost   │ Margin  │
-├─────────┼──────────┼─────────────┼────────────────────────┼─────────────┼─────────┤
-│ Free    │ Rp 0     │ 5K trial    │ 50 min voice (trial)   │ Rp 5,000*   │ -       │
-│ Basic   │ Rp 25K   │ 6K/month    │ 60 min voice           │ Rp 12,000   │ 52%     │
-│ Pro     │ Rp 50K   │ 16.5K/month │ 60 min + 30 min RT     │ Rp 25,500   │ 49%     │
-└─────────┴──────────┴─────────────┴────────────────────────┴─────────────┴─────────┘
+┌─────────┬──────────┬────────────────────────┬─────────────┬─────────┐
+│ Tier    │ Harga    │ Features               │ Est. Cost   │ Margin  │
+├─────────┼──────────┼────────────────────────┼─────────────┼─────────┤
+│ Free    │ Rp 0     │ Trial 14 hari          │ Rp 5,000*   │ -       │
+│ Basic   │ Rp 29K   │ Voice + Chat unlimited │ Rp 12,000   │ 58%     │
+│ Pro     │ Rp 49K   │ + Realtime + Priority  │ Rp 25,500   │ 48%     │
+└─────────┴──────────┴────────────────────────┴─────────────┴─────────┘
 
 * One-time trial cost
 
-Feature Limits:
-- Free: 1 custom character
-- Basic: 5 custom characters
-- Pro: Unlimited custom characters
+Feature Comparison:
+- Free: 1 custom character, 20 pesan/hari, trial voice
+- Basic: 5 custom characters, chat unlimited, voice standard
+- Pro: Unlimited characters, chat unlimited, voice + realtime
 ```
 
 ---
