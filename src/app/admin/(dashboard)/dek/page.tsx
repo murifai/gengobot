@@ -2,9 +2,22 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Search, Edit, Trash2, Eye, Download, Upload, Copy } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Eye,
+  Download,
+  Upload,
+  Copy,
+  Loader2,
+  Layers,
+} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 import { Deck } from '@/types/deck';
 
 export const dynamic = 'force-dynamic';
@@ -213,78 +226,105 @@ export default function AdminDecksPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Deck Management</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Manage flashcard decks for vocabulary, kanji, and grammar study
-          </p>
-        </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dek</h1>
+        <p className="text-muted-foreground">
+          Manage flashcard decks for vocabulary, kanji, and grammar study
+        </p>
+      </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Decks</div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{decks.length}</div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Active</div>
-            <div className="text-2xl font-bold text-primary">
-              {decks.filter(d => d.isActive).length}
+      {/* Stats */}
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <Layers className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Dek</p>
+                <p className="text-2xl font-bold">{decks.length}</p>
+              </div>
             </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Cards</div>
-            <div className="text-2xl font-bold text-secondary">
-              {decks.reduce((sum, d) => sum + d.totalCards, 0)}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Public Decks</div>
-            <div className="text-2xl font-bold text-tertiary-green">
-              {decks.filter(d => d.isPublic).length}
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Filters & Actions */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm mb-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <Layers className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Aktif</p>
+                <p className="text-2xl font-bold">{decks.filter(d => d.isActive).length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                <Layers className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Kartu</p>
+                <p className="text-2xl font-bold">
+                  {decks.reduce((sum, d) => sum + d.totalCards, 0)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                <Layers className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Publik</p>
+                <p className="text-2xl font-bold">{decks.filter(d => d.isPublic).length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters & Actions */}
+      <Card>
+        <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4 mb-4">
             <div className="flex-1 relative">
-              <Search
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
-              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search decks..."
+                placeholder="Cari dek..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-9"
               />
             </div>
-            <div className="flex gap-2">
-              <Button variant="secondary" className="gap-2" onClick={handleDownloadTemplate}>
-                <Download size={20} />
-                Download Template
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={handleDownloadTemplate}>
+                <Download className="h-4 w-4 mr-2" />
+                Template
               </Button>
-              <Button
-                variant="secondary"
-                className="gap-2"
-                onClick={handleImportClick}
-                disabled={importing}
-              >
-                <Upload size={20} />
-                {importing ? 'Importing...' : 'Import Excel'}
+              <Button variant="outline" size="sm" onClick={handleImportClick} disabled={importing}>
+                <Upload className="h-4 w-4 mr-2" />
+                {importing ? 'Importing...' : 'Import'}
               </Button>
               <input
                 ref={fileInputRef}
@@ -293,13 +333,9 @@ export default function AdminDecksPage() {
                 onChange={handleFileChange}
                 className="hidden"
               />
-              <Button
-                variant="default"
-                className="gap-2"
-                onClick={() => router.push('/admin/dek/new')}
-              >
-                <Plus size={20} />
-                Create Deck
+              <Button size="sm" onClick={() => router.push('/admin/dek/new')}>
+                <Plus className="h-4 w-4 mr-2" />
+                Buat Dek
               </Button>
             </div>
           </div>
@@ -336,21 +372,19 @@ export default function AdminDecksPage() {
           )}
 
           <div className="flex flex-wrap gap-2">
-            <div className="flex gap-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400 self-center">
-                Difficulty:
-              </span>
+            <div className="flex flex-wrap gap-2">
+              <span className="text-sm text-muted-foreground self-center">Level:</span>
               <Button
-                variant={filterDifficulty === 'all' ? 'default' : 'secondary'}
+                variant={filterDifficulty === 'all' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setFilterDifficulty('all')}
               >
-                All
+                Semua
               </Button>
               {difficulties.map(diff => (
                 <Button
                   key={diff}
-                  variant={filterDifficulty === diff ? 'default' : 'secondary'}
+                  variant={filterDifficulty === diff ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setFilterDifficulty(diff)}
                 >
@@ -360,21 +394,19 @@ export default function AdminDecksPage() {
             </div>
 
             {categories.length > 0 && (
-              <div className="flex gap-2 ml-4">
-                <span className="text-sm text-gray-600 dark:text-gray-400 self-center">
-                  Category:
-                </span>
+              <div className="flex flex-wrap gap-2 ml-4">
+                <span className="text-sm text-muted-foreground self-center">Kategori:</span>
                 <Button
-                  variant={filterCategory === 'all' ? 'default' : 'secondary'}
+                  variant={filterCategory === 'all' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setFilterCategory('all')}
                 >
-                  All
+                  Semua
                 </Button>
                 {categories.map(cat => (
                   <Button
                     key={cat}
-                    variant={filterCategory === cat ? 'default' : 'secondary'}
+                    variant={filterCategory === cat ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setFilterCategory(cat)}
                   >
@@ -384,162 +416,149 @@ export default function AdminDecksPage() {
               </div>
             )}
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Decks List */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Deck
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Category
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Difficulty
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Cards
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Visibility
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredDecks.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                      No decks found
-                    </td>
+      {/* Decks List */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Layers className="h-5 w-5" />
+            Daftar Dek ({filteredDecks.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredDecks.length === 0 ? (
+            <div className="text-center py-8">
+              <Layers className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">Tidak ada dek ditemukan</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-3 px-2 sm:px-4 font-medium">Dek</th>
+                    <th className="text-left py-3 px-2 sm:px-4 font-medium hidden sm:table-cell">
+                      Kategori
+                    </th>
+                    <th className="text-left py-3 px-2 sm:px-4 font-medium">Level</th>
+                    <th className="text-left py-3 px-2 sm:px-4 font-medium hidden md:table-cell">
+                      Kartu
+                    </th>
+                    <th className="text-left py-3 px-2 sm:px-4 font-medium hidden lg:table-cell">
+                      Status
+                    </th>
+                    <th className="text-right py-3 px-2 sm:px-4 font-medium">Aksi</th>
                   </tr>
-                ) : (
-                  filteredDecks.map(deck => (
-                    <tr key={deck.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                </thead>
+                <tbody>
+                  {filteredDecks.map(deck => (
+                    <tr key={deck.id} className="border-b last:border-0">
+                      <td className="py-3 px-2 sm:px-4">
+                        <div>
+                          <p className="font-medium truncate max-w-[150px] sm:max-w-none">
                             {deck.name}
-                          </div>
+                          </p>
                           {deck.description && (
-                            <div className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                            <p className="text-xs text-muted-foreground line-clamp-1">
                               {deck.description}
-                            </div>
+                            </p>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="py-3 px-2 sm:px-4 hidden sm:table-cell">
                         {deck.category ? (
-                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-secondary/10 text-secondary">
+                          <Badge variant="secondary" className="text-xs">
                             {deck.category}
-                          </span>
+                          </Badge>
                         ) : (
-                          <span className="text-sm text-gray-400">—</span>
+                          <span className="text-muted-foreground">—</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="py-3 px-2 sm:px-4">
                         {deck.difficulty ? (
-                          <span
-                            className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          <Badge
+                            className={`text-xs ${
                               deck.difficulty === 'N5' || deck.difficulty === 'N4'
-                                ? 'bg-tertiary-green/10 text-tertiary-green'
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                                 : deck.difficulty === 'N3'
-                                  ? 'bg-tertiary-yellow/10 text-foreground'
-                                  : 'bg-primary/10 text-primary'
+                                  ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                  : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
                             }`}
                           >
                             {deck.difficulty}
-                          </span>
+                          </Badge>
                         ) : (
-                          <span className="text-sm text-gray-400">—</span>
+                          <span className="text-muted-foreground">—</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {deck.totalCards}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            deck.isPublic
-                              ? 'bg-secondary/10 text-secondary'
-                              : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                          }`}
+                      <td className="py-3 px-2 sm:px-4 hidden md:table-cell">{deck.totalCards}</td>
+                      <td className="py-3 px-2 sm:px-4 hidden lg:table-cell">
+                        <Badge
+                          variant={deck.isActive ? 'success' : 'secondary'}
+                          className="text-xs"
                         >
-                          {deck.isPublic ? 'Public' : 'Private'}
-                        </span>
+                          {deck.isActive ? 'Aktif' : 'Nonaktif'}
+                        </Badge>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            deck.isActive
-                              ? 'bg-tertiary-green/10 text-tertiary-green'
-                              : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                          }`}
-                        >
-                          {deck.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end gap-2">
+                      <td className="py-3 px-2 sm:px-4 text-right">
+                        <div className="flex justify-end gap-1">
                           <Button
                             variant="ghost"
-                            size="sm"
+                            size="icon"
+                            className="h-8 w-8"
                             onClick={() => router.push(`/admin/dek/${deck.id}`)}
                             title="View"
                           >
-                            <Eye size={16} />
+                            <Eye className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
-                            size="sm"
+                            size="icon"
+                            className="h-8 w-8"
                             onClick={() => router.push(`/admin/dek/${deck.id}/edit`)}
                             title="Edit"
                           >
-                            <Edit size={16} />
+                            <Edit className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
-                            size="sm"
+                            size="icon"
+                            className="h-8 w-8 hidden sm:inline-flex"
                             onClick={() => handleDuplicate(deck.id, deck.name)}
                             title="Duplicate"
                           >
-                            <Copy size={16} />
+                            <Copy className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
-                            size="sm"
+                            size="icon"
+                            className="h-8 w-8 hidden sm:inline-flex"
                             onClick={() => handleExport(deck.id, deck.name)}
                             title="Export"
                           >
-                            <Download size={16} />
+                            <Download className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
-                            size="sm"
+                            size="icon"
+                            className="h-8 w-8"
                             onClick={() => handleDelete(deck.id, deck.name)}
                             title="Delete"
                           >
-                            <Trash2 size={16} className="text-red-500" />
+                            <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
