@@ -118,9 +118,12 @@ export async function PUT(
       'learningObjectives',
       'conversationExample',
       'estimatedDuration',
-      'prerequisites',
-      'characterId',
       'isActive',
+      // Voice settings
+      'prompt',
+      'voice',
+      'speakingSpeed',
+      'audioExample',
     ];
 
     for (const field of allowedFields) {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import {
   Plus,
   Edit2,
@@ -108,10 +109,15 @@ export default function CategoriesPage() {
         throw new Error(error.error || 'Failed to save category');
       }
 
+      toast.success(
+        editingCategoryId ? 'Kategori berhasil diperbarui' : 'Kategori berhasil dibuat'
+      );
       await fetchCategories();
       resetCategoryForm();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -130,9 +136,12 @@ export default function CategoriesPage() {
         const error = await response.json();
         throw new Error(error.error || 'Failed to delete category');
       }
+      toast.success('Kategori berhasil dihapus');
       await fetchCategories();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -162,10 +171,15 @@ export default function CategoriesPage() {
         throw new Error(error.error || 'Failed to save subcategory');
       }
 
+      toast.success(
+        editingSubcategoryId ? 'Subkategori berhasil diperbarui' : 'Subkategori berhasil dibuat'
+      );
       await fetchCategories();
       resetSubcategoryForm();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -192,9 +206,12 @@ export default function CategoriesPage() {
         const error = await response.json();
         throw new Error(error.error || 'Failed to delete subcategory');
       }
+      toast.success('Subkategori berhasil dihapus');
       await fetchCategories();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 

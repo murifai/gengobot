@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { use } from 'react';
+import { Loader2 } from 'lucide-react';
 import TaskEditorForm from '@/components/admin/TaskEditorForm';
+import { Card, CardContent } from '@/components/ui/Card';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,13 +13,18 @@ interface Task {
   title: string;
   description: string;
   category: string;
+  subcategoryId: string | null;
   difficulty: string;
   scenario: string;
   learningObjectives: string[];
   conversationExample: string;
   estimatedDuration: number;
-  prerequisites: string;
-  characterId: string | null;
+  studyDeckIds: string[];
+  // Voice settings
+  prompt: string;
+  voice: string;
+  speakingSpeed: number;
+  audioExample: string | null;
   isActive: boolean;
 }
 
@@ -47,32 +54,33 @@ export default function EditTaskPage({ params }: { params: Promise<{ taskId: str
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (!task) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-red-600">Task not found</div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-destructive">Task tidak ditemukan</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Edit Task</h1>
-          <p className="text-gray-600 dark:text-gray-400">Update task details and settings</p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-          <TaskEditorForm taskId={resolvedParams.taskId} initialData={task} />
-        </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Edit Task</h1>
+        <p className="text-muted-foreground">Perbarui detail dan pengaturan task</p>
       </div>
+
+      <Card>
+        <CardContent className="pt-6">
+          <TaskEditorForm taskId={resolvedParams.taskId} initialData={task} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -41,13 +42,13 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
           isActive: deck.isActive,
         });
       } else {
-        alert('Failed to load deck');
-        router.push('/admin/decks');
+        toast.error('Gagal memuat deck');
+        router.push('/admin/dek');
       }
     } catch (error) {
       console.error('Error fetching deck:', error);
-      alert('Failed to load deck');
-      router.push('/admin/decks');
+      toast.error('Gagal memuat deck');
+      router.push('/admin/dek');
     } finally {
       setLoading(false);
     }
@@ -62,7 +63,7 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      alert('Deck name is required');
+      toast.error('Nama deck wajib diisi');
       return;
     }
 
@@ -78,15 +79,15 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
       });
 
       if (response.ok) {
-        alert('Deck updated successfully!');
-        router.push(`/admin/decks/${resolvedParams.deckId}`);
+        toast.success('Deck berhasil diperbarui');
+        router.push(`/admin/dek/${resolvedParams.deckId}`);
       } else {
         const data = await response.json();
-        alert(`Failed to update deck: ${data.error}`);
+        toast.error(data.error || 'Gagal memperbarui deck');
       }
     } catch (error) {
       console.error('Error updating deck:', error);
-      alert('Failed to update deck. Please try again.');
+      toast.error('Gagal memperbarui deck. Silakan coba lagi.');
     } finally {
       setSaving(false);
     }
@@ -111,15 +112,15 @@ export default function DeckEditPage({ params }: DeckEditPageProps) {
       });
 
       if (response.ok) {
-        alert('Deck deleted successfully');
-        router.push('/admin/decks');
+        toast.success('Deck berhasil dihapus');
+        router.push('/admin/dek');
       } else {
         const data = await response.json();
-        alert(`Failed to delete deck: ${data.error}`);
+        toast.error(data.error || 'Gagal menghapus deck');
       }
     } catch (error) {
       console.error('Error deleting deck:', error);
-      alert('Failed to delete deck. Please try again.');
+      toast.error('Gagal menghapus deck. Silakan coba lagi.');
     }
   };
 

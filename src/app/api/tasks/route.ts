@@ -143,6 +143,11 @@ export async function POST(request: NextRequest) {
         estimatedDuration: body.estimatedDuration,
         createdBy: body.createdBy || null,
         isActive: body.isActive !== undefined ? body.isActive : true,
+        // Voice settings
+        prompt: body.prompt || '',
+        voice: body.voice || 'alloy',
+        speakingSpeed: body.speakingSpeed || 1.0,
+        audioExample: body.audioExample || null,
       },
     });
 

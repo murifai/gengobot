@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import DeckSelector from '@/components/admin/DeckSelector';
@@ -167,14 +168,15 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
       });
 
       if (response.ok) {
+        toast.success(taskId ? 'Task berhasil diperbarui' : 'Task berhasil dibuat');
         router.push('/admin/roleplay/tasks');
       } else {
         const error = await response.json();
-        alert(`Error: ${error.error || 'Failed to save task'}`);
+        toast.error(error.error || 'Gagal menyimpan task');
       }
     } catch (error) {
       console.error('Error saving task:', error);
-      alert('Failed to save task');
+      toast.error('Gagal menyimpan task. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }

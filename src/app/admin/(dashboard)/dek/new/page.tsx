@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -23,7 +24,7 @@ export default function NewDeckPage() {
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      alert('Deck name is required');
+      toast.error('Nama deck wajib diisi');
       return;
     }
 
@@ -40,15 +41,15 @@ export default function NewDeckPage() {
 
       if (response.ok) {
         const deck = await response.json();
-        alert('Deck created successfully!');
-        router.push(`/admin/decks/${deck.id}/edit`);
+        toast.success('Deck berhasil dibuat');
+        router.push(`/admin/dek/${deck.id}/edit`);
       } else {
         const data = await response.json();
-        alert(`Failed to create deck: ${data.error}`);
+        toast.error(data.error || 'Gagal membuat deck');
       }
     } catch (error) {
       console.error('Error creating deck:', error);
-      alert('Failed to create deck. Please try again.');
+      toast.error('Gagal membuat deck. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }
