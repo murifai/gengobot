@@ -579,6 +579,33 @@ Use in Free Chat / WebRTC
 
 ---
 
+## Additional Improvements
+
+### Audio Response Differentiation ✅
+
+**Issue**: Currently AI always responds with audio regardless of input type.
+
+**Solution**: Differentiate response based on input method:
+
+- **Text message** → No audio response (text only)
+- **Voice message** → Include audio response (TTS)
+
+**Implementation**: ✅ COMPLETED
+
+1. Added `isVoiceMessage` parameter to streaming APIs
+2. Conditionally generate TTS only when `isVoiceMessage === true`
+3. Updated client components to pass voice flag when sending messages
+
+**Files modified**:
+
+- `src/app/api/task-attempts/[attemptId]/stream/route.ts` ✅
+- `src/app/api/free-conversation/[sessionId]/stream/route.ts` ✅
+- `src/hooks/useStreamingChat.ts` ✅
+- `src/components/app/kaiwa/TaskAttemptClientStreaming.tsx` ✅
+- `src/app/app/kaiwa/bebas/FreeConversationClient.tsx` ✅
+
+---
+
 ## Resolved
 
 - ✅ **Model Configuration**: `gpt-5-nano` untuk AI response, `gpt-4o-mini` untuk analysis

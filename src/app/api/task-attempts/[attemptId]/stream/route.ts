@@ -8,6 +8,7 @@ import OpenAI from 'openai';
 import { taskVoiceService } from '@/lib/voice/task-voice-service';
 import { UsageType } from '@prisma/client';
 import { creditService, TIER_CONFIG } from '@/lib/subscription';
+import { MODELS } from '@/lib/ai/openai-client';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -24,7 +25,7 @@ export async function POST(
   try {
     const { attemptId } = await params;
     const body = await request.json();
-    const { message } = body;
+    const { message, isVoiceMessage = false } = body;
 
     if (!message || typeof message !== 'string' || !message.trim()) {
       return new Response(JSON.stringify({ error: 'Message is required' }), {
@@ -106,30 +107,22 @@ export async function POST(
     const completedObjectives = conversationHistory?.completedObjectives || [];
     const learningObjectives = (attempt.task.learningObjectives as string[]) || [];
 
-    // Build system prompt
-    const systemPrompt = `You are a Japanese language tutor helping a student practice in this scenario:
+    // Build system prompt using task.prompt from database
+    const systemPrompt = `${attempt.task.prompt || 'You are a Japanese conversation partner.'}
 
-**Scenario**: ${attempt.task.scenario}
-**Category**: ${attempt.task.category}
-**Difficulty**: ${attempt.task.difficulty}
-**Student Level**: ${attempt.user.proficiency}
+**Context**:
+- Scenario: ${attempt.task.scenario}
+- Difficulty: ${attempt.task.difficulty}
 
 **Learning Objectives**:
 ${learningObjectives.map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
 
-**Character**: Friendly tutor
-
-**Completed Objectives**: ${completedObjectives.join(', ') || 'None yet'}
-
 **Instructions**:
-- Respond naturally in Japanese as the character
+- Respond in Japanese appropriate for ${attempt.task.difficulty} level
 - Keep responses concise (1-3 sentences)
-- Guide the student towards completing the learning objectives
-- Provide gentle corrections when needed
-- Use appropriate formality level for the scenario
-- Be encouraging and supportive
-
-Respond ONLY in Japanese unless explaining a complex grammar point.`;
+- Do not help user to answer your question
+- Adapt your next question based on the user's answer
+- Do not answer on behalf of the user`;
 
     // Build conversation messages for OpenAI
     const conversationMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
@@ -149,7 +142,7 @@ Respond ONLY in Japanese unless explaining a complex grammar point.`;
 
     // Create streaming response
     const stream = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: MODELS.RESPONSE,
       messages: conversationMessages,
       temperature: 0.7,
       max_tokens: 300,
@@ -180,7 +173,7 @@ Respond ONLY in Japanese unless explaining a complex grammar point.`;
             timestamp: new Date().toISOString(),
           };
 
-          // Generate TTS audio for AI response (non-blocking)
+          // Generate TTS audio for AI response only if user sent a voice message
           let synthesis: {
             success: boolean;
             audioBlob?: Blob;
@@ -196,36 +189,41 @@ Respond ONLY in Japanese unless explaining a complex grammar point.`;
           let audioData: string | undefined;
           let audioType: string | undefined;
 
-          try {
-            console.log('[Streaming] Generating TTS for response...');
-            // Cast task to access voice/speakingSpeed fields added in schema migration
-            const taskWithVoice = attempt.task as typeof attempt.task & {
-              voice?: string;
-              speakingSpeed?: number;
-            };
-            synthesis = await taskVoiceService.synthesizeResponse(
-              fullResponse,
-              {
-                voice: taskWithVoice.voice,
-                speakingSpeed: taskWithVoice.speakingSpeed,
-              },
-              attempt.user.proficiency
-            );
+          // Only generate TTS if user sent a voice message
+          if (isVoiceMessage) {
+            try {
+              console.log('[Streaming] Generating TTS for response (voice message received)...');
+              // Cast task to access voice/speakingSpeed fields added in schema migration
+              const taskWithVoice = attempt.task as typeof attempt.task & {
+                voice?: string;
+                speakingSpeed?: number;
+              };
+              synthesis = await taskVoiceService.synthesizeResponse(
+                fullResponse,
+                {
+                  voice: taskWithVoice.voice,
+                  speakingSpeed: taskWithVoice.speakingSpeed,
+                },
+                attempt.user.proficiency
+              );
 
-            // Convert audio blob to base64 for transmission
-            if (synthesis.success && synthesis.audioBlob) {
-              const audioBuffer = await synthesis.audioBlob.arrayBuffer();
-              audioData = Buffer.from(audioBuffer).toString('base64');
-              audioType = 'audio/mpeg';
+              // Convert audio blob to base64 for transmission
+              if (synthesis.success && synthesis.audioBlob) {
+                const audioBuffer = await synthesis.audioBlob.arrayBuffer();
+                audioData = Buffer.from(audioBuffer).toString('base64');
+                audioType = 'audio/mpeg';
+              }
+
+              console.log('[Streaming] TTS result:', {
+                success: synthesis.success,
+                hasAudioData: !!audioData,
+                error: synthesis.error,
+              });
+            } catch (ttsError) {
+              console.error('[Streaming] TTS generation failed (non-blocking):', ttsError);
             }
-
-            console.log('[Streaming] TTS result:', {
-              success: synthesis.success,
-              hasAudioData: !!audioData,
-              error: synthesis.error,
-            });
-          } catch (ttsError) {
-            console.error('[Streaming] TTS generation failed (non-blocking):', ttsError);
+          } else {
+            console.log('[Streaming] Skipping TTS (text message received)');
           }
 
           const assistantMessage = {

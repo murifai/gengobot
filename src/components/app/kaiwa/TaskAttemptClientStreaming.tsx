@@ -10,7 +10,18 @@ import { SimplifiedAssessment } from '@/types/assessment';
 import { useStreamingChat } from '@/hooks/useStreamingChat';
 import { useTaskFeedbackProgress } from '@/hooks/useTaskFeedbackProgress';
 import { initializeObjectives } from '@/lib/ai/objective-detection';
-import { RotateCcw, Check } from 'lucide-react';
+import { RotateCcw, Check, Loader2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface TaskAttempt {
   id: string;
@@ -66,6 +77,8 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [showPostTaskReview, setShowPostTaskReview] = useState(false);
   const [assessment, setAssessment] = useState<SimplifiedAssessment | null>(null);
+  const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
+  const [showIncompleteDialog, setShowIncompleteDialog] = useState(false);
 
   // Initialize task feedback progress hook
   const {
@@ -87,6 +100,7 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
     error: streamingError,
     sendMessage,
     clearError: clearStreamingError,
+    resetMessages,
   } = useStreamingChat(
     attemptId,
     attempt?.conversationHistory.messages.map(msg => ({
@@ -139,6 +153,7 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
         try {
           const parsedAssessment = JSON.parse(data.attempt.feedback);
           setAssessment(parsedAssessment);
+          setShowPostTaskReview(true); // Show feedback page on refresh
         } catch (parseError) {
           console.log('[TaskAttemptClientStreaming] Could not parse assessment from feedback');
         }
@@ -178,10 +193,10 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
       const { transcript } = await transcribeResponse.json();
       console.log('✅ Transcription complete:', transcript);
 
-      // STEP 2: Send transcript to streaming API
+      // STEP 2: Send transcript to streaming API with voice flag
       // sendMessage() will add both user message and AI response
       console.log('🤖 Sending transcript to AI...');
-      await sendMessage(transcript);
+      await sendMessage(transcript, true); // true = voice message, generate TTS
     } catch (err) {
       console.error('Voice recording error:', err);
       if (err instanceof Error && !voiceError) {
@@ -190,8 +205,18 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
     }
   };
 
+  const handleCompleteClick = () => {
+    if (!taskProgress.allObjectivesCompleted) {
+      setShowIncompleteDialog(true);
+    } else {
+      completeAttempt();
+    }
+  };
+
   const completeAttempt = async () => {
     try {
+      setShowIncompleteDialog(false);
+      setIsGeneratingFeedback(true);
       console.log('[TaskAttemptClientStreaming] Generating assessment for attempt:', attemptId);
       const assessmentResponse = await fetch('/api/assessments', {
         method: 'POST',
@@ -214,16 +239,12 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
     } catch (err) {
       console.error('[TaskAttemptClientStreaming] Error completing task:', err);
       setError(err instanceof Error ? err.message : 'Failed to complete task');
+    } finally {
+      setIsGeneratingFeedback(false);
     }
   };
 
   const resetChat = async () => {
-    if (
-      !confirm('Are you sure you want to reset this conversation? All messages will be cleared.')
-    ) {
-      return;
-    }
-
     try {
       const response = await fetch(`/api/task-attempts/${attemptId}`, {
         method: 'PUT',
@@ -240,7 +261,7 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
 
       const data = await response.json();
       setAttempt(data.attempt);
-      window.location.reload(); // Reload to reset streaming messages
+      resetMessages(); // Clear streaming messages without page reload
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reset chat');
     }
@@ -282,6 +303,23 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
     );
   }
 
+  // Show loading overlay when generating feedback
+  if (isGeneratingFeedback) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+            Generating Feedback...
+          </p>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            Please wait while we analyze your conversation
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // Show post-task review modal
   if (showPostTaskReview && attempt.isCompleted && assessment) {
     return (
@@ -293,7 +331,11 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
             const response = await fetch('/api/task-attempts', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ taskId: attempt.taskId }),
+              body: JSON.stringify({
+                userId: attempt.userId,
+                taskId: attempt.taskId,
+                forceNew: true,
+              }),
             });
             if (response.ok) {
               const { attempt: newAttempt } = await response.json();
@@ -314,25 +356,63 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
       headerActions={
         !attempt.isCompleted ? (
           <>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  title="Reset Chat"
+                  aria-label="Reset Chat"
+                  disabled={isStreaming || isGeneratingFeedback}
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reset Conversation?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to reset this conversation? All messages will be cleared
+                    and you will start from the beginning.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={resetChat}>Reset</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button
-              onClick={resetChat}
-              variant="outline"
-              size="icon"
-              title="Reset Chat"
-              aria-label="Reset Chat"
-            >
-              <RotateCcw className="h-4 w-4" />
-            </Button>
-            <Button
-              onClick={completeAttempt}
+              onClick={handleCompleteClick}
               variant="default"
               size="icon"
-              disabled={isStreaming}
+              disabled={isStreaming || isGeneratingFeedback}
               title="Complete Task"
               aria-label="Complete Task"
             >
-              <Check className="h-4 w-4" />
+              {isGeneratingFeedback ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Check className="h-4 w-4" />
+              )}
             </Button>
+            {/* Alert dialog for incomplete task */}
+            <AlertDialog open={showIncompleteDialog} onOpenChange={setShowIncompleteDialog}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Task Not Complete</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You haven&apos;t completed all learning objectives yet (
+                    {taskProgress.completedObjectivesCount}/{taskProgress.totalObjectivesCount}{' '}
+                    completed). Are you sure you want to finish and get feedback now?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Continue Practice</AlertDialogCancel>
+                  <AlertDialogAction onClick={completeAttempt}>Finish Anyway</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </>
         ) : null
       }

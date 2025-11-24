@@ -4,6 +4,7 @@ import OpenAI from 'openai';
 import { Task } from '@prisma/client';
 import { SimplifiedAssessment } from '@/types/assessment';
 import { ObjectiveTracking } from './objective-detection';
+import { MODELS } from './openai-client';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -100,7 +101,7 @@ export class SimplifiedAssessmentService {
 
     try {
       const response = await openai.chat.completions.create({
-        model: 'gpt-4o',
+        model: MODELS.ANALYSIS,
         messages: [
           {
             role: 'system',

@@ -262,8 +262,8 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
       const { transcript } = await transcribeResponse.json();
       console.log('✅ Transcription complete:', transcript);
 
-      // Send transcript to AI
-      await sendMessage(transcript);
+      // Send transcript to AI with voice flag
+      await sendMessage(transcript, true); // true = voice message, generate TTS
     } catch (err) {
       console.error('Voice recording error:', err);
       if (err instanceof Error && !voiceError) {

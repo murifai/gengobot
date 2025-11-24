@@ -14,6 +14,7 @@ import {
   Message,
 } from '@/lib/ai/objective-detection';
 import OpenAI from 'openai';
+import { MODELS } from '@/lib/ai/openai-client';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -79,7 +80,7 @@ export async function POST(
     // Call OpenAI for objective detection
     console.log('[detect-objectives] Calling OpenAI for detection...');
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: MODELS.ANALYSIS,
       messages: [
         {
           role: 'system',

@@ -28,7 +28,7 @@ export interface UseStreamingChatReturn {
   messages: StreamingMessage[];
   isStreaming: boolean;
   error: string | null;
-  sendMessage: (message: string) => Promise<void>;
+  sendMessage: (message: string, isVoiceMessage?: boolean) => Promise<void>;
   addMessages: (newMessages: StreamingMessage[]) => void;
   clearError: () => void;
   resetMessages: () => void;
@@ -105,7 +105,7 @@ export function useStreamingChat(
   );
 
   const sendMessage = useCallback(
-    async (messageText: string) => {
+    async (messageText: string, isVoiceMessage: boolean = false) => {
       if (!messageText.trim() || isStreaming) return;
 
       setError(null);
@@ -144,7 +144,7 @@ export function useStreamingChat(
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: messageText.trim() }),
+          body: JSON.stringify({ message: messageText.trim(), isVoiceMessage }),
           signal: abortControllerRef.current.signal,
         });
 

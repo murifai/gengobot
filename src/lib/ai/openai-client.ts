@@ -16,10 +16,13 @@ function getOpenAIClient(): OpenAI {
 
 // Default models
 export const MODELS = {
-  GPT_4: 'gpt-4o-mini',
-  GPT_35_TURBO: 'gpt-4o-mini',
+  RESPONSE: 'gpt-4o-mini', // AI conversation response (TODO: change to gpt-5-nano when available)
+  ANALYSIS: 'gpt-4o-mini', // Feedback, hint, objective detection
   WHISPER: 'whisper-1',
   TTS: 'gpt-4o-mini-tts',
+  // Legacy aliases for backward compatibility
+  GPT_4: 'gpt-4o-mini',
+  GPT_35_TURBO: 'gpt-4o-mini',
 } as const;
 
 // Export configured client getter

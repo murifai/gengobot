@@ -28,24 +28,55 @@ export function SimplifiedPostTaskReview({
   onBackToTasks,
 }: SimplifiedPostTaskReviewProps) {
   const completionPercentage = assessment.statistics.completionRate;
+  const isFullyCompleted = assessment.objectivesAchieved === assessment.totalObjectives;
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* Header Section */}
-      <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
+      <Card
+        className={
+          isFullyCompleted
+            ? 'border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800'
+            : 'border-yellow-200 bg-yellow-50 dark:bg-yellow-950 dark:border-yellow-800'
+        }
+      >
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <CheckCircle2 className="h-16 w-16 text-green-600 dark:text-green-400" />
+            {isFullyCompleted ? (
+              <CheckCircle2 className="h-16 w-16 text-green-600 dark:text-green-400" />
+            ) : (
+              <Circle className="h-16 w-16 text-yellow-600 dark:text-yellow-400" />
+            )}
           </div>
-          <CardTitle className="text-3xl text-green-900 dark:text-green-100">
-            Task Completed!
+          <CardTitle
+            className={`text-3xl ${
+              isFullyCompleted
+                ? 'text-green-900 dark:text-green-100'
+                : 'text-yellow-900 dark:text-yellow-100'
+            }`}
+          >
+            {isFullyCompleted ? 'Task Completed!' : 'Task Incomplete'}
           </CardTitle>
-          <CardDescription className="text-green-700 dark:text-green-300">
-            Great job working through this task
+          <CardDescription
+            className={
+              isFullyCompleted
+                ? 'text-green-700 dark:text-green-300'
+                : 'text-yellow-700 dark:text-yellow-300'
+            }
+          >
+            {isFullyCompleted
+              ? 'Great job working through this task'
+              : `You completed ${assessment.objectivesAchieved} of ${assessment.totalObjectives} objectives`}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-center gap-8 text-sm text-green-800 dark:text-green-200">
+          <div
+            className={`flex justify-center gap-8 text-sm ${
+              isFullyCompleted
+                ? 'text-green-800 dark:text-green-200'
+                : 'text-yellow-800 dark:text-yellow-200'
+            }`}
+          >
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
               <span>{assessment.statistics.durationMinutes} minutes</span>
@@ -201,7 +232,7 @@ export function SimplifiedPostTaskReview({
 
       {/* Action Buttons */}
       <div className="flex gap-4 justify-center pt-4">
-        {assessment.suggestRetry && onRetry && (
+        {onRetry && (
           <Button onClick={onRetry} variant="outline" size="lg">
             Retry This Task
           </Button>

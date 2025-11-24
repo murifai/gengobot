@@ -7,6 +7,8 @@ import { prisma } from '@/lib/prisma';
 import OpenAI from 'openai';
 import { UsageType } from '@prisma/client';
 import { creditService, TIER_CONFIG } from '@/lib/subscription';
+import { MODELS } from '@/lib/ai/openai-client';
+import { ttsService } from '@/lib/voice/tts-service';
 
 export const runtime = 'nodejs';
 
@@ -25,7 +27,7 @@ export async function POST(
   try {
     const { sessionId } = await params;
     const body = await request.json();
-    const { message } = body;
+    const { message, isVoiceMessage = false } = body;
 
     if (!message || typeof message !== 'string' || !message.trim()) {
       return new Response(JSON.stringify({ error: 'Message is required' }), {
@@ -149,7 +151,7 @@ Respond primarily in Japanese. Only use English if explaining something complex 
 
     // Create streaming response
     const stream = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: MODELS.RESPONSE,
       messages: conversationMessages,
       temperature: 0.8, // More creative for casual conversation
       max_tokens: 300,
@@ -179,6 +181,43 @@ Respond primarily in Japanese. Only use English if explaining something complex 
             content: message.trim(),
             timestamp: new Date().toISOString(),
           };
+
+          // Generate TTS audio for AI response only if user sent a voice message
+          let audioData: string | undefined;
+          let audioType: string | undefined;
+
+          if (isVoiceMessage) {
+            try {
+              console.log(
+                '[Free Conversation Stream] Generating TTS for response (voice message received)...'
+              );
+              // Use character voice or default to 'alloy'
+              const voiceId = (character?.voice || 'alloy') as
+                | 'alloy'
+                | 'echo'
+                | 'fable'
+                | 'onyx'
+                | 'nova'
+                | 'shimmer';
+              const result = await ttsService.synthesize(fullResponse, {
+                voice: voiceId,
+                speed: 1.0,
+              });
+
+              // Convert audio buffer to base64 for transmission
+              audioData = Buffer.from(result.audio).toString('base64');
+              audioType = 'audio/mpeg';
+
+              console.log('[Free Conversation Stream] TTS generated successfully');
+            } catch (ttsError) {
+              console.error(
+                '[Free Conversation Stream] TTS generation failed (non-blocking):',
+                ttsError
+              );
+            }
+          } else {
+            console.log('[Free Conversation Stream] Skipping TTS (text message received)');
+          }
 
           const assistantMessage = {
             role: 'assistant',
@@ -214,8 +253,13 @@ Respond primarily in Japanese. Only use English if explaining something complex 
             character: character?.name,
           });
 
-          // Send final done message
-          const doneData = JSON.stringify({ content: '', done: true });
+          // Send final done message with audio data if available
+          const doneData = JSON.stringify({
+            content: '',
+            done: true,
+            audioData: audioData,
+            audioType: audioType,
+          });
           controller.enqueue(encoder.encode(`data: ${doneData}\n\n`));
 
           controller.close();
