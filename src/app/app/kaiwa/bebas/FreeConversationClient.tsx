@@ -610,6 +610,10 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
           error={streamingError}
           onClearError={clearStreamingError}
           attemptId={session.id}
+          hintConfig={{
+            type: 'free-chat',
+            sessionId: session.id,
+          }}
         />
       </>
     );

@@ -427,6 +427,16 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
       error={streamingError}
       onClearError={clearStreamingError}
       attemptId={attemptId}
+      hintConfig={
+        !attempt.isCompleted
+          ? {
+              type: 'task',
+              attemptId: attemptId,
+              currentObjective: taskProgress.objectives.find(obj => obj.status === 'pending')
+                ?.objectiveText,
+            }
+          : undefined
+      }
       taskProgress={!attempt.isCompleted ? taskProgress : undefined}
       onCompleteTask={completeAttempt}
       onDismissCompletionSuggestion={dismissCompletionSuggestion}

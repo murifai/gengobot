@@ -8,6 +8,7 @@ import { Info, X } from 'lucide-react';
 import { ProgressHeader } from '@/components/task/ProgressHeader';
 import { CompletionSuggestion } from '@/components/task/CompletionSuggestion';
 import { MessageLimitWarning } from '@/components/task/MessageLimitWarning';
+import { HintButton } from '@/components/chat/HintButton';
 
 export interface StreamingChatMessage {
   role: 'user' | 'assistant';
@@ -51,6 +52,14 @@ export interface StreamingChatInterfaceProps {
 
   // Real-time transcription
   attemptId?: string; // For Whisper API real-time transcription
+
+  // Hint system
+  hintConfig?: {
+    type: 'task' | 'free-chat';
+    attemptId?: string;
+    sessionId?: string;
+    currentObjective?: string;
+  };
 
   // Task Progress (Phase 5 - Task Feedback System)
   taskProgress?: {
@@ -98,6 +107,7 @@ export default function StreamingChatInterface({
   error,
   onClearError,
   className,
+  hintConfig,
   taskProgress,
   onCompleteTask,
   onDismissCompletionSuggestion,
@@ -312,6 +322,24 @@ export default function StreamingChatInterface({
 
           <div ref={messagesEndRef} />
         </div>
+
+        {/* Floating Hint Button */}
+        {hintConfig && messages.length > 0 && (
+          <div className="px-4 pb-2">
+            <div className="relative w-full">
+              <HintButton
+                type={hintConfig.type}
+                attemptId={hintConfig.attemptId}
+                sessionId={hintConfig.sessionId}
+                lastMessage={
+                  messages.filter(m => m.role === 'assistant').slice(-1)[0]?.content || ''
+                }
+                currentObjective={hintConfig.currentObjective}
+                disabled={isStreaming || disabled}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Input Area */}
         <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
