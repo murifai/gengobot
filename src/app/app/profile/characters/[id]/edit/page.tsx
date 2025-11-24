@@ -262,11 +262,10 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {OPENAI_VOICES.map(voice => (
-                  <button
+                  <div
                     key={voice.value}
-                    type="button"
                     onClick={() => setFormData({ ...formData, voice: voice.value })}
-                    className={`relative p-3 rounded-lg border text-left transition-colors ${
+                    className={`relative p-3 rounded-lg border text-left transition-colors cursor-pointer ${
                       formData.voice === voice.value
                         ? 'border-primary bg-primary/5'
                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
@@ -274,11 +273,11 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-sm">{voice.label}</span>
-                      <Button
+                      <button
                         type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
+                        className={`h-6 w-6 flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                          playingVoice === voice.value ? 'text-primary' : 'text-gray-500'
+                        }`}
                         onClick={e => {
                           e.stopPropagation();
                           playVoiceSample(voice.value);
@@ -288,10 +287,10 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
                         <Volume2
                           className={`h-3 w-3 ${playingVoice === voice.value ? 'animate-pulse' : ''}`}
                         />
-                      </Button>
+                      </button>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">{voice.description}</p>
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>

@@ -125,14 +125,14 @@ export default function NewCharacterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <div className="min-h-screen bg-background">
+      <nav className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 h-16">
             <Button onClick={() => router.back()} variant="ghost" size="icon">
               <ChevronLeft size={24} />
             </Button>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Buat Karakter</h1>
+            <h1 className="text-xl font-bold text-foreground">Buat Karakter</h1>
           </div>
         </div>
       </nav>
@@ -142,9 +142,7 @@ export default function NewCharacterPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Avatar & Name */}
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Informasi Dasar
-              </h2>
+              <h2 className="text-lg font-semibold text-foreground">Informasi Dasar</h2>
 
               <div className="flex items-start gap-6">
                 <div className="flex flex-col items-center gap-2">
@@ -187,27 +185,26 @@ export default function NewCharacterPage() {
 
             {/* Voice Selection */}
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Suara</h2>
+              <h2 className="text-lg font-semibold text-foreground">Suara</h2>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {OPENAI_VOICES.map(voice => (
-                  <button
+                  <div
                     key={voice.value}
-                    type="button"
                     onClick={() => setFormData({ ...formData, voice: voice.value })}
-                    className={`relative p-3 rounded-lg border text-left transition-colors ${
+                    className={`relative p-3 rounded-lg border text-left transition-colors cursor-pointer ${
                       formData.voice === voice.value
                         ? 'border-primary bg-primary/5'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        : 'border-border hover:border-muted-foreground'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-sm">{voice.label}</span>
-                      <Button
+                      <button
                         type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
+                        className={`h-6 w-6 flex items-center justify-center rounded hover:bg-muted ${
+                          playingVoice === voice.value ? 'text-primary' : 'text-muted-foreground'
+                        }`}
                         onClick={e => {
                           e.stopPropagation();
                           playVoiceSample(voice.value);
@@ -217,16 +214,16 @@ export default function NewCharacterPage() {
                         <Volume2
                           className={`h-3 w-3 ${playingVoice === voice.value ? 'animate-pulse' : ''}`}
                         />
-                      </Button>
+                      </button>
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>
 
             {/* Relationship */}
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Hubungan</h2>
+              <h2 className="text-lg font-semibold text-foreground">Hubungan</h2>
 
               <div>
                 <Label htmlFor="relationshipType">Tipe Hubungan *</Label>
@@ -239,7 +236,7 @@ export default function NewCharacterPage() {
                       relationshipType: e.target.value as RelationshipType,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   {RELATIONSHIP_TYPES.map(type => (
                     <option key={type.value} value={type.value}>
@@ -265,7 +262,7 @@ export default function NewCharacterPage() {
 
             {/* Speaking Style */}
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Gaya Bicara</h2>
+              <h2 className="text-lg font-semibold text-foreground">Gaya Bicara</h2>
 
               <div>
                 <Label htmlFor="speakingStyle">Deskripsi Gaya Bicara</Label>
@@ -276,7 +273,7 @@ export default function NewCharacterPage() {
                   placeholder="contoh: Kasual, malu-malu, dialek Kansai, menggunakan keigo, dll."
                   rows={3}
                 />
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-sm text-muted-foreground">
                   Jelaskan bagaimana karakter ini berbicara dalam percakapan
                 </p>
               </div>

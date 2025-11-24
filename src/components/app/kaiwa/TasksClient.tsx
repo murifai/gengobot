@@ -76,12 +76,12 @@ export default function TasksClient({}: TasksClientProps) {
   const categories = ['All', ...Array.from(new Set(tasks.map(task => task.category)))];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <div className="min-h-screen bg-background">
+      <nav className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Task-Based Learning</h1>
-            <Button onClick={() => router.push('/dashboard')} variant="secondary">
+            <h1 className="text-xl font-bold text-foreground">Task-Based Learning</h1>
+            <Button onClick={() => router.push('/app')} variant="secondary">
               Back to Dashboard
             </Button>
           </div>
@@ -90,11 +90,11 @@ export default function TasksClient({}: TasksClientProps) {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filter Section */}
-        <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Filter Tasks</h2>
+        <div className="mb-6 bg-card rounded-lg p-4 shadow">
+          <h2 className="text-lg font-semibold text-foreground mb-4">Filter Tasks</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 By Difficulty
               </label>
               <div className="flex flex-wrap gap-2">
@@ -104,8 +104,8 @@ export default function TasksClient({}: TasksClientProps) {
                     onClick={() => setSelectedDifficulty(difficulty)}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                       selectedDifficulty === difficulty
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
                     {difficulty}
@@ -114,7 +114,7 @@ export default function TasksClient({}: TasksClientProps) {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 By Category
               </label>
               <div className="flex flex-wrap gap-2">
@@ -124,8 +124,8 @@ export default function TasksClient({}: TasksClientProps) {
                     onClick={() => setSelectedCategory(category)}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                       selectedCategory === category
-                        ? 'bg-secondary-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        ? 'bg-secondary text-secondary-foreground'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
                     {category}
@@ -136,7 +136,7 @@ export default function TasksClient({}: TasksClientProps) {
           </div>
           {(selectedDifficulty !== 'All' || selectedCategory !== 'All') && (
             <div className="mt-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 Showing {filteredTasks.length} of {tasks.length} tasks
               </p>
             </div>
@@ -146,22 +146,22 @@ export default function TasksClient({}: TasksClientProps) {
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading tasks...</p>
+            <p className="mt-4 text-muted-foreground">Loading tasks...</p>
           </div>
         ) : error ? (
           <div className="text-center py-12">
-            <p className="text-primary">{error}</p>
+            <p className="text-destructive">{error}</p>
             <Button onClick={fetchTasks} className="mt-4">
               Try Again
             </Button>
           </div>
         ) : tasks.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-600 dark:text-gray-400">No tasks available yet.</p>
+            <p className="text-muted-foreground">No tasks available yet.</p>
           </div>
         ) : filteredTasks.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-muted-foreground">
               No tasks match your selected filters. Try adjusting your selection.
             </p>
           </div>
@@ -170,21 +170,17 @@ export default function TasksClient({}: TasksClientProps) {
             {filteredTasks.map(task => (
               <Card key={task.id} className="p-6">
                 <div className="mb-4">
-                  <span className="inline-block px-2 py-1 text-xs font-semibold text-blue-600 bg-secondary/10 dark:text-blue-300 rounded">
+                  <span className="inline-block px-2 py-1 text-xs font-semibold text-secondary bg-secondary/10 rounded">
                     {task.category}
                   </span>
-                  <span className="ml-2 inline-block px-2 py-1 text-xs font-semibold text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 rounded">
+                  <span className="ml-2 inline-block px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted rounded">
                     {task.difficulty}
                   </span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  {task.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                  {task.description}
-                </p>
+                <h3 className="text-lg font-semibold text-foreground mb-2">{task.title}</h3>
+                <p className="text-muted-foreground mb-4 line-clamp-2">{task.description}</p>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                  <span className="text-sm text-muted-foreground">
                     ~{task.estimatedDuration} min
                   </span>
                   <Button onClick={() => startTask(task.id)}>Start</Button>

@@ -123,14 +123,14 @@ export function MyDecksClient() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <LoadingState type="spinner" size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -140,8 +140,8 @@ export function MyDecksClient() {
           </Button>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">My Decks</h1>
-              <p className="text-gray-600 dark:text-gray-400">Manage your custom flashcard decks</p>
+              <h1 className="text-3xl font-bold text-foreground mb-2">My Decks</h1>
+              <p className="text-muted-foreground">Manage your custom flashcard decks</p>
             </div>
             <Link href="/app/drill/decks/new">
               <Button variant="default" className="gap-2">
@@ -154,24 +154,24 @@ export function MyDecksClient() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Decks</div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{decks.length}</div>
+          <div className="bg-card rounded-lg p-4 shadow-sm">
+            <div className="text-sm text-muted-foreground mb-1">Total Decks</div>
+            <div className="text-2xl font-bold text-foreground">{decks.length}</div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Public Decks</div>
+          <div className="bg-card rounded-lg p-4 shadow-sm">
+            <div className="text-sm text-muted-foreground mb-1">Public Decks</div>
             <div className="text-2xl font-bold text-secondary">
               {decks.filter(d => d.isPublic).length}
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Cards</div>
+          <div className="bg-card rounded-lg p-4 shadow-sm">
+            <div className="text-sm text-muted-foreground mb-1">Total Cards</div>
             <div className="text-2xl font-bold text-tertiary-green">
               {decks.reduce((sum, d) => sum + d.totalCards, 0)}
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Cards Due</div>
+          <div className="bg-card rounded-lg p-4 shadow-sm">
+            <div className="text-sm text-muted-foreground mb-1">Cards Due</div>
             <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
               {decks.reduce((sum, d) => sum + d.dueCards, 0)}
             </div>
@@ -179,11 +179,11 @@ export function MyDecksClient() {
         </div>
 
         {/* Search & Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm mb-6">
+        <div className="bg-card rounded-lg p-4 shadow-sm mb-6">
           <div className="flex flex-col md:flex-row gap-4 mb-4">
             <div className="flex-1 relative">
               <Search
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                 size={20}
               />
               <Input
@@ -198,9 +198,7 @@ export function MyDecksClient() {
 
           <div className="flex flex-wrap gap-2">
             <div className="flex gap-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400 self-center">
-                Difficulty:
-              </span>
+              <span className="text-sm text-muted-foreground self-center">Difficulty:</span>
               <Button
                 variant={filterDifficulty === 'all' ? 'default' : 'secondary'}
                 size="sm"
@@ -222,9 +220,7 @@ export function MyDecksClient() {
 
             {categories.length > 0 && (
               <div className="flex gap-2 ml-4">
-                <span className="text-sm text-gray-600 dark:text-gray-400 self-center">
-                  Category:
-                </span>
+                <span className="text-sm text-muted-foreground self-center">Category:</span>
                 <Button
                   variant={filterCategory === 'all' ? 'default' : 'secondary'}
                   size="sm"
@@ -249,17 +245,17 @@ export function MyDecksClient() {
 
         {/* Decks List */}
         {filteredDecks.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-12 text-center">
+          <div className="bg-card rounded-lg shadow-sm p-12 text-center">
             <div className="max-w-md mx-auto">
-              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                <BookOpen size={32} className="text-gray-400" />
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                <BookOpen size={32} className="text-muted-foreground" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-xl font-semibold text-foreground mb-2">
                 {searchQuery || filterDifficulty !== 'all' || filterCategory !== 'all'
                   ? 'No decks match your filters'
                   : 'No decks yet'}
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
+              <p className="text-muted-foreground mb-6">
                 {searchQuery || filterDifficulty !== 'all' || filterCategory !== 'all'
                   ? 'Try adjusting your search or filters'
                   : 'Create your first deck to start building your custom flashcard collection'}
@@ -275,44 +271,42 @@ export function MyDecksClient() {
             </div>
           </div>
         ) : (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+          <div className="bg-card rounded-lg shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-700">
+                <thead className="bg-muted">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Deck
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Category
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Difficulty
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Cards
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Due / New
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Visibility
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody className="bg-card divide-y divide-border">
                   {filteredDecks.map(deck => (
-                    <tr key={deck.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <tr key={deck.id} className="hover:bg-muted/50">
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {deck.name}
-                          </div>
+                          <div className="text-sm font-medium text-foreground">{deck.name}</div>
                           {deck.description && (
-                            <div className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                            <div className="text-sm text-muted-foreground line-clamp-2">
                               {deck.description}
                             </div>
                           )}
@@ -324,7 +318,7 @@ export function MyDecksClient() {
                             {deck.category}
                           </span>
                         ) : (
-                          <span className="text-sm text-gray-400">—</span>
+                          <span className="text-sm text-muted-foreground">—</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -341,16 +335,16 @@ export function MyDecksClient() {
                             {deck.difficulty}
                           </span>
                         ) : (
-                          <span className="text-sm text-gray-400">—</span>
+                          <span className="text-sm text-muted-foreground">—</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                         {deck.totalCards}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex gap-2">
                           <span className="text-secondary">{deck.dueCards}</span>
-                          <span className="text-gray-400">/</span>
+                          <span className="text-muted-foreground">/</span>
                           <span className="text-tertiary-green">{deck.newCards}</span>
                         </div>
                       </td>
@@ -359,7 +353,7 @@ export function MyDecksClient() {
                           className={`px-2 py-1 text-xs font-semibold rounded-full ${
                             deck.isPublic
                               ? 'bg-tertiary-green/10 text-tertiary-green'
-                              : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                              : 'bg-muted text-muted-foreground'
                           }`}
                         >
                           {deck.isPublic ? 'Public' : 'Private'}

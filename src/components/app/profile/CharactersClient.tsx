@@ -103,218 +103,220 @@ export default function CharactersClient({}: CharactersClientProps) {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ChevronLeft className="h-6 w-6" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Kelola Karakter</h1>
-            <p className="text-sm text-muted-foreground">
-              Kelola karakter AI untuk latihan percakapan
-            </p>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+              <ChevronLeft className="h-6 w-6" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Kelola Karakter</h1>
+              <p className="text-sm text-muted-foreground">
+                Kelola karakter AI untuk latihan percakapan
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Karakter AI
-              </CardTitle>
-              <CardDescription>Daftar semua karakter yang tersedia</CardDescription>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Karakter AI
+                </CardTitle>
+                <CardDescription>Daftar semua karakter yang tersedia</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center border rounded-md">
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    size="icon"
+                    className="h-8 w-8 rounded-r-none"
+                    onClick={() => setViewMode('list')}
+                  >
+                    <List className="h-4 w-4" />
+                    <span className="sr-only">List view</span>
+                  </Button>
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    size="icon"
+                    className="h-8 w-8 rounded-l-none"
+                    onClick={() => setViewMode('grid')}
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                    <span className="sr-only">Grid view</span>
+                  </Button>
+                </div>
+                <Link href="/app/profile/characters/new">
+                  <Button size="sm" className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Buat Baru
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center border rounded-md">
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
-                  size="icon"
-                  className="h-8 w-8 rounded-r-none"
-                  onClick={() => setViewMode('list')}
-                >
-                  <List className="h-4 w-4" />
-                  <span className="sr-only">List view</span>
-                </Button>
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                  size="icon"
-                  className="h-8 w-8 rounded-l-none"
-                  onClick={() => setViewMode('grid')}
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                  <span className="sr-only">Grid view</span>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-muted-foreground">Memuat karakter...</span>
+              </div>
+            ) : error ? (
+              <div className="text-center py-8">
+                <p className="text-destructive mb-4">{error}</p>
+                <Button onClick={fetchCharacters} variant="outline" size="sm">
+                  Coba Lagi
                 </Button>
               </div>
-              <Link href="/app/profile/characters/new">
-                <Button size="sm" className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Buat Baru
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              <span className="ml-2 text-muted-foreground">Memuat karakter...</span>
-            </div>
-          ) : error ? (
-            <div className="text-center py-8">
-              <p className="text-destructive mb-4">{error}</p>
-              <Button onClick={fetchCharacters} variant="outline" size="sm">
-                Coba Lagi
-              </Button>
-            </div>
-          ) : characters.length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-4">
-                Belum ada karakter. Buat karakter pertama Anda!
-              </p>
-              <Link href="/app/profile/characters/new">
-                <Button size="sm" className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Buat Karakter
-                </Button>
-              </Link>
-            </div>
-          ) : viewMode === 'list' ? (
-            <div className="space-y-3">
-              {characters.map(character => (
-                <div
-                  key={character.id}
-                  className="flex items-center gap-4 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                >
-                  <Avatar className="h-10 w-10">
-                    {character.avatar && (
-                      <AvatarImage src={character.avatar} alt={character.name} />
-                    )}
-                    <AvatarFallback
-                      className={`${getAvatarColor(character.name)} text-white text-sm font-medium`}
-                    >
-                      {getInitials(character.name)}
-                    </AvatarFallback>
-                  </Avatar>
+            ) : characters.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground mb-4">
+                  Belum ada karakter. Buat karakter pertama Anda!
+                </p>
+                <Link href="/app/profile/characters/new">
+                  <Button size="sm" className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Buat Karakter
+                  </Button>
+                </Link>
+              </div>
+            ) : viewMode === 'list' ? (
+              <div className="space-y-3">
+                {characters.map(character => (
+                  <div
+                    key={character.id}
+                    className="flex items-center gap-4 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                  >
+                    <Avatar className="h-10 w-10">
+                      {character.avatar && (
+                        <AvatarImage src={character.avatar} alt={character.name} />
+                      )}
+                      <AvatarFallback
+                        className={`${getAvatarColor(character.name)} text-white text-sm font-medium`}
+                      >
+                        {getInitials(character.name)}
+                      </AvatarFallback>
+                    </Avatar>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-medium text-sm truncate">{character.name}</h4>
-                      {character.isUserCreated && (
-                        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-primary/10 text-primary rounded">
-                          Custom
-                        </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium text-sm truncate">{character.name}</h4>
+                        {character.isUserCreated && (
+                          <span className="px-1.5 py-0.5 text-[10px] font-medium bg-primary/10 text-primary rounded">
+                            Custom
+                          </span>
+                        )}
+                      </div>
+                      {character.description && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {character.description}
+                        </p>
                       )}
                     </div>
-                    {character.description && (
-                      <p className="text-xs text-muted-foreground truncate">
-                        {character.description}
-                      </p>
-                    )}
-                  </div>
 
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => router.push(`/app/profile/characters/${character.id}/edit`)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                      <span className="sr-only">Edit</span>
-                    </Button>
-                    {character.isUserCreated && (
+                    <div className="flex items-center gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => deleteCharacter(character.id, character.name)}
-                        disabled={deletingId === character.id}
+                        className="h-8 w-8"
+                        onClick={() => router.push(`/app/profile/characters/${character.id}/edit`)}
                       >
-                        {deletingId === character.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                        <span className="sr-only">Hapus</span>
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Edit</span>
                       </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {characters.map(character => (
-                <div
-                  key={character.id}
-                  className="flex flex-col items-center p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                >
-                  <Avatar className="h-16 w-16 mb-3">
-                    {character.avatar && (
-                      <AvatarImage src={character.avatar} alt={character.name} />
-                    )}
-                    <AvatarFallback
-                      className={`${getAvatarColor(character.name)} text-white text-lg font-medium`}
-                    >
-                      {getInitials(character.name)}
-                    </AvatarFallback>
-                  </Avatar>
-
-                  <div className="text-center w-full mb-3">
-                    <div className="flex items-center justify-center gap-1.5">
-                      <h4 className="font-medium text-sm truncate">{character.name}</h4>
                       {character.isUserCreated && (
-                        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-primary/10 text-primary rounded">
-                          Custom
-                        </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => deleteCharacter(character.id, character.name)}
+                          disabled={deletingId === character.id}
+                        >
+                          {deletingId === character.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">Hapus</span>
+                        </Button>
                       )}
                     </div>
-                    {character.description && (
-                      <p className="text-xs text-muted-foreground truncate mt-1">
-                        {character.description}
-                      </p>
-                    )}
                   </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {characters.map(character => (
+                  <div
+                    key={character.id}
+                    className="flex flex-col items-center p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                  >
+                    <Avatar className="h-16 w-16 mb-3">
+                      {character.avatar && (
+                        <AvatarImage src={character.avatar} alt={character.name} />
+                      )}
+                      <AvatarFallback
+                        className={`${getAvatarColor(character.name)} text-white text-lg font-medium`}
+                      >
+                        {getInitials(character.name)}
+                      </AvatarFallback>
+                    </Avatar>
 
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => router.push(`/app/profile/characters/${character.id}/edit`)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                      <span className="sr-only">Edit</span>
-                    </Button>
-                    {character.isUserCreated && (
+                    <div className="text-center w-full mb-3">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <h4 className="font-medium text-sm truncate">{character.name}</h4>
+                        {character.isUserCreated && (
+                          <span className="px-1.5 py-0.5 text-[10px] font-medium bg-primary/10 text-primary rounded">
+                            Custom
+                          </span>
+                        )}
+                      </div>
+                      {character.description && (
+                        <p className="text-xs text-muted-foreground truncate mt-1">
+                          {character.description}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => deleteCharacter(character.id, character.name)}
-                        disabled={deletingId === character.id}
+                        className="h-8 w-8"
+                        onClick={() => router.push(`/app/profile/characters/${character.id}/edit`)}
                       >
-                        {deletingId === character.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                        <span className="sr-only">Hapus</span>
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Edit</span>
                       </Button>
-                    )}
+                      {character.isUserCreated && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => deleteCharacter(character.id, character.name)}
+                          disabled={deletingId === character.id}
+                        >
+                          {deletingId === character.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">Hapus</span>
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

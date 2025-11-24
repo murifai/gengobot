@@ -179,16 +179,16 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-muted-foreground">Loading...</div>
       </div>
     );
   }
 
   if (!deck) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-600 dark:text-gray-400">Deck not found</div>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-muted-foreground">Deck not found</div>
       </div>
     );
   }
@@ -200,7 +200,7 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
   const cardTypes = Array.from(new Set(deck.flashcards.map(c => c.cardType)));
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -215,10 +215,8 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
 
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{deck.name}</h1>
-              {deck.description && (
-                <p className="text-gray-600 dark:text-gray-400 mb-4">{deck.description}</p>
-              )}
+              <h1 className="text-3xl font-bold text-foreground mb-2">{deck.name}</h1>
+              {deck.description && <p className="text-muted-foreground mb-4">{deck.description}</p>}
               <div className="flex flex-wrap gap-2">
                 {deck.category && (
                   <span className="px-2 py-1 text-xs font-semibold rounded-full bg-secondary/10 text-secondary">
@@ -234,7 +232,7 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
                   className={`px-2 py-1 text-xs font-semibold rounded-full ${
                     deck.isPublic
                       ? 'bg-secondary/10 text-secondary'
-                      : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                      : 'bg-muted text-muted-foreground'
                   }`}
                 >
                   {deck.isPublic ? 'Public' : 'Private'}
@@ -261,31 +259,27 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Cards</div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              {deck.totalCards}
-            </div>
+          <div className="bg-card rounded-lg p-4 shadow-sm">
+            <div className="text-sm text-muted-foreground mb-1">Total Cards</div>
+            <div className="text-2xl font-bold text-foreground">{deck.totalCards}</div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Study Sessions</div>
+          <div className="bg-card rounded-lg p-4 shadow-sm">
+            <div className="text-sm text-muted-foreground mb-1">Study Sessions</div>
             <div className="text-2xl font-bold text-primary">{deck.studyCount}</div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Created</div>
-            <div className="text-sm font-medium text-gray-900 dark:text-white">
+          <div className="bg-card rounded-lg p-4 shadow-sm">
+            <div className="text-sm text-muted-foreground mb-1">Created</div>
+            <div className="text-sm font-medium text-foreground">
               {new Date(deck.createdAt).toLocaleDateString()}
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm mb-6">
+        <div className="bg-card rounded-lg p-4 shadow-sm mb-6">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex gap-2 flex-wrap">
-              <span className="text-sm text-gray-600 dark:text-gray-400 self-center">
-                Card Type:
-              </span>
+              <span className="text-sm text-muted-foreground self-center">Card Type:</span>
               <Button
                 variant={filterCardType === 'all' ? 'default' : 'secondary'}
                 size="sm"
@@ -314,14 +308,14 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
         </div>
 
         {/* Flashcards */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+        <div className="bg-card rounded-lg shadow-sm p-6">
+          <h2 className="text-xl font-bold text-foreground mb-4">
             Flashcards ({filteredCards.length})
           </h2>
 
           {filteredCards.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-gray-500 mb-4">
+              <div className="text-muted-foreground mb-4">
                 No flashcards found. Add some flashcards to get started!
               </div>
               <Button variant="default" className="gap-2" onClick={handleCreateCard}>

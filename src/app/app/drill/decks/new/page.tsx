@@ -132,7 +132,7 @@ export default function NewDeckPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         {/* Header */}
         <div className="mb-8">
@@ -140,8 +140,8 @@ export default function NewDeckPage() {
             <ArrowLeft size={20} />
             Back to Study Decks
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Create New Deck</h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Create New Deck</h1>
+          <p className="text-muted-foreground">
             Create your own flashcard deck for studying Japanese
           </p>
         </div>
@@ -168,11 +168,11 @@ export default function NewDeckPage() {
         </div>
 
         {/* Form */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+        <div className="bg-card rounded-lg shadow-sm p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Deck Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Deck Name *
               </label>
               <Input
@@ -186,27 +186,27 @@ export default function NewDeckPage() {
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Description
               </label>
               <textarea
                 value={formData.description}
                 onChange={e => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Describe the content and purpose of this deck..."
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
                 rows={4}
               />
             </div>
 
             {/* Category */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Category
               </label>
               <select
                 value={formData.category}
                 onChange={e => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 <option value="">Select a category (optional)</option>
                 <option value="Kanji">Kanji</option>
@@ -218,13 +218,13 @@ export default function NewDeckPage() {
 
             {/* Difficulty */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Difficulty (JLPT Level)
               </label>
               <select
                 value={formData.difficulty}
                 onChange={e => setFormData({ ...formData, difficulty: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 <option value="">Select a difficulty (optional)</option>
                 <option value="N5">N5 (Beginner)</option>
@@ -242,22 +242,22 @@ export default function NewDeckPage() {
                   type="checkbox"
                   checked={formData.isPublic}
                   onChange={e => setFormData({ ...formData, isPublic: e.target.checked })}
-                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  className="w-4 h-4 text-primary border-input rounded focus:ring-primary"
                 />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <span className="text-sm font-medium text-muted-foreground">
                   Make this deck public (visible to all users)
                 </span>
               </label>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-6">
+              <p className="text-xs text-muted-foreground mt-1 ml-6">
                 Public decks can be viewed and studied by all users
               </p>
             </div>
 
             {/* Import Section (only when import mode is enabled) */}
             {importMode && (
-              <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="space-y-4 pt-4 border-t border-border">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Upload Excel File *
                   </label>
                   <div className="flex gap-2">
@@ -282,7 +282,7 @@ export default function NewDeckPage() {
                       Selected: {selectedFile.name}
                     </p>
                   )}
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Download the template to see the required format
                   </p>
                 </div>

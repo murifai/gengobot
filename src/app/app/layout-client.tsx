@@ -12,7 +12,11 @@ export function AppLayoutClient({ children }: { children: React.ReactNode }) {
     (pathname?.includes('/kaiwa/roleplay/') && pathname?.includes('/attempt/'));
 
   // Check if we're in a drill route (when studying flashcards)
-  const isDrillRoute = pathname?.includes('/drill/') && !pathname?.includes('/decks/');
+  // Exclude deck management pages (/decks/ and /my-decks) from hiding the nav
+  const isDrillRoute =
+    pathname?.includes('/drill/') &&
+    !pathname?.includes('/decks/') &&
+    !pathname?.includes('/my-decks');
 
   // Hide bottom nav in chat and drill routes
   const showBottomNav = !isChatRoute && !isDrillRoute;

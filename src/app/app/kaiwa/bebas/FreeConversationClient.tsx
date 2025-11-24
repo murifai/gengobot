@@ -304,10 +304,10 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   // Loading state
   if (loading && !session) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">
+          <p className="mt-4 text-muted-foreground">
             キャラクターを読み込み中... / Loading characters...
           </p>
         </div>
@@ -318,10 +318,10 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   // Error state
   if (error && !session) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-background">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
-            <p className="text-primary">{error}</p>
+            <p className="text-destructive">{error}</p>
             <Button onClick={() => router.push('/app/kaiwa')} className="mt-4">
               Kaiwaに戻る / Back to Kaiwa
             </Button>
@@ -334,14 +334,14 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   // Character selection screen (show when no session AND not in realtime mode with character)
   if (!session && !(chatMode === 'realtime' && selectedCharacter)) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-background">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {characters.length === 0 ? (
             <EmptyCharacterState />
           ) : (
             <>
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Daftar Karakter</h2>
+                <h2 className="text-xl font-bold text-foreground">Daftar Karakter</h2>
                 <div className="flex items-center gap-2">
                   <Link href="/app/profile/characters/new">
                     <Button size="sm" className="gap-2">
@@ -362,7 +362,7 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
                 {characters.map(character => (
                   <div
                     key={character.id}
-                    className="flex flex-col items-center p-4 rounded-lg border bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="flex flex-col items-center p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
                   >
                     <div className="relative w-16 h-16 mb-3">
                       <Avatar className="w-full h-full rounded-md">
@@ -378,7 +378,7 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
                         </AvatarFallback>
                       </Avatar>
                     </div>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white text-center truncate w-full mb-3">
+                    <span className="text-sm font-medium text-foreground text-center truncate w-full mb-3">
                       {character.name}
                     </span>
                     <div className="flex flex-col gap-2 w-full">
@@ -433,21 +433,19 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
     return (
       <>
         <HideMobileNav />
-        <div className="fixed inset-0 flex flex-col bg-gray-50 dark:bg-gray-900">
+        <div className="fixed inset-0 flex flex-col bg-background">
           {/* Header */}
-          <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 shrink-0">
+          <div className="bg-card border-b border-border px-4 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 shrink-0">
             <button
               onClick={handleBackToCharacterSelect}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-2 hover:bg-muted rounded-lg transition-colors"
               aria-label="Go back"
             >
-              <ArrowLeft className="w-6 h-6 text-gray-900 dark:text-white" />
+              <ArrowLeft className="w-6 h-6 text-foreground" />
             </button>
             <div className="flex-1">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                {selectedCharacter.name}と会話
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <h2 className="text-xl font-bold text-foreground">{selectedCharacter.name}と会話</h2>
+              <p className="text-sm text-muted-foreground">
                 リアルタイム音声会話 / Realtime Voice Chat
               </p>
             </div>
@@ -462,7 +460,7 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4">
             {webrtcConversation.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 dark:text-gray-400">
+              <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                 <Mic className="h-16 w-16 mb-4 opacity-50" />
                 <p className="text-lg font-medium">Tekan Space atau Tahan Tombol untuk Bicara</p>
                 <p className="text-sm mt-2">Mode Push-to-Talk menghemat ~50-75% biaya</p>
@@ -486,8 +484,8 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
                       <div
                         className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${
                           msg.role === 'user'
-                            ? 'bg-secondary text-white'
-                            : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700'
+                            ? 'bg-secondary text-secondary-foreground'
+                            : 'bg-card text-foreground border border-border'
                         }`}
                       >
                         <p className="text-sm whitespace-pre-wrap">{msg.text || '...'}</p>
@@ -508,7 +506,7 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
           </div>
 
           {/* Controls Area */}
-          <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 space-y-3">
+          <div className="bg-card border-t border-border p-4 space-y-3">
             {/* PTT Status */}
             {isSessionActive && isPushToTalkActive && (
               <div className="bg-primary/10 border border-primary/30 rounded-lg p-2 text-center">
