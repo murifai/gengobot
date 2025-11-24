@@ -99,34 +99,27 @@ export async function POST(
 
     const messages = conversationHistory?.messages || [];
 
-    // Build system prompt with character personality
+    // Build system prompt with character
     const character = session.character;
-    const personality = character?.personality as {
-      traits?: string[];
-      background?: string;
-      interests?: string[];
-    } | null;
 
-    const systemPrompt = `You are ${character?.name || 'a friendly Japanese conversation partner'} having a casual conversation in Japanese.
+    // Get relationship context - use custom if "lainnya"
+    const relationshipContext =
+      character?.relationshipType === 'lainnya'
+        ? character?.relationshipCustom || 'a conversation partner'
+        : character?.relationshipType || 'teman';
 
-${character?.description ? `About you: ${character.description}` : ''}
+    const systemPrompt = `You are ${character?.name || 'a friendly Japanese conversation partner'}, a Japanese conversation partner.
 
-${character?.speakingStyle ? `Speaking style: ${character.speakingStyle}` : ''}
+**Relationship**: ${relationshipContext}
+**Description**: ${character?.description || 'A friendly conversation partner'}
+**Speaking Style**: ${character?.speakingStyle || 'Natural and friendly'}
 
-${personality?.traits ? `Personality traits: ${personality.traits.join(', ')}` : ''}
-
-${personality?.background ? `Background: ${personality.background}` : ''}
-
-${personality?.interests ? `Interests: ${personality.interests.join(', ')}` : ''}
-
-${character?.relationshipType ? `Relationship: ${character.relationshipType}` : 'You are a friendly conversation partner'}
-
-**Instructions**:
+**Guidelines**:
 - Respond naturally in Japanese as this character
-- Keep responses conversational and concise (1-3 sentences typically)
-- Stay in character and maintain the personality
-- Be engaging and show interest in what the user says
-- Use appropriate formality level (casual/polite based on relationship)
+- Maintain the speaking style described above
+- Be helpful and engaging
+- Keep responses concise (1-2 sentences)
+- Use appropriate formality level based on relationship
 - Help the user practice Japanese naturally
 - Occasionally introduce new vocabulary or expressions naturally
 - Be supportive and encouraging

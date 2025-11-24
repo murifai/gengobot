@@ -8,7 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/Card';
 import { AvatarPicker } from '@/components/ui/avatar-picker';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Volume2 } from 'lucide-react';
+import { toKatakana, isRomaji } from 'wanakana';
+import { RelationshipType, Character } from '@/types/character';
+
 // OpenAI TTS voices
 const OPENAI_VOICES = [
   { value: 'alloy', label: 'Alloy', description: 'Neutral and balanced' },
@@ -19,47 +22,15 @@ const OPENAI_VOICES = [
   { value: 'shimmer', label: 'Shimmer', description: 'Soft and gentle' },
 ];
 
-const PERSONALITY_TYPES = [
-  'Service Professional',
-  'Retail Professional',
-  'Friend',
-  'Teacher',
-  'Business Professional',
-  'Family Member',
-  'Custom',
+// Relationship types
+const RELATIONSHIP_TYPES: { value: RelationshipType; label: string }[] = [
+  { value: 'teman', label: 'Teman' },
+  { value: 'guru', label: 'Guru' },
+  { value: 'atasan', label: 'Atasan' },
+  { value: 'pacar', label: 'Pacar' },
+  { value: 'keluarga', label: 'Keluarga' },
+  { value: 'lainnya', label: 'Lainnya' },
 ];
-
-const COMMON_TRAITS = [
-  'polite',
-  'helpful',
-  'patient',
-  'friendly',
-  'attentive',
-  'knowledgeable',
-  'courteous',
-  'enthusiastic',
-  'professional',
-  'casual',
-  'formal',
-  'playful',
-];
-
-interface Character {
-  id: string;
-  name: string;
-  description: string;
-  avatar?: string;
-  voice?: string;
-  personality: {
-    type: string;
-    traits: string[];
-    speakingStyle?: string;
-  };
-  speakingStyle?: string;
-  taskSpecific: boolean;
-  assignedTasks?: string[];
-  isUserCreated: boolean;
-}
 
 export default function EditCharacterPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -68,16 +39,29 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [character, setCharacter] = useState<Character | null>(null);
+  const [playingVoice, setPlayingVoice] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     avatar: '',
     voice: 'alloy',
-    personalityType: 'Friend',
-    traits: [] as string[],
+    relationshipType: 'teman' as RelationshipType,
+    relationshipCustom: '',
     speakingStyle: '',
   });
+
+  // Preview converted name
+  const [namePreview, setNamePreview] = useState<string | null>(null);
+
+  // Update name preview when name changes
+  useEffect(() => {
+    if (formData.name && isRomaji(formData.name)) {
+      setNamePreview(toKatakana(formData.name));
+    } else {
+      setNamePreview(null);
+    }
+  }, [formData.name]);
 
   const fetchCharacter = useCallback(async () => {
     try {
@@ -89,16 +73,16 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
 
       // Populate form
       setFormData({
-        name: data.name,
+        name: data.nameRomaji || data.name,
         description: data.description || '',
         avatar: data.avatar || '',
         voice: data.voice || 'alloy',
-        personalityType: data.personality?.type || 'Friend',
-        traits: data.personality?.traits || [],
-        speakingStyle: data.speakingStyle || data.personality?.speakingStyle || '',
+        relationshipType: data.relationshipType || 'teman',
+        relationshipCustom: data.relationshipCustom || '',
+        speakingStyle: data.speakingStyle || '',
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
     } finally {
       setLoading(false);
     }
@@ -116,11 +100,11 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
     try {
       // Validate required fields
       if (!formData.name.trim()) {
-        throw new Error('Character name is required');
+        throw new Error('Nama karakter wajib diisi');
       }
 
-      if (formData.traits.length === 0) {
-        throw new Error('Please select at least one personality trait');
+      if (formData.relationshipType === 'lainnya' && !formData.relationshipCustom.trim()) {
+        throw new Error('Silakan isi hubungan kustom');
       }
 
       const response = await fetch(`/api/characters/${resolvedParams.id}`, {
@@ -128,39 +112,58 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
-          description: formData.description,
-          avatar: formData.avatar,
+          description: formData.description || undefined,
+          avatar: formData.avatar || undefined,
           voice: formData.voice,
-          personality: {
-            type: formData.personalityType,
-            traits: formData.traits,
-            speakingStyle: formData.speakingStyle,
-          },
-          speakingStyle: formData.speakingStyle,
-          taskSpecific: false, // Dashboard is only for free chat
+          speakingStyle: formData.speakingStyle || undefined,
+          relationshipType: formData.relationshipType,
+          relationshipCustom:
+            formData.relationshipType === 'lainnya' ? formData.relationshipCustom : undefined,
         }),
       });
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to update character');
+        throw new Error(data.error || 'Gagal menyimpan perubahan');
       }
 
       router.push('/app/profile/characters');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
     } finally {
       setSaving(false);
     }
   };
 
-  const toggleTrait = (trait: string) => {
-    setFormData(prev => ({
-      ...prev,
-      traits: prev.traits.includes(trait)
-        ? prev.traits.filter(t => t !== trait)
-        : [...prev.traits, trait],
-    }));
+  const playVoiceSample = async (voice: string) => {
+    if (playingVoice) return;
+
+    setPlayingVoice(voice);
+    try {
+      const response = await fetch('/api/tts/sample', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          voice,
+          text: 'こんにちは、私の名前は' + (formData.name || 'キャラクター') + 'です。',
+        }),
+      });
+
+      if (response.ok) {
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.onended = () => {
+          setPlayingVoice(null);
+          URL.revokeObjectURL(audioUrl);
+        };
+        audio.play();
+      }
+    } catch (err) {
+      console.error('Failed to play voice sample:', err);
+    } finally {
+      setPlayingVoice(null);
+    }
   };
 
   if (loading) {
@@ -168,7 +171,7 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading character...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Memuat karakter...</p>
         </div>
       </div>
     );
@@ -178,9 +181,9 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-primary">{error || 'Character not found'}</p>
+          <p className="text-primary">{error || 'Karakter tidak ditemukan'}</p>
           <Button onClick={() => router.push('/app/profile/characters')} className="mt-4">
-            Back to Characters
+            Kembali ke Karakter
           </Button>
         </div>
       </div>
@@ -203,10 +206,10 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic Info */}
+            {/* Avatar & Name */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Basic Information
+                Informasi Dasar
               </h2>
 
               <div className="flex items-start gap-6">
@@ -219,25 +222,35 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
                   />
                   <span className="text-xs text-muted-foreground">Klik untuk ubah</span>
                 </div>
-                <div className="flex-1">
-                  <Label htmlFor="name">Character Name *</Label>
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="name">Nama Karakter *</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g., Tanaka-san"
+                    placeholder="例: タナカ ユキ atau Tanaka Yuki"
                     required
                   />
+                  {namePreview && (
+                    <p className="text-sm text-muted-foreground">
+                      Akan dikonversi ke: <span className="font-medium">{namePreview}</span>
+                    </p>
+                  )}
+                  {character.name && !namePreview && formData.name !== character.name && (
+                    <p className="text-sm text-muted-foreground">
+                      Tersimpan sebagai: <span className="font-medium">{character.name}</span>
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">Deskripsi</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Brief description of the character..."
+                  placeholder="Deskripsi singkat tentang karakter..."
                   rows={3}
                 />
               </div>
@@ -245,77 +258,99 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
 
             {/* Voice Selection */}
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Voice</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Suara</h2>
 
-              <div>
-                <Label htmlFor="voice">Select Voice *</Label>
-                <select
-                  id="voice"
-                  value={formData.voice}
-                  onChange={e => setFormData({ ...formData, voice: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  {OPENAI_VOICES.map(voice => (
-                    <option key={voice.value} value={voice.value}>
-                      {voice.label} - {voice.description}
-                    </option>
-                  ))}
-                </select>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  This voice will be used for text-to-speech in conversations
-                </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {OPENAI_VOICES.map(voice => (
+                  <button
+                    key={voice.value}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, voice: voice.value })}
+                    className={`relative p-3 rounded-lg border text-left transition-colors ${
+                      formData.voice === voice.value
+                        ? 'border-primary bg-primary/5'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-sm">{voice.label}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={e => {
+                          e.stopPropagation();
+                          playVoiceSample(voice.value);
+                        }}
+                        disabled={playingVoice === voice.value}
+                      >
+                        <Volume2
+                          className={`h-3 w-3 ${playingVoice === voice.value ? 'animate-pulse' : ''}`}
+                        />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">{voice.description}</p>
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Personality */}
+            {/* Relationship */}
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Personality</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Hubungan</h2>
 
               <div>
-                <Label htmlFor="personalityType">Personality Type</Label>
+                <Label htmlFor="relationshipType">Tipe Hubungan *</Label>
                 <select
-                  id="personalityType"
-                  value={formData.personalityType}
-                  onChange={e => setFormData({ ...formData, personalityType: e.target.value })}
+                  id="relationshipType"
+                  value={formData.relationshipType}
+                  onChange={e =>
+                    setFormData({
+                      ...formData,
+                      relationshipType: e.target.value as RelationshipType,
+                    })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  {PERSONALITY_TYPES.map(type => (
-                    <option key={type} value={type}>
-                      {type}
+                  {RELATIONSHIP_TYPES.map(type => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div>
-                <Label>Personality Traits *</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mt-2">
-                  {COMMON_TRAITS.map(trait => (
-                    <button
-                      key={trait}
-                      type="button"
-                      onClick={() => toggleTrait(trait)}
-                      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                        formData.traits.includes(trait)
-                          ? 'bg-primary text-white'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                      }`}
-                    >
-                      {trait}
-                    </button>
-                  ))}
+              {formData.relationshipType === 'lainnya' && (
+                <div>
+                  <Label htmlFor="relationshipCustom">Hubungan Kustom *</Label>
+                  <Input
+                    id="relationshipCustom"
+                    value={formData.relationshipCustom}
+                    onChange={e => setFormData({ ...formData, relationshipCustom: e.target.value })}
+                    placeholder="contoh: Tetangga, Rekan kerja senior, dll."
+                    required
+                  />
                 </div>
-              </div>
+              )}
+            </div>
+
+            {/* Speaking Style */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Gaya Bicara</h2>
 
               <div>
-                <Label htmlFor="speakingStyle">Speaking Style</Label>
+                <Label htmlFor="speakingStyle">Deskripsi Gaya Bicara</Label>
                 <Textarea
                   id="speakingStyle"
                   value={formData.speakingStyle}
                   onChange={e => setFormData({ ...formData, speakingStyle: e.target.value })}
-                  placeholder="e.g., Formal Japanese with polite expressions, uses keigo..."
+                  placeholder="contoh: Kasual, malu-malu, dialek Kansai, menggunakan keigo, dll."
                   rows={3}
                 />
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Jelaskan bagaimana karakter ini berbicara dalam percakapan
+                </p>
               </div>
             </div>
 

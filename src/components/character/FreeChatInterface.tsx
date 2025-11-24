@@ -29,9 +29,21 @@ export function FreeChatInterface({
     timestamp: new Date(msg.timestamp),
   }));
 
-  const subtitle = character.relationshipType
-    ? `${character.relationshipType.charAt(0).toUpperCase() + character.relationshipType.slice(1)} • ${character.personality.type}`
-    : character.personality.type;
+  // Build subtitle from relationship type
+  const relationshipLabels: Record<string, string> = {
+    teman: 'Teman',
+    guru: 'Guru',
+    atasan: 'Atasan',
+    pacar: 'Pacar',
+    keluarga: 'Keluarga',
+    lainnya: character.relationshipCustom || 'Lainnya',
+  };
+
+  const relationshipLabel =
+    relationshipLabels[character.relationshipType] || character.relationshipType;
+  const subtitle = character.speakingStyle
+    ? `${relationshipLabel} • ${character.speakingStyle}`
+    : relationshipLabel;
 
   return (
     <UnifiedChatInterface

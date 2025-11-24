@@ -102,7 +102,12 @@ export async function suggestCharacters(
  * Generate conversation starters based on character and relationship
  */
 export async function generateConversationStarters(character: Character): Promise<string[]> {
-  const prompt = `Generate 3 natural conversation starters in Japanese for a ${character.relationshipType || 'friend'} character named ${character.name} who is ${character.personality.type}. Keep them simple and natural. Return only the Japanese phrases, one per line.`;
+  const relationshipContext =
+    character.relationshipType === 'lainnya'
+      ? character.relationshipCustom || 'friend'
+      : character.relationshipType || 'teman';
+  const speakingStyle = character.speakingStyle || 'friendly';
+  const prompt = `Generate 3 natural conversation starters in Japanese for a ${relationshipContext} character named ${character.name} who speaks in a ${speakingStyle} style. Keep them simple and natural. Return only the Japanese phrases, one per line.`;
 
   try {
     const response = await openai.chat.completions.create({

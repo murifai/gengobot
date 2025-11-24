@@ -1,127 +1,213 @@
 'use client';
 
-import { useState } from 'react';
-import { CharacterCreationData, PersonalityType, RelationshipType } from '@/types/character';
+import { useState, useEffect, useRef } from 'react';
+import { CharacterCreationData, RelationshipType } from '@/types/character';
+import { toKatakana, isRomaji } from 'wanakana';
 
 interface CharacterCreatorProps {
   onCharacterCreated: (character: CharacterCreationData) => void;
   onCancel: () => void;
 }
 
-const personalityTypes: PersonalityType[] = [
-  'friendly',
-  'professional',
-  'casual',
-  'formal',
-  'playful',
-  'serious',
-  'helpful',
-  'reserved',
+const relationshipTypes: { value: RelationshipType; label: string }[] = [
+  { value: 'teman', label: 'Teman' },
+  { value: 'guru', label: 'Guru' },
+  { value: 'atasan', label: 'Atasan' },
+  { value: 'pacar', label: 'Pacar' },
+  { value: 'keluarga', label: 'Keluarga' },
+  { value: 'lainnya', label: 'Lainnya' },
 ];
 
-const relationshipTypes: RelationshipType[] = ['friend', 'colleague', 'stranger', 'family'];
+const voiceOptions = [
+  { value: 'alloy', label: 'Alloy' },
+  { value: 'ash', label: 'Ash' },
+  { value: 'ballad', label: 'Ballad' },
+  { value: 'coral', label: 'Coral' },
+  { value: 'echo', label: 'Echo' },
+  { value: 'fable', label: 'Fable' },
+  { value: 'nova', label: 'Nova' },
+  { value: 'onyx', label: 'Onyx' },
+  { value: 'sage', label: 'Sage' },
+  { value: 'shimmer', label: 'Shimmer' },
+  { value: 'verse', label: 'Verse' },
+];
 
 export function CharacterCreator({ onCharacterCreated, onCancel }: CharacterCreatorProps) {
   const [formData, setFormData] = useState<CharacterCreationData>({
     name: '',
     description: '',
-    personality: {
-      type: 'friendly',
-      traits: [],
-      speakingStyle: '',
-      interests: [],
-      backgroundStory: '',
-    },
-    relationshipType: 'friend',
-    taskSpecific: false,
+    voice: 'alloy',
+    speakingStyle: '',
+    relationshipType: 'teman',
+    relationshipCustom: '',
   });
 
-  const [traitInput, setTraitInput] = useState('');
-  const [interestInput, setInterestInput] = useState('');
+  const [namePreview, setNamePreview] = useState<string | null>(null);
+  const [playingVoice, setPlayingVoice] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const playVoicePreview = (voiceValue: string) => {
+    // Stop currently playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
+    // If clicking the same voice, just stop
+    if (playingVoice === voiceValue) {
+      setPlayingVoice(null);
+      return;
+    }
+
+    // Play new audio
+    const audio = new Audio(`/audio/${voiceValue}.mp3`);
+    audioRef.current = audio;
+    setPlayingVoice(voiceValue);
+
+    audio.play().catch(() => {
+      setPlayingVoice(null);
+    });
+
+    audio.onended = () => {
+      setPlayingVoice(null);
+      audioRef.current = null;
+    };
+  };
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  // Update name preview when name changes
+  useEffect(() => {
+    if (formData.name && isRomaji(formData.name)) {
+      setNamePreview(toKatakana(formData.name));
+    } else {
+      setNamePreview(null);
+    }
+  }, [formData.name]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate custom relationship
+    if (formData.relationshipType === 'lainnya' && !formData.relationshipCustom?.trim()) {
+      alert('Silakan isi hubungan kustom');
+      return;
+    }
+
     onCharacterCreated(formData);
   };
 
-  const addTrait = () => {
-    if (traitInput.trim()) {
-      setFormData({
-        ...formData,
-        personality: {
-          ...formData.personality,
-          traits: [...formData.personality.traits, traitInput.trim()],
-        },
-      });
-      setTraitInput('');
-    }
-  };
-
-  const removeTrait = (index: number) => {
-    setFormData({
-      ...formData,
-      personality: {
-        ...formData.personality,
-        traits: formData.personality.traits.filter((_, i) => i !== index),
-      },
-    });
-  };
-
-  const addInterest = () => {
-    if (interestInput.trim()) {
-      setFormData({
-        ...formData,
-        personality: {
-          ...formData.personality,
-          interests: [...formData.personality.interests, interestInput.trim()],
-        },
-      });
-      setInterestInput('');
-    }
-  };
-
-  const removeInterest = (index: number) => {
-    setFormData({
-      ...formData,
-      personality: {
-        ...formData.personality,
-        interests: formData.personality.interests.filter((_, i) => i !== index),
-      },
-    });
-  };
-
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-dark mb-6">Create New Character</h2>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold text-dark dark:text-white mb-6">Buat Karakter Baru</h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
         <div>
-          <label className="block text-sm font-medium text-dark mb-2">Character Name</label>
+          <label className="block text-sm font-medium text-dark dark:text-white mb-2">
+            Nama Karakter *
+          </label>
           <input
             type="text"
             value={formData.name}
             onChange={e => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder="e.g., Tanaka-san"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-dark dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+            placeholder="例: タナカ ユキ atau Tanaka Yuki"
             required
           />
+          {namePreview && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Akan dikonversi ke: <span className="font-medium">{namePreview}</span>
+            </p>
+          )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-dark mb-2">Description</label>
+          <label className="block text-sm font-medium text-dark dark:text-white mb-2">
+            Deskripsi
+          </label>
           <textarea
             value={formData.description}
             onChange={e => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder="Brief description of your character..."
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-dark dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+            placeholder="Deskripsi singkat tentang karakter..."
             rows={3}
           />
         </div>
 
+        {/* Voice Selection */}
+        <div>
+          <label className="block text-sm font-medium text-dark dark:text-white mb-2">
+            Suara *
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {voiceOptions.map(voice => (
+              <div
+                key={voice.value}
+                className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
+                  formData.voice === voice.value
+                    ? 'border-primary bg-primary/10'
+                    : 'border-gray-300 dark:border-gray-600 hover:border-primary/50'
+                }`}
+                onClick={() => setFormData({ ...formData, voice: voice.value })}
+              >
+                <span className="text-sm font-medium text-dark dark:text-white">{voice.label}</span>
+                <button
+                  type="button"
+                  onClick={e => {
+                    e.stopPropagation();
+                    playVoicePreview(voice.value);
+                  }}
+                  className={`p-1 rounded-full transition-colors ${
+                    playingVoice === voice.value
+                      ? 'text-primary bg-primary/20'
+                      : 'text-gray-500 hover:text-primary hover:bg-primary/10'
+                  }`}
+                  title={playingVoice === voice.value ? 'Stop' : 'Preview'}
+                >
+                  {playingVoice === voice.value ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <rect x="6" y="5" width="3" height="10" rx="1" />
+                      <rect x="11" y="5" width="3" height="10" rx="1" />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Relationship Type */}
         <div>
-          <label className="block text-sm font-medium text-dark mb-2">Relationship Type</label>
+          <label className="block text-sm font-medium text-dark dark:text-white mb-2">
+            Tipe Hubungan *
+          </label>
           <select
             value={formData.relationshipType}
             onChange={e =>
@@ -130,156 +216,48 @@ export function CharacterCreator({ onCharacterCreated, onCancel }: CharacterCrea
                 relationshipType: e.target.value as RelationshipType,
               })
             }
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-dark dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
           >
             {relationshipTypes.map(type => (
-              <option key={type} value={type}>
-                {type.charAt(0).toUpperCase() + type.slice(1)}
+              <option key={type.value} value={type.value}>
+                {type.label}
               </option>
             ))}
           </select>
         </div>
 
-        {/* Personality Type */}
-        <div>
-          <label className="block text-sm font-medium text-dark mb-2">Personality Type</label>
-          <select
-            value={formData.personality.type}
-            onChange={e =>
-              setFormData({
-                ...formData,
-                personality: {
-                  ...formData.personality,
-                  type: e.target.value as PersonalityType,
-                },
-              })
-            }
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-          >
-            {personalityTypes.map(type => (
-              <option key={type} value={type}>
-                {type.charAt(0).toUpperCase() + type.slice(1)}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Personality Traits */}
-        <div>
-          <label className="block text-sm font-medium text-dark mb-2">Personality Traits</label>
-          <div className="flex gap-2 mb-2">
+        {/* Custom Relationship */}
+        {formData.relationshipType === 'lainnya' && (
+          <div>
+            <label className="block text-sm font-medium text-dark dark:text-white mb-2">
+              Hubungan Kustom *
+            </label>
             <input
               type="text"
-              value={traitInput}
-              onChange={e => setTraitInput(e.target.value)}
-              onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), addTrait())}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="Add a trait (e.g., patient, funny)"
+              value={formData.relationshipCustom || ''}
+              onChange={e => setFormData({ ...formData, relationshipCustom: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-dark dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+              placeholder="contoh: Tetangga, Rekan kerja senior, dll."
+              required
             />
-            <button
-              type="button"
-              onClick={addTrait}
-              className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90"
-            >
-              Add
-            </button>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {formData.personality.traits.map((trait, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center gap-1 px-3 py-1 bg-tertiary-yellow rounded-full text-sm"
-              >
-                {trait}
-                <button
-                  type="button"
-                  onClick={() => removeTrait(index)}
-                  className="text-dark hover:text-primary"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        </div>
+        )}
 
         {/* Speaking Style */}
         <div>
-          <label className="block text-sm font-medium text-dark mb-2">Speaking Style</label>
-          <input
-            type="text"
-            value={formData.personality.speakingStyle}
-            onChange={e =>
-              setFormData({
-                ...formData,
-                personality: {
-                  ...formData.personality,
-                  speakingStyle: e.target.value,
-                },
-              })
-            }
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder="e.g., Polite and encouraging, uses casual language"
-          />
-        </div>
-
-        {/* Interests */}
-        <div>
-          <label className="block text-sm font-medium text-dark mb-2">Interests</label>
-          <div className="flex gap-2 mb-2">
-            <input
-              type="text"
-              value={interestInput}
-              onChange={e => setInterestInput(e.target.value)}
-              onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), addInterest())}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="Add an interest (e.g., cooking, sports)"
-            />
-            <button
-              type="button"
-              onClick={addInterest}
-              className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90"
-            >
-              Add
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {formData.personality.interests.map((interest, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center gap-1 px-3 py-1 bg-tertiary-green rounded-full text-sm"
-              >
-                {interest}
-                <button
-                  type="button"
-                  onClick={() => removeInterest(index)}
-                  className="text-dark hover:text-primary"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Background Story */}
-        <div>
-          <label className="block text-sm font-medium text-dark mb-2">Background Story</label>
+          <label className="block text-sm font-medium text-dark dark:text-white mb-2">
+            Gaya Bicara
+          </label>
           <textarea
-            value={formData.personality.backgroundStory}
-            onChange={e =>
-              setFormData({
-                ...formData,
-                personality: {
-                  ...formData.personality,
-                  backgroundStory: e.target.value,
-                },
-              })
-            }
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder="Brief background story for your character..."
-            rows={4}
+            value={formData.speakingStyle}
+            onChange={e => setFormData({ ...formData, speakingStyle: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-dark dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+            placeholder="contoh: Kasual, malu-malu, dialek Kansai, menggunakan keigo, dll."
+            rows={3}
           />
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Jelaskan bagaimana karakter ini berbicara dalam percakapan
+          </p>
         </div>
 
         {/* Actions */}
@@ -288,14 +266,14 @@ export function CharacterCreator({ onCharacterCreated, onCancel }: CharacterCrea
             type="submit"
             className="flex-1 px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
           >
-            Create Character
+            Buat Karakter
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-3 bg-gray-200 text-dark rounded-lg font-medium hover:bg-gray-300 transition-colors"
+            className="px-6 py-3 bg-gray-200 dark:bg-gray-600 text-dark dark:text-white rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
           >
-            Cancel
+            Batal
           </button>
         </div>
       </form>

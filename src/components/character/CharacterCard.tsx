@@ -1,6 +1,6 @@
 'use client';
 
-import { Character } from '@/types/character';
+import { Character, RelationshipType } from '@/types/character';
 
 interface CharacterCardProps {
   character: Character;
@@ -10,35 +10,48 @@ interface CharacterCardProps {
 }
 
 export function CharacterCard({ character, onSelect, onEdit, onDelete }: CharacterCardProps) {
-  const relationshipColors: Record<string, string> = {
-    friend: 'bg-tertiary-green',
-    colleague: 'bg-secondary',
-    stranger: 'bg-tertiary-purple',
-    family: 'bg-primary',
+  const relationshipColors: Record<RelationshipType, string> = {
+    teman: 'bg-tertiary-green',
+    guru: 'bg-secondary',
+    atasan: 'bg-tertiary-purple',
+    pacar: 'bg-primary',
+    keluarga: 'bg-tertiary-yellow text-dark',
+    lainnya: 'bg-gray-500',
   };
 
-  const relationshipColor = relationshipColors[character.relationshipType || 'friend'];
+  const relationshipLabels: Record<RelationshipType, string> = {
+    teman: 'Teman',
+    guru: 'Guru',
+    atasan: 'Atasan',
+    pacar: 'Pacar',
+    keluarga: 'Keluarga',
+    lainnya: character.relationshipCustom || 'Lainnya',
+  };
+
+  const relationshipColor = relationshipColors[character.relationshipType] || 'bg-gray-500';
+  const relationshipLabel =
+    relationshipLabels[character.relationshipType] || character.relationshipType;
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="text-xl font-bold text-dark">{character.name}</h3>
-          {character.relationshipType && (
-            <span
-              className={`inline-block mt-2 px-3 py-1 ${relationshipColor} text-white text-sm rounded-full`}
-            >
-              {character.relationshipType.charAt(0).toUpperCase() +
-                character.relationshipType.slice(1)}
-            </span>
+          <h3 className="text-xl font-bold text-dark dark:text-white">{character.name}</h3>
+          {character.nameRomaji && character.nameRomaji !== character.name && (
+            <p className="text-sm text-gray-500 dark:text-gray-400">{character.nameRomaji}</p>
           )}
+          <span
+            className={`inline-block mt-2 px-3 py-1 ${relationshipColor} text-white text-sm rounded-full`}
+          >
+            {relationshipLabel}
+          </span>
         </div>
         <div className="flex gap-2">
           {onEdit && character.isUserCreated && (
             <button
               onClick={() => onEdit(character)}
-              className="p-2 text-gray-600 hover:text-secondary transition-colors"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-secondary transition-colors"
               aria-label="Edit character"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,7 +67,7 @@ export function CharacterCard({ character, onSelect, onEdit, onDelete }: Charact
           {onDelete && character.isUserCreated && (
             <button
               onClick={() => onDelete(character.id)}
-              className="p-2 text-gray-600 hover:text-primary transition-colors"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary transition-colors"
               aria-label="Delete character"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -71,70 +84,38 @@ export function CharacterCard({ character, onSelect, onEdit, onDelete }: Charact
       </div>
 
       {/* Description */}
-      {character.description && <p className="text-gray-600 mb-4">{character.description}</p>}
+      {character.description && (
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{character.description}</p>
+      )}
 
-      {/* Personality */}
-      <div className="space-y-3">
-        <div>
-          <span className="text-sm font-medium text-dark">Personality:</span>
-          <span className="ml-2 px-2 py-1 bg-tertiary-yellow rounded text-sm">
-            {character.personality.type.charAt(0).toUpperCase() +
-              character.personality.type.slice(1)}
-          </span>
+      {/* Speaking Style */}
+      {character.speakingStyle && (
+        <div className="mb-4">
+          <span className="text-sm font-medium text-dark dark:text-white">Gaya Bicara:</span>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{character.speakingStyle}</p>
         </div>
+      )}
 
-        {character.personality.traits.length > 0 && (
-          <div>
-            <span className="text-sm font-medium text-dark block mb-2">Traits:</span>
-            <div className="flex flex-wrap gap-2">
-              {character.personality.traits.slice(0, 3).map((trait, index) => (
-                <span key={index} className="px-2 py-1 bg-gray-100 rounded text-sm text-gray-700">
-                  {trait}
-                </span>
-              ))}
-              {character.personality.traits.length > 3 && (
-                <span className="px-2 py-1 bg-gray-100 rounded text-sm text-gray-700">
-                  +{character.personality.traits.length - 3} more
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {character.personality.interests.length > 0 && (
-          <div>
-            <span className="text-sm font-medium text-dark block mb-2">Interests:</span>
-            <div className="flex flex-wrap gap-2">
-              {character.personality.interests.slice(0, 3).map((interest, index) => (
-                <span
-                  key={index}
-                  className="px-2 py-1 bg-tertiary-green/20 text-tertiary-purple rounded text-sm"
-                >
-                  {interest}
-                </span>
-              ))}
-              {character.personality.interests.length > 3 && (
-                <span className="px-2 py-1 bg-tertiary-green/20 text-tertiary-purple rounded text-sm">
-                  +{character.personality.interests.length - 3} more
-                </span>
-              )}
-            </div>
-          </div>
-        )}
+      {/* Voice */}
+      <div className="mb-4">
+        <span className="text-sm font-medium text-dark dark:text-white">Suara:</span>
+        <span className="ml-2 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-sm capitalize">
+          {character.voice}
+        </span>
       </div>
 
       {/* Chat Button */}
       <button
         onClick={() => onSelect(character)}
-        className="mt-6 w-full px-4 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+        className="mt-4 w-full px-4 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
       >
-        Start Conversation
+        Mulai Percakapan
       </button>
 
       {/* Preset Badge */}
       {!character.isUserCreated && (
         <div className="mt-3 text-center">
-          <span className="text-xs text-gray-500">Preset Character</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">Karakter Preset</span>
         </div>
       )}
     </div>

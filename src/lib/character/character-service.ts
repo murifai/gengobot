@@ -1,28 +1,26 @@
 // Character service for free chat mode
 import { prisma } from '@/lib/prisma';
-import {
-  Character,
-  CharacterCreationData,
-  PersonalityType,
-  RelationshipType,
-} from '@/types/character';
+import { Character, CharacterCreationData, RelationshipType } from '@/types/character';
+import { convertNameIfNeeded } from '@/lib/utils/japanese-converter';
 
 export class CharacterService {
   /**
    * Create a new character for free chat
    */
   static async createCharacter(userId: string, data: CharacterCreationData): Promise<Character> {
+    // Convert name to katakana if romaji
+    const { displayName, romajiName } = convertNameIfNeeded(data.name);
+
     const character = await prisma.character.create({
       data: {
-        name: data.name,
+        name: displayName,
+        nameRomaji: data.nameRomaji || romajiName,
         description: data.description,
         avatar: data.avatar,
-        voice: data.voice,
-        personality: data.personality as object,
-        speakingStyle: data.personality.speakingStyle,
-        taskSpecific: data.taskSpecific,
-        assignedTasks: data.assignedTasks || [],
+        voice: data.voice || 'alloy',
+        speakingStyle: data.speakingStyle,
         relationshipType: data.relationshipType,
+        relationshipCustom: data.relationshipCustom,
         isUserCreated: true,
         userId: userId,
       },
@@ -48,9 +46,7 @@ export class CharacterService {
    */
   static async getUserCharacters(userId: string): Promise<Character[]> {
     const characters = await prisma.character.findMany({
-      where: {
-        OR: [{ userId }, { taskSpecific: false }],
-      },
+      where: { userId },
       orderBy: { id: 'desc' },
     });
 
@@ -79,7 +75,6 @@ export class CharacterService {
       where: {
         userId,
         relationshipType,
-        taskSpecific: false,
       },
       orderBy: { id: 'desc' },
     });
@@ -96,16 +91,21 @@ export class CharacterService {
   ): Promise<Character> {
     const updateData: Record<string, unknown> = {};
 
-    if (data.name) updateData.name = data.name;
+    if (data.name) {
+      const { displayName, romajiName } = convertNameIfNeeded(data.name);
+      updateData.name = displayName;
+      if (romajiName) {
+        updateData.nameRomaji = romajiName;
+      }
+    }
+    if (data.nameRomaji !== undefined) updateData.nameRomaji = data.nameRomaji;
     if (data.description !== undefined) updateData.description = data.description;
     if (data.avatar !== undefined) updateData.avatar = data.avatar || null;
     if (data.voice) updateData.voice = data.voice;
-    if (data.personality) {
-      updateData.personality = data.personality as object;
-      updateData.speakingStyle = data.personality.speakingStyle;
-    }
+    if (data.speakingStyle !== undefined) updateData.speakingStyle = data.speakingStyle;
     if (data.relationshipType) updateData.relationshipType = data.relationshipType;
-    if (data.assignedTasks) updateData.assignedTasks = data.assignedTasks;
+    if (data.relationshipCustom !== undefined)
+      updateData.relationshipCustom = data.relationshipCustom;
 
     const character = await prisma.character.update({
       where: { id },
@@ -131,7 +131,6 @@ export class CharacterService {
     const characters = await prisma.character.findMany({
       where: {
         isUserCreated: false,
-        taskSpecific: false,
       },
       orderBy: { id: 'asc' },
     });
@@ -142,18 +141,18 @@ export class CharacterService {
   /**
    * Create preset characters (for seeding)
    */
-  static async createPresetCharacter(
-    data: Omit<CharacterCreationData, 'taskSpecific'>
-  ): Promise<Character> {
+  static async createPresetCharacter(data: CharacterCreationData): Promise<Character> {
+    const { displayName, romajiName } = convertNameIfNeeded(data.name);
+
     const character = await prisma.character.create({
       data: {
-        name: data.name,
+        name: displayName,
+        nameRomaji: data.nameRomaji || romajiName,
         description: data.description,
-        voice: data.voice,
-        personality: data.personality as object,
-        speakingStyle: data.personality.speakingStyle,
-        taskSpecific: false,
+        voice: data.voice || 'alloy',
+        speakingStyle: data.speakingStyle,
         relationshipType: data.relationshipType,
+        relationshipCustom: data.relationshipCustom,
         isUserCreated: false,
       },
     });
@@ -168,56 +167,37 @@ export class CharacterService {
     return {
       id: character.id as string,
       name: character.name as string,
+      nameRomaji: (character.nameRomaji as string) || undefined,
       description: (character.description as string) || undefined,
       avatar: (character.avatar as string) || undefined,
-      voice: (character.voice as string) || undefined,
-      personality: character.personality as {
-        type: PersonalityType;
-        traits: string[];
-        speakingStyle: string;
-        interests: string[];
-        backgroundStory: string;
-      },
+      voice: (character.voice as string) || 'alloy',
       speakingStyle: (character.speakingStyle as string) || undefined,
-      taskSpecific: character.taskSpecific as boolean,
-      assignedTasks: (character.assignedTasks as string[]) || undefined,
-      relationshipType: (character.relationshipType as RelationshipType) || undefined,
+      relationshipType: (character.relationshipType as RelationshipType) || 'teman',
+      relationshipCustom: (character.relationshipCustom as string) || undefined,
       isUserCreated: character.isUserCreated as boolean,
       userId: (character.userId as string) || undefined,
     };
   }
 
   /**
-   * Get personality suggestions based on relationship type
-   */
-  static getPersonalitySuggestions(relationshipType: RelationshipType): PersonalityType[] {
-    const suggestions: Record<RelationshipType, PersonalityType[]> = {
-      friend: ['friendly', 'casual', 'playful', 'helpful'],
-      colleague: ['professional', 'helpful', 'friendly'],
-      stranger: ['formal', 'reserved', 'professional'],
-      family: ['friendly', 'casual', 'helpful', 'playful'],
-    };
-
-    return suggestions[relationshipType];
-  }
-
-  /**
    * Generate character prompt for AI
    */
   static generateCharacterPrompt(character: Character): string {
-    const personality = character.personality;
+    const relationshipContext =
+      character.relationshipType === 'lainnya'
+        ? character.relationshipCustom
+        : character.relationshipType;
 
-    return `You are ${character.name}. ${character.description || ''}
+    return `You are ${character.name}, a Japanese conversation partner.
 
-Personality Type: ${personality.type}
-Traits: ${personality.traits.join(', ')}
-Speaking Style: ${personality.speakingStyle}
-Interests: ${personality.interests.join(', ')}
-Background: ${personality.backgroundStory}
+**Relationship**: ${relationshipContext}
+**Description**: ${character.description || 'A friendly conversation partner'}
+**Speaking Style**: ${character.speakingStyle || 'Natural and friendly'}
 
-${character.relationshipType ? `Relationship: ${character.relationshipType}` : ''}
-
-Please respond in character, maintaining your personality and speaking style consistently.
-Use natural Japanese appropriate for your character and relationship type.`;
+**Guidelines**:
+- Respond naturally in Japanese as this character
+- Maintain the speaking style described above
+- Be helpful and engaging
+- Keep responses concise (1-2 sentences)`;
   }
 }

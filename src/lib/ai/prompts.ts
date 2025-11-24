@@ -66,9 +66,13 @@ ${task.conversationExample}
 `;
 
   if (character) {
-    prompt += `You are playing the character "${character.name}": ${character.description}
-- Personality traits: ${JSON.stringify(character.personality)}
-- Speaking style: ${character.speakingStyle}
+    const relationshipContext =
+      character.relationshipType === 'lainnya'
+        ? character.relationshipCustom
+        : character.relationshipType;
+    prompt += `You are playing the character "${character.name}": ${character.description || 'A conversation partner'}
+- Relationship: ${relationshipContext}
+- Speaking style: ${character.speakingStyle || 'Natural and friendly'}
 
 Stay in character while helping the student complete the task objectives.
 `;
@@ -181,14 +185,19 @@ Respond with just the hint message.`;
 
 // Inject character personality into responses
 export function injectCharacterPersonality(basePrompt: string, character: Character): string {
+  const relationshipContext =
+    character.relationshipType === 'lainnya'
+      ? character.relationshipCustom
+      : character.relationshipType;
+
   return `${basePrompt}
 
 # Character Instructions
-Remember to embody these character traits in all responses:
+Remember to embody this character in all responses:
 - Name: ${character.name}
-- Personality: ${JSON.stringify(character.personality)}
-- Speaking Style: ${character.speakingStyle}
-- Background: ${character.description}
+- Relationship: ${relationshipContext}
+- Speaking Style: ${character.speakingStyle || 'Natural and friendly'}
+- Background: ${character.description || 'A friendly conversation partner'}
 
 Stay consistent with this character throughout the conversation.`;
 }

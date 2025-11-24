@@ -207,7 +207,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Title */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
           Task Title <span className="text-primary">*</span>
         </label>
         <Input
@@ -222,7 +222,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
           Description <span className="text-primary">*</span>
         </label>
         <textarea
@@ -240,7 +240,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
       {/* Category & Subcategory */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             Category <span className="text-primary">*</span>
           </label>
           <select
@@ -261,7 +261,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             Subcategory
           </label>
           <select
@@ -290,7 +290,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
       {/* Difficulty & Duration */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             Difficulty Level <span className="text-primary">*</span>
           </label>
           <select
@@ -307,7 +307,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             Estimated Duration (minutes) <span className="text-primary">*</span>
           </label>
           <Input
@@ -327,7 +327,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
 
       {/* Scenario */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
           Scenario <span className="text-primary">*</span>
         </label>
         <textarea
@@ -344,7 +344,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
 
       {/* Learning Objectives */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
           Learning Objectives <span className="text-primary">*</span>
         </label>
         {formData.learningObjectives.map((objective, index) => (
@@ -406,7 +406,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
 
       {/* Conversation Example */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
           Conversation Example <span className="text-primary">*</span>
         </label>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
@@ -449,7 +449,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
         />
         <label
           htmlFor="isActive"
-          className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="ml-2 text-sm font-medium text-gray-900 dark:text-white"
         >
           Active (visible to users)
         </label>

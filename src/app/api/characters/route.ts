@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       if (relationshipType) {
         characters = await CharacterService.getCharactersByRelationship(
           userId,
-          relationshipType as 'friend' | 'colleague' | 'stranger' | 'family'
+          relationshipType as 'teman' | 'guru' | 'atasan' | 'pacar' | 'keluarga' | 'lainnya'
         );
       } else {
         characters = await CharacterService.getUserCharacters(userId);

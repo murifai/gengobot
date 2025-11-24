@@ -269,17 +269,16 @@ model PasswordResetToken {
 
 // Character model - For free-chat scenarios
 model Character {
-  id               String  @id @default(cuid())
-  name             String
-  description      String? @db.Text
-  avatar           String? // Avatar image URL
-  voice            String? // OpenAI TTS voice (alloy, echo, fable, onyx, nova, shimmer)
-  personality      Json // Personality traits
-  speakingStyle    String? @db.Text
-  taskSpecific     Boolean @default(false) // Whether designed for specific tasks
-  assignedTasks    Json? // Array of task IDs where this character is used
-  relationshipType String? // For free chat (secondary feature)
-  isUserCreated    Boolean @default(true)
+  id                 String  @id @default(cuid())
+  name               String  // Stored in Katakana/Kanji
+  nameRomaji         String? // Original romaji input for reference
+  description        String? @db.Text
+  avatar             String? // Avatar image URL
+  voice              String  @default("alloy") // OpenAI TTS voice
+  speakingStyle      String? @db.Text // Replaces personality traits
+  relationshipType   String  @default("teman") // teman, guru, atasan, pacar, keluarga, lainnya
+  relationshipCustom String? // For custom "lainnya" input
+  isUserCreated      Boolean @default(true)
 
   userId             String?
   user               User?               @relation(fields: [userId], references: [id])
@@ -287,7 +286,6 @@ model Character {
   freeConversations  FreeConversation[]
 
   @@index([userId])
-  @@index([taskSpecific])
 }
 
 // Conversation model - Stores chat histories

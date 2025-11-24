@@ -1,47 +1,29 @@
 // Character types for free chat mode
 
-export type RelationshipType = 'friend' | 'colleague' | 'stranger' | 'family';
-
-export type PersonalityType =
-  | 'friendly'
-  | 'professional'
-  | 'casual'
-  | 'formal'
-  | 'playful'
-  | 'serious'
-  | 'helpful'
-  | 'reserved';
-
-export interface CharacterPersonality {
-  type: PersonalityType;
-  traits: string[];
-  speakingStyle: string;
-  interests: string[];
-  backgroundStory: string;
-}
+// Relationship types: teman, guru, atasan, pacar, keluarga, lainnya
+export type RelationshipType = 'teman' | 'guru' | 'atasan' | 'pacar' | 'keluarga' | 'lainnya';
 
 export interface CharacterCreationData {
   name: string;
-  description: string;
+  nameRomaji?: string;
+  description?: string;
   avatar?: string;
   voice?: string;
-  personality: CharacterPersonality;
+  speakingStyle?: string;
   relationshipType: RelationshipType;
-  taskSpecific: boolean;
-  assignedTasks?: string[];
+  relationshipCustom?: string;
 }
 
 export interface Character {
   id: string;
   name: string;
+  nameRomaji?: string;
   description?: string;
   avatar?: string;
-  voice?: string;
-  personality: CharacterPersonality;
+  voice: string;
   speakingStyle?: string;
-  taskSpecific: boolean;
-  assignedTasks?: string[];
-  relationshipType?: RelationshipType;
+  relationshipType: RelationshipType;
+  relationshipCustom?: string;
   isUserCreated: boolean;
   userId?: string;
   createdAt?: Date;
