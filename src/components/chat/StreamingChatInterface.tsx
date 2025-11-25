@@ -122,19 +122,19 @@ export default function StreamingChatInterface({
   }, [messages]);
 
   return (
-    <div className={cn('fixed inset-0 flex bg-gray-50 dark:bg-gray-900', className)}>
+    <div className={cn('fixed inset-0 flex bg-background', className)}>
       {/* Main Chat Area */}
       <div className="flex flex-col flex-1">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 shrink-0">
+        <div className="bg-card border-b border-border px-4 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 shrink-0">
           {onBack && (
             <button
               onClick={onBack}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-2 hover:bg-accent rounded-lg transition-colors"
               aria-label="Go back"
             >
               <svg
-                className="w-6 h-6 text-gray-900 dark:text-white"
+                className="w-6 h-6 text-foreground"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -149,8 +149,8 @@ export default function StreamingChatInterface({
             </button>
           )}
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
-            {subtitle && <p className="text-sm text-gray-600 dark:text-gray-400">{subtitle}</p>}
+            <h2 className="text-xl font-bold text-foreground">{title}</h2>
+            {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
           </div>
           {/* Streaming Indicator */}
           {isStreaming && (
@@ -167,14 +167,14 @@ export default function StreamingChatInterface({
           {sidebar && (
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-1"
+              className="p-2 hover:bg-accent rounded-lg transition-colors flex items-center gap-1"
               aria-label={isSidebarOpen ? 'Hide info' : 'Show info'}
               title={isSidebarOpen ? 'Hide info' : 'Show info'}
             >
               {isSidebarOpen ? (
-                <X className="w-5 h-5 text-gray-900 dark:text-white" />
+                <X className="w-5 h-5 text-foreground" />
               ) : (
-                <Info className="w-5 h-5 text-gray-900 dark:text-white" />
+                <Info className="w-5 h-5 text-foreground" />
               )}
             </button>
           )}
@@ -234,7 +234,7 @@ export default function StreamingChatInterface({
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full">
-              <p className="text-gray-500 dark:text-gray-400 text-center">
+              <p className="text-muted-foreground text-center">
                 {emptyStateMessage || 'Start your conversation'}
               </p>
             </div>
@@ -252,8 +252,8 @@ export default function StreamingChatInterface({
                     className={cn(
                       'max-w-[80%] rounded-2xl px-4 py-3 shadow-sm',
                       message.role === 'user'
-                        ? 'bg-secondary text-white'
-                        : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-card text-foreground border border-border'
                     )}
                   >
                     {message.role === 'user' ? (
@@ -306,7 +306,7 @@ export default function StreamingChatInterface({
                       {message.role === 'assistant' && (
                         <button
                           onClick={() => setShowParser(!showParser)}
-                          className="flex items-center justify-center px-2 py-1 rounded transition-colors bg-white dark:bg-gray-700 text-primary hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600"
+                          className="flex items-center justify-center px-2 py-1 rounded transition-colors bg-card text-primary hover:bg-accent border border-border"
                           aria-label={showParser ? 'Disable text parser' : 'Enable text parser'}
                           title={showParser ? 'Disable text parser' : 'Enable text parser'}
                         >
@@ -342,7 +342,7 @@ export default function StreamingChatInterface({
         )}
 
         {/* Input Area */}
-        <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
+        <div className="bg-card border-t border-border p-4">
           <TaskChatInputV2
             onSend={onSendMessage}
             onVoiceRecording={async (blob, duration) => {
@@ -360,7 +360,7 @@ export default function StreamingChatInterface({
 
       {/* Sidebar */}
       {sidebar && isSidebarOpen && (
-        <div className="w-64 sm:w-80 md:w-96 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 overflow-y-auto">
+        <div className="w-64 sm:w-80 md:w-96 bg-card border-l border-border overflow-y-auto">
           {sidebar}
         </div>
       )}

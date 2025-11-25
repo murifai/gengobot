@@ -13,10 +13,8 @@ interface Character {
   name: string;
   description?: string;
   avatar?: string;
-  personality: {
-    type: string;
-    traits?: string[];
-  };
+  speakingStyle?: string;
+  relationshipType?: string;
   isUserCreated: boolean;
 }
 

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 import DeckReview from '@/components/deck/DeckReview';
 
 interface Flashcard {
@@ -46,6 +48,7 @@ interface PreTaskStudyProps {
   conversationExample?: string;
   decks?: Deck[];
   onSkip: () => void;
+  onCancel: () => void;
   onComplete: () => void;
 }
 
@@ -62,6 +65,8 @@ export default function PreTaskStudy({
   learningObjectives = [],
   conversationExample = '',
   decks = [],
+  onSkip,
+  onCancel,
   onComplete,
 }: PreTaskStudyProps) {
   const [currentStep, setCurrentStep] = useState<FlowStep>('scenario');
@@ -88,27 +93,32 @@ export default function PreTaskStudy({
   // Step 1: Scenario Display
   if (currentStep === 'scenario') {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <Card className="max-w-3xl w-full p-8">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-3xl w-full p-8 relative">
+          <button
+            onClick={onCancel}
+            className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
+            aria-label="Cancel task"
+          >
+            <X className="w-5 h-5" />
+          </button>
           <div className="mb-6">
-            <div className="inline-block px-3 py-1 bg-secondary/10 text-foreground rounded-full text-sm font-medium mb-4">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 mb-4">
               Step 1: Scenario
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{taskTitle}</h1>
+            </Badge>
+            <h1 className="text-3xl font-bold text-foreground mb-2">{taskTitle}</h1>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Task Scenario
-            </h2>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Task Scenario</h2>
             {taskScenario ? (
-              <div className="p-6 bg-secondary/10 rounded-lg border-l-4 border-secondary">
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+              <div className="p-6 bg-primary/5 rounded-lg border-l-4 border-primary">
+                <p className="text-foreground leading-relaxed whitespace-pre-wrap">
                   {taskScenario}
                 </p>
               </div>
             ) : (
-              <p className="text-gray-600 dark:text-gray-400 italic">No scenario provided</p>
+              <p className="text-muted-foreground italic">No scenario provided</p>
             )}
           </div>
 
@@ -123,34 +133,37 @@ export default function PreTaskStudy({
   // Step 2: Learning Objectives
   if (currentStep === 'objectives') {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <Card className="max-w-3xl w-full p-8">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-3xl w-full p-8 relative">
+          <button
+            onClick={onCancel}
+            className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
+            aria-label="Cancel task"
+          >
+            <X className="w-5 h-5" />
+          </button>
           <div className="mb-6">
-            <div className="inline-block px-3 py-1 bg-tertiary-green/10 text-tertiary-green rounded-full text-sm font-medium mb-4">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 mb-4">
               Step 2: Learning Objectives
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{taskTitle}</h1>
+            </Badge>
+            <h1 className="text-3xl font-bold text-foreground mb-2">{taskTitle}</h1>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              What You&apos;ll Learn
-            </h2>
+            <h2 className="text-lg font-semibold text-foreground mb-4">What You&apos;ll Learn</h2>
             {learningObjectives.length > 0 ? (
               <ul className="space-y-3">
                 {learningObjectives.map((objective, idx) => (
                   <li key={idx} className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-tertiary-green/10 text-tertiary-green rounded-full flex items-center justify-center text-sm font-bold">
+                    <span className="flex-shrink-0 w-6 h-6 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-bold">
                       {idx + 1}
                     </span>
-                    <p className="text-gray-700 dark:text-gray-300 pt-0.5">{objective}</p>
+                    <p className="text-foreground pt-0.5">{objective}</p>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-gray-600 dark:text-gray-400 italic">
-                No learning objectives specified
-              </p>
+              <p className="text-muted-foreground italic">No learning objectives specified</p>
             )}
           </div>
 
@@ -168,61 +181,54 @@ export default function PreTaskStudy({
   // Step 3: Study Selection
   if (currentStep === 'study-selection') {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <Card className="max-w-3xl w-full p-8">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-3xl w-full p-8 relative">
+          <button
+            onClick={onCancel}
+            className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
+            aria-label="Cancel task"
+          >
+            <X className="w-5 h-5" />
+          </button>
           <div className="mb-6">
-            <div className="inline-block px-3 py-1 bg-tertiary-purple/10 text-tertiary-purple rounded-full text-sm font-medium mb-4">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 mb-4">
               Step 3: Pre-Task Study (Optional)
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Pre-Task Study
-            </h1>
-            <h2 className="text-lg text-gray-700 dark:text-gray-300 mb-6">{taskTitle}</h2>
+            </Badge>
+            <h1 className="text-2xl font-bold text-foreground mb-4">Pre-Task Study</h1>
+            <h2 className="text-lg text-muted-foreground mb-6">{taskTitle}</h2>
           </div>
 
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-muted-foreground mb-6">
             Would you like to review the study materials associated with this task? You can choose
             to study now or skip directly to the task instructions.
           </p>
 
           <div className="space-y-4 mb-8">
             {decks.length > 0 ? (
-              decks.map((deck, index) => {
-                const categoryColors = {
-                  Kanji: 'bg-tertiary-purple/10 border-purple-200 dark:border-purple-800',
-                  Vocabulary: 'bg-secondary/10 border-blue-200 dark:border-blue-800',
-                  Grammar: 'bg-tertiary-green/10 border-green-200 dark:border-green-800',
-                  Mixed:
-                    'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800',
-                };
-                const colorClass =
-                  categoryColors[deck.category as keyof typeof categoryColors] ||
-                  'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700';
-
-                return (
-                  <div key={deck.id} className={`p-4 rounded-lg border ${colorClass}`}>
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{deck.name}</h3>
-                      <span className="text-xs px-2 py-1 bg-white dark:bg-gray-900 rounded-full border border-gray-200 dark:border-gray-700">
-                        {index + 1} of {decks.length}
-                      </span>
-                    </div>
-                    {deck.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        {deck.description}
-                      </p>
-                    )}
-                    <div className="flex gap-3 text-xs text-gray-500 dark:text-gray-500">
-                      <span>{deck.flashcards.length} cards</span>
-                      {deck.category && <span>• {deck.category}</span>}
-                      {deck.difficulty && <span>• {deck.difficulty}</span>}
-                    </div>
+              decks.map((deck, index) => (
+                <div
+                  key={deck.id}
+                  className="p-4 rounded-lg border border-border bg-card hover:bg-accent/50 transition-colors"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold text-foreground">{deck.name}</h3>
+                    <Badge variant="secondary" size="sm">
+                      {index + 1} of {decks.length}
+                    </Badge>
                   </div>
-                );
-              })
+                  {deck.description && (
+                    <p className="text-sm text-muted-foreground mb-2">{deck.description}</p>
+                  )}
+                  <div className="flex gap-3 text-xs text-muted-foreground">
+                    <span>{deck.flashcards.length} cards</span>
+                    {deck.category && <span>• {deck.category}</span>}
+                    {deck.difficulty && <span>• {deck.difficulty}</span>}
+                  </div>
+                </div>
+              ))
             ) : (
-              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <p className="text-gray-600 dark:text-gray-400">
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="text-muted-foreground">
                   No study materials available for this task yet.
                 </p>
               </div>
@@ -269,32 +275,35 @@ export default function PreTaskStudy({
   // Step 5: Success Criteria
   if (currentStep === 'success-criteria') {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <Card className="max-w-3xl w-full p-8">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-3xl w-full p-8 relative">
+          <button
+            onClick={onCancel}
+            className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
+            aria-label="Cancel task"
+          >
+            <X className="w-5 h-5" />
+          </button>
           <div className="mb-6">
-            <div className="inline-block px-3 py-1 bg-tertiary-yellow/10 text-foreground rounded-full text-sm font-medium mb-4">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 mb-4">
               Step 4: Success Criteria
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{taskTitle}</h1>
+            </Badge>
+            <h1 className="text-3xl font-bold text-foreground mb-2">{taskTitle}</h1>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Conversation Example
-            </h2>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Conversation Example</h2>
             {conversationExample ? (
-              <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 font-mono text-sm whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+              <div className="bg-muted rounded-lg p-4 font-mono text-sm whitespace-pre-wrap text-foreground">
                 {conversationExample}
               </div>
             ) : (
-              <p className="text-gray-600 dark:text-gray-400 italic">
-                No conversation example provided
-              </p>
+              <p className="text-muted-foreground italic">No conversation example provided</p>
             )}
           </div>
 
-          <div className="p-4 bg-tertiary-green/10 rounded-lg border-l-4 border-green-500 mb-8">
-            <p className="text-green-800 dark:text-green-200 font-medium">
+          <div className="p-4 bg-primary/10 rounded-lg border-l-4 border-primary mb-8">
+            <p className="text-foreground font-medium">
               Ready to begin? Click &quot;Start Task&quot; when you&apos;re prepared!
             </p>
           </div>

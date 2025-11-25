@@ -1,5 +1,5 @@
 // Task-Based AI Service - Main orchestrator for Japanese learning conversations
-import { Task, Character } from '@prisma/client';
+import { Task } from '@prisma/client';
 import { createChatCompletion } from './openai-client';
 import {
   generateTaskSystemPrompt,
@@ -7,7 +7,7 @@ import {
   generateHintPrompt,
   generateJLPTEstimationPrompt,
 } from './prompts';
-import { TaskConversationContext, TaskAssessment, Message, ConversationOptions } from '@/types/ai';
+import { TaskConversationContext, TaskAssessment, ConversationOptions } from '@/types/ai';
 
 export class TaskBasedAIService {
   /**

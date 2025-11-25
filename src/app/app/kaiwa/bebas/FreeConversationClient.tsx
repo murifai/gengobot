@@ -42,7 +42,6 @@ interface Character {
   description: string | null;
   avatar: string | null;
   voice: string | null;
-  personality: Record<string, unknown>;
   speakingStyle: string | null;
   relationshipType: string | null;
 }

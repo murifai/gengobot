@@ -151,6 +151,11 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
     router.push('/app/kaiwa/roleplay');
   };
 
+  const handleCancel = () => {
+    // Navigate back to task selection
+    router.push('/app/kaiwa/roleplay');
+  };
+
   const handleSkip = async () => {
     // Pass forceNew=true if user chose to start new from dialog
     await startTaskAttempt(existingAttempt === null);
@@ -217,10 +222,10 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -228,12 +233,12 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
 
   if (error || !task) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <p className="text-primary">{error || 'Task not found'}</p>
+          <p className="text-destructive">{error || 'Task not found'}</p>
           <button
             onClick={() => router.push('/app/kaiwa/roleplay')}
-            className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
           >
             Back to Tasks
           </button>
@@ -268,6 +273,7 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
         }
         decks={decks}
         onSkip={handleSkip}
+        onCancel={handleCancel}
         onComplete={handleComplete}
       />
     </>

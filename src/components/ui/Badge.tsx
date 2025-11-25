@@ -10,15 +10,17 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default: 'border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90',
-        secondary:
-          'border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90',
+        secondary: 'border-border bg-muted text-foreground [a&]:hover:bg-muted/80',
         destructive:
           'border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
         outline: 'text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground',
         primary: 'border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90',
-        success: 'border-transparent bg-green-500 text-white [a&]:hover:bg-green-600',
-        warning: 'border-transparent bg-yellow-500 text-white [a&]:hover:bg-yellow-600',
-        danger: 'border-transparent bg-red-500 text-white [a&]:hover:bg-red-600',
+        success:
+          'border-transparent bg-green-600 text-white [a&]:hover:bg-green-700 dark:bg-green-500 dark:text-green-950',
+        warning:
+          'border-transparent bg-amber-500 text-amber-950 [a&]:hover:bg-amber-600 dark:bg-amber-400 dark:text-amber-950',
+        danger:
+          'border-transparent bg-red-600 text-white [a&]:hover:bg-red-700 dark:bg-red-500 dark:text-red-950',
       },
       size: {
         default: 'px-2 py-0.5 text-xs',

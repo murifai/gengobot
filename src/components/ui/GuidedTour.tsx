@@ -190,18 +190,18 @@ function TourOverlay({ tour, currentStep, onNext, onPrevious, onSkip }: TourOver
 
       {/* Tooltip */}
       <div
-        className="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-sm"
+        className="fixed z-50 bg-card border border-border rounded-lg shadow-xl p-6 max-w-sm"
         style={tooltipStyle}
       >
         <div className="mb-4">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">{step.title}</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{step.content}</p>
+          <h3 className="text-lg font-bold text-foreground mb-2">{step.title}</h3>
+          <p className="text-sm text-muted-foreground">{step.content}</p>
         </div>
 
         {step.action && (
           <button
             onClick={step.action.onClick}
-            className="w-full mb-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+            className="w-full mb-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
           >
             {step.action.label}
           </button>
@@ -213,7 +213,7 @@ function TourOverlay({ tour, currentStep, onNext, onPrevious, onSkip }: TourOver
               <div
                 key={index}
                 className={`w-2 h-2 rounded-full transition-colors ${
-                  index === currentStep ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'
+                  index === currentStep ? 'bg-primary' : 'bg-muted'
                 }`}
               />
             ))}
@@ -222,7 +222,7 @@ function TourOverlay({ tour, currentStep, onNext, onPrevious, onSkip }: TourOver
           <div className="flex gap-2">
             <button
               onClick={onSkip}
-              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               スキップ
             </button>
@@ -230,7 +230,7 @@ function TourOverlay({ tour, currentStep, onNext, onPrevious, onSkip }: TourOver
             {currentStep > 0 && (
               <button
                 onClick={onPrevious}
-                className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                className="px-3 py-1 text-sm bg-muted text-foreground rounded hover:bg-accent transition-colors"
               >
                 戻る
               </button>
@@ -238,7 +238,7 @@ function TourOverlay({ tour, currentStep, onNext, onPrevious, onSkip }: TourOver
 
             <button
               onClick={onNext}
-              className="px-3 py-1 text-sm bg-primary text-white rounded hover:bg-primary-dark"
+              className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
             >
               {currentStep === tour.steps.length - 1 ? '完了' : '次へ'}
             </button>

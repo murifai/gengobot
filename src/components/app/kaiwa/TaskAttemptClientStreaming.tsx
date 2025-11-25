@@ -269,10 +269,10 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading task attempt...</p>
+          <p className="mt-4 text-muted-foreground">Loading task attempt...</p>
         </div>
       </div>
     );
@@ -280,11 +280,11 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
 
   if (error || !attempt) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <div className="min-h-screen bg-background">
+        <nav className="bg-card border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Task Attempt</h1>
+              <h1 className="text-xl font-bold text-foreground">Task Attempt</h1>
               <Button onClick={() => router.push('/dashboard/tasks')} variant="secondary">
                 Back to Tasks
               </Button>
@@ -306,13 +306,11 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
   // Show loading overlay when generating feedback
   if (isGeneratingFeedback) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
-            Generating Feedback...
-          </p>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-4 text-lg font-medium text-foreground">Generating Feedback...</p>
+          <p className="mt-2 text-sm text-muted-foreground">
             Please wait while we analyze your conversation
           </p>
         </div>
@@ -323,7 +321,7 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
   // Show post-task review modal
   if (showPostTaskReview && attempt.isCompleted && assessment) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-background">
         <SimplifiedPostTaskReview
           assessment={assessment}
           onRetry={async () => {

@@ -10,7 +10,8 @@ interface Character {
   id: string;
   name: string;
   description: string;
-  personality: Record<string, unknown>;
+  speakingStyle?: string;
+  relationshipType?: string;
 }
 
 interface ChatClientProps {

@@ -141,7 +141,7 @@ export default function MessageBubble({
       <div
         className={cn(
           'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
-          isUser ? 'bg-primary text-white' : 'bg-secondary text-white'
+          isUser ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
         )}
       >
         {avatar ? (
@@ -157,8 +157,8 @@ export default function MessageBubble({
           className={cn(
             'rounded-2xl px-4 py-3',
             isUser
-              ? 'bg-primary text-white rounded-br-sm'
-              : 'bg-card-background border border-border rounded-bl-sm'
+              ? 'bg-primary text-primary-foreground rounded-br-sm'
+              : 'bg-card border border-border rounded-bl-sm text-foreground'
           )}
         >
           {showFurigana && contentHasFurigana ? (
@@ -186,7 +186,7 @@ export default function MessageBubble({
               {/* Parser Toggle Button */}
               <button
                 onClick={() => setShowParser(!showParser)}
-                className="flex items-center justify-center px-2 py-1 rounded transition-colors bg-white dark:bg-gray-700 text-primary hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600"
+                className="flex items-center justify-center px-2 py-1 rounded transition-colors bg-card text-primary hover:bg-accent border border-border"
                 aria-label={showParser ? 'Disable text parser' : 'Enable text parser'}
                 title={showParser ? 'Disable text parser' : 'Enable text parser'}
               >
@@ -197,7 +197,7 @@ export default function MessageBubble({
               {contentHasFurigana && (
                 <button
                   onClick={() => setShowFurigana(!showFurigana)}
-                  className="flex items-center justify-center px-2 py-1 rounded transition-colors bg-white dark:bg-gray-700 text-primary hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600"
+                  className="flex items-center justify-center px-2 py-1 rounded transition-colors bg-card text-primary hover:bg-accent border border-border"
                   aria-label={showFurigana ? 'Hide furigana' : 'Show furigana'}
                   title={showFurigana ? 'Hide furigana' : 'Show furigana'}
                 >
@@ -213,7 +213,7 @@ export default function MessageBubble({
           <div className="flex items-center gap-2">
             <button
               onClick={toggleAudio}
-              className="flex items-center gap-2 rounded-lg bg-secondary/10 hover:bg-secondary/20 px-3 py-1.5 text-xs transition-colors"
+              className="flex items-center gap-2 rounded-lg bg-primary/10 hover:bg-primary/20 px-3 py-1.5 text-xs transition-colors"
               aria-label={isPlaying ? 'Pause audio' : 'Play audio'}
             >
               {isPlaying ? (

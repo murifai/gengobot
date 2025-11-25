@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 
 interface Task {
   id: string;
@@ -169,13 +170,11 @@ export default function TasksClient({}: TasksClientProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTasks.map(task => (
               <Card key={task.id} className="p-6">
-                <div className="mb-4">
-                  <span className="inline-block px-2 py-1 text-xs font-semibold text-secondary bg-secondary/10 rounded">
+                <div className="mb-4 flex flex-wrap gap-2">
+                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
                     {task.category}
-                  </span>
-                  <span className="ml-2 inline-block px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted rounded">
-                    {task.difficulty}
-                  </span>
+                  </Badge>
+                  <Badge variant="secondary">{task.difficulty}</Badge>
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">{task.title}</h3>
                 <p className="text-muted-foreground mb-4 line-clamp-2">{task.description}</p>

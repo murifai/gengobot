@@ -70,20 +70,18 @@ export function MessageLimitWarning({
 
           {/* Progress indicator */}
           <div className="mt-3 flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-            <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <MessageSquare className="w-4 h-4 text-muted-foreground" />
+            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
-                  isWarning ? 'bg-yellow-500 dark:bg-yellow-600' : 'bg-red-500 dark:bg-red-600'
+                  isWarning ? 'bg-yellow-500' : 'bg-red-500'
                 }`}
                 style={{ width: `${(totalMessages / maxMessages) * 100}%` }}
               />
             </div>
             <span
               className={`text-xs font-mono font-semibold ${
-                isWarning
-                  ? 'text-yellow-700 dark:text-yellow-300'
-                  : 'text-red-700 dark:text-red-300'
+                isWarning ? 'text-yellow-700' : 'text-red-700'
               }`}
             >
               {totalMessages}/{maxMessages}

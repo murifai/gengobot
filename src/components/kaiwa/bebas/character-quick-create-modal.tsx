@@ -22,7 +22,6 @@ interface CharacterQuickCreateModalProps {
     name: string;
     description: string | null;
     voice: string | null;
-    personality: Record<string, unknown>;
     speakingStyle: string | null;
     relationshipType: string | null;
   }) => void;
@@ -58,7 +57,6 @@ export function CharacterQuickCreateModal({
           relationshipType,
           speakingStyle: speakingStyle.trim() || null,
           voice: null,
-          personality: {},
         }),
       });
 

@@ -656,7 +656,7 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
                   ].map(plan => (
                     <div
                       key={plan.value}
-                      className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                      className="flex items-start space-x-3 p-3 border border-border rounded-lg hover:bg-accent cursor-pointer"
                       onClick={() => setData({ ...data, subscriptionPlan: plan.value })}
                     >
                       <RadioGroupItem value={plan.value} id={plan.value} className="mt-1" />
@@ -683,7 +683,7 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-lg">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">

@@ -14,8 +14,8 @@ interface Character {
   name: string;
   description?: string;
   avatar?: string;
-  personality: Record<string, unknown>;
   speakingStyle?: string;
+  relationshipType?: string;
   isUserCreated: boolean;
 }
 
