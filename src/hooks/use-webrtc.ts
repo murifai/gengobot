@@ -392,7 +392,8 @@ export default function useWebRTCAudioSession(
         }
 
         /**
-         * Complete AI transcript - display all at once
+         * Complete AI transcript - display all at once with delay
+         * Delay ensures user message appears first before AI response
          */
         case 'response.audio_transcript.done': {
           console.log('Complete AI transcript:', msg.transcript);
@@ -407,12 +408,14 @@ export default function useWebRTCAudioSession(
             status: 'final',
           };
 
-          // Add the complete message
-          setConversation(prev => {
-            // Remove any partial assistant messages and add the complete one
-            const filtered = prev.filter(m => !(m.role === 'assistant' && !m.isFinal));
-            return [...filtered, assistantMessage];
-          });
+          // Add delay before showing AI response so user message appears first
+          setTimeout(() => {
+            setConversation(prev => {
+              // Remove any partial assistant messages and add the complete one
+              const filtered = prev.filter(m => !(m.role === 'assistant' && !m.isFinal));
+              return [...filtered, assistantMessage];
+            });
+          }, 300);
           break;
         }
 

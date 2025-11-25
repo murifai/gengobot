@@ -1,7 +1,7 @@
 'use client';
 
 import { User } from '@/types/user';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
@@ -12,9 +12,8 @@ import { EmptyCharacterState } from '@/components/kaiwa/bebas/empty-character-st
 import { RotateCcw, Plus, Settings, Mic, MessageSquare, Radio } from 'lucide-react';
 import useWebRTCAudioSession from '@/hooks/use-webrtc';
 import { Tool } from '@/types/conversation';
-import { Input } from '@/components/ui/Input';
 import { motion } from 'framer-motion';
-import { Send, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 // Chat mode type
 type ChatMode = 'normal' | 'realtime';
@@ -91,7 +90,9 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   const [error, setError] = useState<string | null>(null);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [chatMode, setChatMode] = useState<ChatMode>('normal');
-  const [textInput, setTextInput] = useState('');
+  const [wasIdleStopped, setWasIdleStopped] = useState(false);
+  const idleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const stopSessionRef = useRef<(() => void) | null>(null);
 
   // Initialize streaming chat with custom endpoint (for normal mode)
   const {
@@ -116,8 +117,8 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   const {
     isSessionActive,
     handleStartStopClick,
+    stopSession,
     conversation: webrtcConversation,
-    sendTextMessage: sendWebRTCTextMessage,
     isPushToTalkActive,
     startPushToTalk,
     stopPushToTalk,
@@ -160,14 +161,55 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
     };
   }, [handleKeyDown, handleKeyUp]);
 
-  // Handle sending text in realtime mode
-  const handleSendWebRTCText = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (textInput.trim() && isSessionActive) {
-      sendWebRTCTextMessage(textInput);
-      setTextInput('');
+  // Keep stopSession ref updated
+  useEffect(() => {
+    stopSessionRef.current = stopSession;
+  }, [stopSession]);
+
+  // Idle timeout - stop session after 1 minute of inactivity
+  const resetIdleTimeout = useCallback(() => {
+    if (idleTimeoutRef.current) {
+      clearTimeout(idleTimeoutRef.current);
     }
-  };
+    if (isSessionActive && chatMode === 'realtime') {
+      idleTimeoutRef.current = setTimeout(() => {
+        console.log('Session idle timeout - stopping session');
+        setWasIdleStopped(true);
+        stopSessionRef.current?.();
+      }, 60000); // 1 minute
+    }
+  }, [isSessionActive, chatMode]);
+
+  // Reset idle timeout when conversation changes (new message) or PTT activity
+  useEffect(() => {
+    if (isSessionActive && chatMode === 'realtime') {
+      resetIdleTimeout();
+    }
+    return () => {
+      if (idleTimeoutRef.current) {
+        clearTimeout(idleTimeoutRef.current);
+      }
+    };
+  }, [isSessionActive, chatMode, webrtcConversation.length, isPushToTalkActive, resetIdleTimeout]);
+
+  // Cleanup WebRTC session on back button or component unmount
+  useEffect(() => {
+    const handlePopState = () => {
+      if (stopSessionRef.current) {
+        stopSessionRef.current();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      // Cleanup on unmount
+      if (idleTimeoutRef.current) {
+        clearTimeout(idleTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const loadCharacters = useCallback(async () => {
     try {
@@ -233,6 +275,10 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   };
 
   const handleBackToCharacterSelect = () => {
+    // Stop WebRTC session if active
+    if (isSessionActive && chatMode === 'realtime') {
+      stopSession();
+    }
     setSession(null);
     setSelectedCharacter(null);
   };
@@ -521,12 +567,15 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
             {/* Control Buttons */}
             {!isSessionActive ? (
               <Button
-                onClick={handleStartStopClick}
+                onClick={() => {
+                  setWasIdleStopped(false);
+                  handleStartStopClick();
+                }}
                 className="w-full h-12 text-lg font-semibold"
                 variant="default"
               >
                 <Mic className="mr-2 h-5 w-5" />
-                Mulai Session
+                {wasIdleStopped ? 'Lanjutkan Session' : 'Mulai Session'}
               </Button>
             ) : (
               <div className="space-y-2">
@@ -550,27 +599,6 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
                   Akhiri Session
                 </Button>
               </div>
-            )}
-
-            {/* Text Input */}
-            {isSessionActive && (
-              <motion.form
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                onSubmit={handleSendWebRTCText}
-                className="flex gap-2"
-              >
-                <Input
-                  value={textInput}
-                  onChange={e => setTextInput(e.target.value)}
-                  placeholder="Ketik pesan..."
-                  className="flex-1"
-                />
-                <Button type="submit" size="icon">
-                  <Send className="h-4 w-4" />
-                </Button>
-              </motion.form>
             )}
           </div>
         </div>
