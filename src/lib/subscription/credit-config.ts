@@ -19,6 +19,7 @@ export const TIER_CONFIG = {
     textUnlimited: false,
     customCharactersUnlimited: false,
     realtimeEnabled: false, // Realtime not available during trial
+    maxChatrooms: 5, // Free tier limited to 5 chatrooms
   },
   [SubscriptionTier.BASIC]: {
     monthlyCredits: 6000,
@@ -30,6 +31,7 @@ export const TIER_CONFIG = {
     textUnlimited: true,
     customCharactersUnlimited: false,
     realtimeEnabled: false, // Realtime only for Pro
+    maxChatrooms: 5, // Basic tier limited to 5 chatrooms
   },
   [SubscriptionTier.PRO]: {
     monthlyCredits: 16500,
@@ -41,6 +43,7 @@ export const TIER_CONFIG = {
     textUnlimited: true,
     customCharactersUnlimited: true,
     realtimeEnabled: true, // Realtime available for Pro
+    maxChatrooms: 0, // 0 = unlimited chatrooms for Pro
   },
 } as const;
 

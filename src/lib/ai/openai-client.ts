@@ -1,6 +1,12 @@
 // OpenAI API Client wrapper
+// NOTE: This file is server-only due to Node.js dependencies
+// For client-side code, import MODELS from '@/lib/ai/models' instead
 import 'openai/shims/node';
 import OpenAI from 'openai';
+
+// Import and re-export MODELS for backward compatibility with server-side imports
+import { MODELS } from './models';
+export { MODELS };
 
 // Lazy initialization of OpenAI client
 let openai: OpenAI | null = null;
@@ -13,17 +19,6 @@ function getOpenAIClient(): OpenAI {
   }
   return openai;
 }
-
-// Default models
-export const MODELS = {
-  RESPONSE: 'gpt-4o-mini', // AI conversation response (TODO: change to gpt-5-nano when available)
-  ANALYSIS: 'gpt-4o-mini', // Feedback, hint, objective detection
-  WHISPER: 'whisper-1',
-  TTS: 'gpt-4o-mini-tts',
-  // Legacy aliases for backward compatibility
-  GPT_4: 'gpt-4o-mini',
-  GPT_35_TURBO: 'gpt-4o-mini',
-} as const;
 
 // Export configured client getter
 export default getOpenAIClient;

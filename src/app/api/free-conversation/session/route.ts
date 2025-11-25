@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/auth';
 import { prisma } from '@/lib/prisma';
+import { creditService, TIER_CONFIG } from '@/lib/subscription';
 
 export const runtime = 'nodejs';
 
@@ -73,6 +74,35 @@ export async function POST(request: NextRequest) {
         character: character.name,
       });
       return NextResponse.json({ session: existingSession });
+    }
+
+    // Check chatroom limit before creating new session
+    const sessionCount = await prisma.freeConversation.count({
+      where: { userId },
+    });
+
+    const subscription = await creditService.getOrCreateSubscription(userId);
+    const tierConfig = TIER_CONFIG[subscription.tier];
+    const maxChatrooms = tierConfig.maxChatrooms;
+
+    // Check limit (0 = unlimited)
+    if (maxChatrooms > 0 && sessionCount >= maxChatrooms) {
+      console.log('Chatroom limit reached:', {
+        userId,
+        tier: subscription.tier,
+        limit: maxChatrooms,
+        used: sessionCount,
+      });
+      return NextResponse.json(
+        {
+          error: 'Chatroom limit reached',
+          message: `You have reached the maximum of ${maxChatrooms} chatrooms for your plan. Delete an existing chatroom or upgrade to Pro for unlimited chatrooms.`,
+          limit: maxChatrooms,
+          used: sessionCount,
+          tier: subscription.tier,
+        },
+        { status: 403 }
+      );
     }
 
     // Create new free conversation session with character

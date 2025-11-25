@@ -97,7 +97,11 @@ export async function POST(
       startedAt?: string;
     };
 
-    const messages = conversationHistory?.messages || [];
+    // Limit AI context to last 50 messages for token optimization
+    // Full history remains stored in DB, but AI only sees recent context
+    const AI_CONTEXT_LIMIT = 50;
+    const allMessages = conversationHistory?.messages || [];
+    const messages = allMessages.slice(-AI_CONTEXT_LIMIT);
 
     // Build system prompt with character
     const character = session.character;
@@ -218,7 +222,8 @@ Respond primarily in Japanese. Only use English if explaining something complex 
             timestamp: new Date().toISOString(),
           };
 
-          const updatedMessages = [...messages, userMessage, assistantMessage];
+          // Use allMessages (full history) for storage, not the sliced messages
+          const updatedMessages = [...allMessages, userMessage, assistantMessage];
 
           // Update session with new messages
           await prisma.freeConversation.update({

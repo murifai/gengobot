@@ -3,287 +3,397 @@
 import { useState, useRef, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Conversation, Tool } from '@/types/conversation';
+import { MODELS } from '@/lib/ai/models';
 
 /**
- * The return type for the hook
+ * Return type for the useWebRTCAudioSession hook
+ * Contains state and controls for WebRTC audio sessions
  */
 interface UseWebRTCAudioSessionReturn {
-  status: string;
+  /** Whether a WebRTC session is currently active */
   isSessionActive: boolean;
-  audioIndicatorRef: React.RefObject<HTMLDivElement | null>;
-  startSession: () => Promise<void>;
-  stopSession: () => void;
-  handleStartStopClick: () => void;
-  commitAudioBuffer: () => void;
-  registerFunction: (name: string, fn: (...args: unknown[]) => unknown) => void;
-  msgs: unknown[];
-  currentVolume: number;
+  /** Array of conversation messages (user and assistant) */
   conversation: Conversation[];
-  sendTextMessage: (text: string) => void;
-  // Push-to-Talk functions
+  /** Whether push-to-talk is currently active (user holding button) */
   isPushToTalkActive: boolean;
+  /** Start push-to-talk mode - call when user presses talk button */
   startPushToTalk: () => void;
+  /** Stop push-to-talk mode - call when user releases talk button */
   stopPushToTalk: () => void;
-  // Token & Timer tracking
-  inputTokens: number;
-  outputTokens: number;
-  sessionDuration: number;
-  estimatedCost: number;
+  /** Toggle session on/off - starts or stops the WebRTC connection */
+  handleStartStopClick: () => void;
+  /** Force stop the current session and cleanup resources */
+  stopSession: () => void;
+  /** Clear all conversation history */
+  clearConversation: () => void;
 }
 
 /**
- * Hook to manage a real-time session with OpenAI's Realtime endpoints.
+ * Character information for AI persona customization
+ */
+interface CharacterInfo {
+  /** Character's display name */
+  name: string;
+  /** Character's personality description */
+  description: string | null;
+  /** How the character speaks (formal, casual, etc.) */
+  speakingStyle: string | null;
+  /** Relationship type (friend, teacher, etc.) */
+  relationshipType: string | null;
+}
+
+/**
+ * WebRTC Audio Session Hook
+ *
+ * Manages real-time audio conversations with OpenAI's Realtime API.
+ * Uses WebRTC for low-latency bidirectional audio streaming.
+ *
+ * Features:
+ * - Push-to-talk mode for controlled audio input
+ * - Real-time transcription of user speech
+ * - AI audio responses streamed back
+ * - Conversation history tracking
+ *
+ * @param voice - OpenAI voice ID (e.g., 'alloy', 'echo', 'shimmer')
+ * @param tools - Optional array of function tools for the AI
+ * @param character - Optional character info for AI persona
+ * @returns Object containing session state and control functions
+ *
+ * @example
+ * ```tsx
+ * const {
+ *   isSessionActive,
+ *   handleStartStopClick,
+ *   startPushToTalk,
+ *   stopPushToTalk,
+ *   conversation
+ * } = useWebRTCAudioSession('shimmer', [], character);
+ * ```
  */
 export default function useWebRTCAudioSession(
   voice: string,
-  tools?: Tool[]
+  tools?: Tool[],
+  character?: CharacterInfo
 ): UseWebRTCAudioSessionReturn {
-  // Connection/session states
-  const [status, setStatus] = useState('');
+  // ============================================
+  // STATE MANAGEMENT
+  // ============================================
+
+  /** Whether WebRTC session is connected and active */
   const [isSessionActive, setIsSessionActive] = useState(false);
 
-  // Audio references for local mic
-  const audioIndicatorRef = useRef<HTMLDivElement | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const audioStreamRef = useRef<MediaStream | null>(null);
-
-  // WebRTC references
-  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
-  const dataChannelRef = useRef<RTCDataChannel | null>(null);
-
-  // Keep track of all raw events/messages
-  const [msgs, setMsgs] = useState<unknown[]>([]);
-
-  // Main conversation state
+  /** Conversation history - both user and assistant messages */
   const [conversation, setConversation] = useState<Conversation[]>([]);
 
-  // For function calls (AI "tools")
-  const functionRegistry = useRef<Record<string, (...args: unknown[]) => unknown>>({});
-
-  // Volume analysis (assistant inbound audio)
-  const [currentVolume, setCurrentVolume] = useState(0);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const volumeIntervalRef = useRef<number | null>(null);
-
-  /**
-   * We track only the ephemeral user message **ID** here.
-   * While user is speaking, we update that conversation item by ID.
-   */
-  const ephemeralUserMessageIdRef = useRef<string | null>(null);
-
-  // Push-to-Talk state (PTT only mode)
+  /** Push-to-talk active state (user is holding talk button) */
   const [isPushToTalkActive, setIsPushToTalkActive] = useState(false);
 
-  // Token & Timer tracking
-  const [inputTokens, setInputTokens] = useState(0);
-  const [outputTokens, setOutputTokens] = useState(0);
-  const [sessionDuration, setSessionDuration] = useState(0);
-  const [estimatedCost, setEstimatedCost] = useState(0);
-  const sessionStartTimeRef = useRef<number | null>(null);
-  const timerIntervalRef = useRef<number | null>(null);
+  // ============================================
+  // REFS - Mutable values that persist across renders
+  // ============================================
+
+  /** Web Audio API context for processing audio */
+  const audioContextRef = useRef<AudioContext | null>(null);
+
+  /** MediaStream from user's microphone */
+  const audioStreamRef = useRef<MediaStream | null>(null);
+
+  /** WebRTC peer connection to OpenAI */
+  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+
+  /** Data channel for sending/receiving messages with OpenAI */
+  const dataChannelRef = useRef<RTCDataChannel | null>(null);
+
+  /** Temporary ID for user message being transcribed (before finalization) */
+  const ephemeralUserMessageIdRef = useRef<string | null>(null);
+
+  /** Queue for assistant messages waiting for user message to be finalized */
+  const pendingAssistantMessagesRef = useRef<Conversation[]>([]);
+
+  // ============================================
+  // TRANSCRIPTION VALIDATION
+  // Filters out Whisper hallucinations from background noise
+  // ============================================
 
   /**
-   * Register a function (tool) so the AI can call it.
+   * Validate transcription to filter out hallucinations
+   * Whisper can generate random text from silence/noise
    */
-  function registerFunction(name: string, fn: (...args: unknown[]) => unknown) {
-    functionRegistry.current[name] = fn;
+  function isValidTranscription(text: string | undefined | null): boolean {
+    if (!text) return false;
+
+    const trimmed = text.trim();
+
+    // Too short to be meaningful speech
+    if (trimmed.length < 2) return false;
+
+    // Common Whisper hallucination patterns (appears when processing silence/noise)
+    const hallucinationPatterns = [
+      /^(thank you|thanks)(\s+for\s+(watching|listening|viewing))?\.?$/i,
+      /^subscribe/i,
+      /^please\s+(like|subscribe)/i,
+      /^see you/i,
+      /^bye\.?$/i,
+      /^다음에/i, // Korean "next time"
+      /^감사합니다\.?$/i, // Korean "thank you"
+      /다음에\s*봐요/i, // Korean "see you next time"
+      /시청.*감사/i, // Korean "thanks for watching"
+      /구독/i, // Korean "subscribe"
+      /좋아요/i, // Korean "like"
+      /^ご視聴/i, // Japanese "watching"
+      /^ありがとう/i, // Japanese "thank you"
+      /^次回/i, // Japanese "next time"
+      /^再見/i, // Chinese "goodbye"
+      /^謝謝/i, // Chinese "thank you"
+      /^\.+$/, // Just dots
+      /^,+$/, // Just commas
+      /^\*+$/, // Just asterisks
+      /^-+$/, // Just dashes
+      /^…+$/, // Just ellipses
+      /^[\s\p{P}]+$/u, // Only whitespace and punctuation
+    ];
+
+    // Check for common hallucination keywords anywhere in text
+    const hallucinationKeywords = [
+      '시청', // Korean "watching/viewing"
+      'RZA', // Random artist names often appear
+      '선배님', // Korean honorific often in hallucinations
+      '구독자', // Korean "subscribers"
+      'grown up', // Common in music-related hallucinations
+    ];
+
+    const lowerText = trimmed.toLowerCase();
+    for (const keyword of hallucinationKeywords) {
+      if (lowerText.includes(keyword.toLowerCase())) {
+        console.log('Filtered hallucination (keyword):', trimmed);
+        return false;
+      }
+    }
+
+    for (const pattern of hallucinationPatterns) {
+      if (pattern.test(trimmed)) {
+        console.log('Filtered hallucination:', trimmed);
+        return false;
+      }
+    }
+
+    return true;
   }
 
+  // ============================================
+  // DATA CHANNEL CONFIGURATION
+  // ============================================
+
   /**
-   * Configure the data channel on open, sending a session update to the server.
+   * Configure the WebRTC data channel with session settings
+   * Called when data channel opens
+   *
+   * @param dataChannel - The RTCDataChannel to configure
    */
   function configureDataChannel(dataChannel: RTCDataChannel) {
-    // Send session update - VAD only enabled in 'vad' mode
+    // Build session configuration object
     const sessionUpdate: {
       type: string;
       session: {
         modalities: string[];
         tools?: Tool[];
-        input_audio_transcription?: {
-          model: string;
-        };
-        turn_detection?: {
-          type: string;
-          threshold: number;
-          prefix_padding_ms: number;
-          silence_duration_ms: number;
-        } | null;
+        input_audio_transcription?: { model: string };
+        turn_detection?: null;
       };
     } = {
       type: 'session.update',
       session: {
+        // Enable both text and audio modalities
         modalities: ['text', 'audio'],
-        // Whisper transcription enabled for text transcripts
-        input_audio_transcription: {
-          model: 'whisper-1',
-        },
-        // PTT mode only - no server VAD (saves ~50-75% tokens)
+        // Use Whisper for transcribing user audio
+        input_audio_transcription: { model: 'whisper-1' },
+        // Disable automatic turn detection (we use push-to-talk)
         turn_detection: null,
       },
     };
 
-    // Only include tools if they exist and are not empty
+    // Add function tools if provided
     if (tools && tools.length > 0) {
       sessionUpdate.session.tools = tools;
     }
 
+    // Send configuration to OpenAI
     dataChannel.send(JSON.stringify(sessionUpdate));
-
-    console.log('Session update sent (PTT mode):', sessionUpdate);
   }
 
+  // ============================================
+  // EPHEMERAL USER MESSAGE MANAGEMENT
+  // Handles the "in-progress" user message while speaking
+  // ============================================
+
   /**
-   * Return an ephemeral user ID, creating a new ephemeral message in conversation if needed.
+   * Get existing ephemeral user ID or create a new one
+   * Creates a placeholder message in conversation while user is speaking
+   *
+   * @returns The ephemeral message ID
    */
   function getOrCreateEphemeralUserId(): string {
     let ephemeralId = ephemeralUserMessageIdRef.current;
+
     if (!ephemeralId) {
-      // Use uuidv4 for a robust unique ID
+      // Generate new ID
       ephemeralId = uuidv4();
       ephemeralUserMessageIdRef.current = ephemeralId;
 
-      const newMessage: Conversation = {
-        id: ephemeralId,
-        role: 'user',
-        text: '',
-        timestamp: new Date().toISOString(),
-        isFinal: false,
-        status: 'speaking',
-      };
-
-      // Append the ephemeral item to conversation
-      setConversation(prev => [...prev, newMessage]);
+      // Add placeholder message to conversation
+      setConversation(prev => [
+        ...prev,
+        {
+          id: ephemeralId!,
+          role: 'user',
+          text: '',
+          timestamp: new Date().toISOString(),
+          isFinal: false,
+          status: 'speaking',
+        },
+      ]);
     }
+
     return ephemeralId;
   }
 
   /**
-   * Update the ephemeral user message (by ephemeralUserMessageIdRef) with partial changes.
+   * Update the ephemeral (in-progress) user message
+   * Used to show partial transcription as user speaks
+   *
+   * @param partial - Partial conversation object to merge
    */
   function updateEphemeralUserMessage(partial: Partial<Conversation>) {
     const ephemeralId = ephemeralUserMessageIdRef.current;
-    if (!ephemeralId) return; // no ephemeral user message to update
+    if (!ephemeralId) return;
 
     setConversation(prev =>
-      prev.map(msg => {
-        if (msg.id === ephemeralId) {
-          return { ...msg, ...partial };
-        }
-        return msg;
-      })
+      prev.map(msg => (msg.id === ephemeralId ? { ...msg, ...partial } : msg))
     );
   }
 
   /**
-   * Clear ephemeral user message ID so the next user speech starts fresh.
+   * Clear the ephemeral user message ID
+   * Called after message is finalized
    */
   function clearEphemeralUserMessage() {
     ephemeralUserMessageIdRef.current = null;
   }
 
   /**
-   * Main data channel message handler: interprets events from the server.
+   * Flush any pending assistant messages to the conversation
+   * Called after user message is finalized to ensure proper ordering
+   */
+  function flushPendingAssistantMessages() {
+    if (pendingAssistantMessagesRef.current.length > 0) {
+      const pendingMessages = [...pendingAssistantMessagesRef.current];
+      pendingAssistantMessagesRef.current = [];
+
+      setConversation(prev => {
+        const filtered = prev.filter(m => !(m.role === 'assistant' && !m.isFinal));
+        return [...filtered, ...pendingMessages];
+      });
+    }
+  }
+
+  // ============================================
+  // DATA CHANNEL MESSAGE HANDLER
+  // Processes all messages from OpenAI Realtime API
+  // ============================================
+
+  /**
+   * Handle incoming messages from OpenAI via data channel
+   * Processes various event types for transcription and responses
+   *
+   * @param event - MessageEvent containing JSON data from OpenAI
    */
   async function handleDataChannelMessage(event: MessageEvent) {
     try {
       const msg = JSON.parse(event.data);
-      console.log('Incoming dataChannel message:', msg.type, msg);
 
       switch (msg.type) {
-        /**
-         * Error handling
-         */
+        // ----------------------------------------
+        // ERROR HANDLING
+        // ----------------------------------------
         case 'error': {
-          console.error('WebRTC error - full message:', msg);
-          console.error('Error object:', msg.error);
-          console.error('Error type:', typeof msg.error);
-          console.error('Error keys:', msg.error ? Object.keys(msg.error) : 'no error object');
-
           const errorMessage =
             msg.error?.message || msg.message || msg.error_message || 'Unknown error';
-          const errorCode = msg.error?.code || msg.code || '';
-          const errorType = msg.error?.type || msg.type || '';
-          const fullError = errorCode
-            ? `[${errorCode}] ${errorMessage}`
-            : errorType && errorType !== 'error'
-              ? `[${errorType}] ${errorMessage}`
-              : errorMessage;
-
-          setStatus(`Error: ${fullError}`);
-          console.error('Formatted error:', fullError);
+          console.error('WebRTC error:', errorMessage);
           break;
         }
 
-        /**
-         * User speech started
-         */
+        // ----------------------------------------
+        // USER SPEECH EVENTS
+        // ----------------------------------------
+
+        // User started speaking
         case 'input_audio_buffer.speech_started': {
           getOrCreateEphemeralUserId();
           updateEphemeralUserMessage({ status: 'speaking' });
           break;
         }
 
-        /**
-         * User speech stopped
-         */
+        // User stopped speaking
         case 'input_audio_buffer.speech_stopped': {
-          // optional: you could set "stopped" or just keep "speaking"
           updateEphemeralUserMessage({ status: 'speaking' });
           break;
         }
 
-        /**
-         * Audio buffer committed => request transcription
-         */
+        // Audio buffer committed (ready for processing)
         case 'input_audio_buffer.committed': {
-          updateEphemeralUserMessage({
-            text: 'Transcribing...',
-            status: 'processing',
-          });
-          console.log('Audio committed, waiting for transcription events...');
+          updateEphemeralUserMessage({ text: 'Transcribing...', status: 'processing' });
           break;
         }
 
-        /**
-         * Partial user transcription (delta)
-         */
-        case 'conversation.item.input_audio_transcription.delta': {
-          console.log('Transcription delta:', msg.delta);
-          const ephemeralId = getOrCreateEphemeralUserId();
+        // ----------------------------------------
+        // TRANSCRIPTION EVENTS
+        // ----------------------------------------
 
+        // Partial transcription update (streaming)
+        case 'conversation.item.input_audio_transcription.delta': {
+          const ephemeralId = getOrCreateEphemeralUserId();
           setConversation(prev =>
-            prev.map(convMsg => {
-              if (convMsg.id === ephemeralId) {
-                return {
-                  ...convMsg,
-                  text: (convMsg.text || '') + (msg.delta || ''),
-                  status: 'speaking',
-                  isFinal: false,
-                };
-              }
-              return convMsg;
-            })
+            prev.map(convMsg =>
+              convMsg.id === ephemeralId
+                ? {
+                    ...convMsg,
+                    text: (convMsg.text || '') + (msg.delta || ''),
+                    status: 'speaking',
+                    isFinal: false,
+                  }
+                : convMsg
+            )
           );
           break;
         }
 
-        /**
-         * Final user transcription - server VAD automatically triggers response
-         */
+        // Final transcription completed
         case 'conversation.item.input_audio_transcription.completed': {
-          console.log('✅ Final user transcription event received:', msg);
+          const transcript = msg.transcript || '';
 
-          // Create a new final user message with the transcript
+          // Validate transcription - filter out hallucinations
+          if (!isValidTranscription(transcript)) {
+            // Remove ephemeral message without adding final
+            setConversation(prev => {
+              const ephemeralId = ephemeralUserMessageIdRef.current;
+              return ephemeralId ? prev.filter(m => m.id !== ephemeralId) : prev;
+            });
+            clearEphemeralUserMessage();
+            // Clear any pending assistant messages too (no valid input)
+            pendingAssistantMessagesRef.current = [];
+            break;
+          }
+
           const finalUserMessage: Conversation = {
             id: msg.item_id || uuidv4(),
             role: 'user',
-            text: msg.transcript || '',
+            text: transcript,
             timestamp: new Date().toISOString(),
             isFinal: true,
             status: 'final',
           };
 
-          // Remove any ephemeral user messages and add the final one
+          // Replace ephemeral message with final version
           setConversation(prev => {
             const ephemeralId = ephemeralUserMessageIdRef.current;
             const filtered = ephemeralId ? prev.filter(m => m.id !== ephemeralId) : prev;
@@ -292,113 +402,65 @@ export default function useWebRTCAudioSession(
 
           clearEphemeralUserMessage();
 
-          // Don't manually create response - server VAD handles it automatically
+          // Now flush any assistant messages that were waiting
+          setTimeout(() => flushPendingAssistantMessages(), 100);
           break;
         }
 
-        /**
-         * Conversation item created - contains the finalized user input
-         */
+        // Conversation item created (backup for transcription)
         case 'conversation.item.created': {
-          console.log('conversation.item.created full details:', JSON.stringify(msg.item, null, 2));
-
-          // Check if this is a user message with audio input
           if (msg.item?.role === 'user' && msg.item?.type === 'message') {
-            console.log('User message detected, content:', msg.item.content);
-
-            // Extract transcript from audio content
+            // Check if this contains audio transcription
             const audioContent = msg.item.content?.find(
               (c: { type: string }) => c.type === 'input_audio'
             );
 
-            console.log('Audio content found:', audioContent);
+            const transcript = audioContent?.transcript;
 
-            if (audioContent) {
-              if (audioContent.transcript) {
-                console.log('User transcript from item.created:', audioContent.transcript);
+            // Validate transcription - filter out hallucinations
+            if (transcript && isValidTranscription(transcript)) {
+              const finalUserMessage: Conversation = {
+                id: msg.item.id || uuidv4(),
+                role: 'user',
+                text: transcript,
+                timestamp: new Date().toISOString(),
+                isFinal: true,
+                status: 'final',
+              };
 
-                // Create a new final user message
-                const finalUserMessage: Conversation = {
-                  id: msg.item.id || uuidv4(),
-                  role: 'user',
-                  text: audioContent.transcript,
-                  timestamp: new Date().toISOString(),
-                  isFinal: true,
-                  status: 'final',
-                };
+              setConversation(prev => {
+                const ephemeralId = ephemeralUserMessageIdRef.current;
+                const filtered = ephemeralId ? prev.filter(m => m.id !== ephemeralId) : prev;
+                return [...filtered, finalUserMessage];
+              });
 
-                // Remove any ephemeral user messages and add the final one
-                setConversation(prev => {
-                  const ephemeralId = ephemeralUserMessageIdRef.current;
-                  const filtered = ephemeralId ? prev.filter(m => m.id !== ephemeralId) : prev;
-                  return [...filtered, finalUserMessage];
-                });
+              clearEphemeralUserMessage();
 
-                clearEphemeralUserMessage();
-              } else {
-                console.warn(
-                  'Transcript is null - transcription may not be enabled or still processing'
-                );
-
-                // Keep the ephemeral message showing "Processing speech..."
-                // The transcript might come in a later event
-              }
+              // Now flush any assistant messages that were waiting
+              setTimeout(() => flushPendingAssistantMessages(), 100);
+            } else if (transcript) {
+              // Invalid transcription - clean up
+              setConversation(prev => {
+                const ephemeralId = ephemeralUserMessageIdRef.current;
+                return ephemeralId ? prev.filter(m => m.id !== ephemeralId) : prev;
+              });
+              clearEphemeralUserMessage();
+              pendingAssistantMessagesRef.current = [];
             }
           }
           break;
         }
 
-        /**
-         * Streaming AI transcripts (assistant partial) - skip for instant display
-         */
-        case 'response.audio_transcript.delta': {
-          // Don't show streaming text - wait for complete transcript
-          console.log('Skipping delta:', msg.delta);
+        // ----------------------------------------
+        // ASSISTANT RESPONSE EVENTS
+        // ----------------------------------------
+
+        // Streaming transcript delta (ignored - we wait for final)
+        case 'response.audio_transcript.delta':
           break;
-        }
 
-        /**
-         * Response done - may contain user transcript in usage field
-         */
-        case 'response.done': {
-          console.log('response.done event:', msg.response);
-          console.log('response.done usage:', msg.response?.usage);
-
-          // Track token usage and calculate cost
-          if (msg.response?.usage) {
-            const usage = msg.response.usage;
-            const inputAudioTokens = usage.input_tokens || usage.input_audio_tokens || 0;
-            const outputAudioTokens = usage.output_tokens || usage.output_audio_tokens || 0;
-
-            setInputTokens(prev => prev + inputAudioTokens);
-            setOutputTokens(prev => prev + outputAudioTokens);
-
-            // Calculate cost (gpt-realtime-mini-2025-10-06)
-            // Audio input: $0.036/min, Audio output: $0.091/min
-            // ~400-500 tokens per second of audio
-            const inputMinutes = inputAudioTokens / (450 * 60); // ~450 tokens/sec
-            const outputMinutes = outputAudioTokens / (450 * 60);
-            const cost = inputMinutes * 0.036 + outputMinutes * 0.091;
-
-            setEstimatedCost(prev => prev + cost);
-
-            console.log('Token usage:', {
-              input: inputAudioTokens,
-              output: outputAudioTokens,
-              cost: `$${cost.toFixed(4)}`,
-            });
-          }
-          break;
-        }
-
-        /**
-         * Complete AI transcript - display all at once with delay
-         * Delay ensures user message appears first before AI response
-         */
+        // Final assistant response transcript
         case 'response.audio_transcript.done': {
-          console.log('Complete AI transcript:', msg.transcript);
-
-          // Create a complete final message with the full transcript
           const assistantMessage: Conversation = {
             id: msg.item_id || uuidv4(),
             role: 'assistant',
@@ -408,196 +470,120 @@ export default function useWebRTCAudioSession(
             status: 'final',
           };
 
-          // Add delay before showing AI response so user message appears first
-          setTimeout(() => {
-            setConversation(prev => {
-              // Remove any partial assistant messages and add the complete one
-              const filtered = prev.filter(m => !(m.role === 'assistant' && !m.isFinal));
-              return [...filtered, assistantMessage];
-            });
-          }, 300);
-          break;
-        }
-
-        /**
-         * AI calls a function (tool)
-         */
-        case 'response.function_call_arguments.done': {
-          const fn = functionRegistry.current[msg.name];
-          if (fn) {
-            const args = JSON.parse(msg.arguments) as Record<string, unknown>;
-            const result = await fn(args);
-
-            // Respond with function output
-            const response = {
-              type: 'conversation.item.create',
-              item: {
-                type: 'function_call_output',
-                call_id: msg.call_id,
-                output: JSON.stringify(result),
-              },
-            };
-            dataChannelRef.current?.send(JSON.stringify(response));
-
-            const responseCreate = {
-              type: 'response.create',
-            };
-            dataChannelRef.current?.send(JSON.stringify(responseCreate));
+          // Check if user message is still being processed
+          if (ephemeralUserMessageIdRef.current) {
+            // Queue the assistant message until user message is finalized
+            pendingAssistantMessagesRef.current.push(assistantMessage);
+          } else {
+            // User message already finalized, add assistant message directly
+            setTimeout(() => {
+              setConversation(prev => {
+                // Remove any non-final assistant messages
+                const filtered = prev.filter(m => !(m.role === 'assistant' && !m.isFinal));
+                return [...filtered, assistantMessage];
+              });
+            }, 100);
           }
           break;
         }
 
-        default: {
-          // console.warn("Unhandled message type:", msg.type);
+        default:
+          // Ignore unhandled message types
           break;
-        }
       }
-
-      // Always log the raw message
-      setMsgs(prevMsgs => [...prevMsgs, msg]);
-      return msg;
     } catch (error) {
       console.error('Error handling data channel message:', error);
     }
   }
 
+  // ============================================
+  // SESSION MANAGEMENT
+  // ============================================
+
   /**
-   * Fetch ephemeral token from your Next.js endpoint
+   * Get ephemeral token from our backend API
+   * Token is used to authenticate with OpenAI Realtime API
+   *
+   * @returns Promise resolving to the ephemeral token string
    */
   async function getEphemeralToken() {
-    try {
-      const response = await fetch('/api/session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to get ephemeral token: ${response.status}`);
-      }
-      const data = await response.json();
-      return data.client_secret.value;
-    } catch (err) {
-      console.error('getEphemeralToken error:', err);
-      throw err;
+    const response = await fetch('/api/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        character: character
+          ? {
+              name: character.name,
+              description: character.description,
+              speakingStyle: character.speakingStyle,
+              relationshipType: character.relationshipType,
+            }
+          : undefined,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get ephemeral token: ${response.status}`);
     }
+
+    const data = await response.json();
+    return data.client_secret.value;
   }
 
   /**
-   * Sets up a local audio visualization for mic input (toggle wave CSS).
-   */
-  function setupAudioVisualization(stream: MediaStream) {
-    const audioContext = new AudioContext();
-    const source = audioContext.createMediaStreamSource(stream);
-    const analyzer = audioContext.createAnalyser();
-    analyzer.fftSize = 256;
-    source.connect(analyzer);
-
-    const bufferLength = analyzer.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    const updateIndicator = () => {
-      if (!audioContext) return;
-      analyzer.getByteFrequencyData(dataArray);
-      const average = dataArray.reduce((a, b) => a + b) / bufferLength;
-
-      // Toggle an "active" class if volume is above a threshold
-      if (audioIndicatorRef.current) {
-        audioIndicatorRef.current.classList.toggle('active', average > 30);
-      }
-      requestAnimationFrame(updateIndicator);
-    };
-    updateIndicator();
-
-    audioContextRef.current = audioContext;
-  }
-
-  /**
-   * Calculate RMS volume from inbound assistant audio
-   */
-  function getVolume(): number {
-    if (!analyserRef.current) return 0;
-    const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
-    analyserRef.current.getByteTimeDomainData(dataArray);
-
-    let sum = 0;
-    for (let i = 0; i < dataArray.length; i++) {
-      const float = (dataArray[i] - 128) / 128;
-      sum += float * float;
-    }
-    return Math.sqrt(sum / dataArray.length);
-  }
-
-  /**
-   * Start a new session:
+   * Start a new WebRTC session with OpenAI
+   * Sets up microphone, peer connection, and data channel
    */
   async function startSession() {
     try {
-      // Check if getUserMedia is available
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      // Check for getUserMedia support
+      if (!navigator.mediaDevices?.getUserMedia) {
         throw new Error(
           'getUserMedia is not available. Please use HTTPS or check browser compatibility.'
         );
       }
 
-      setStatus('Requesting microphone access...');
+      // Get microphone access
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioStreamRef.current = stream;
-      setupAudioVisualization(stream);
 
-      setStatus('Fetching ephemeral token...');
+      // Create audio context for processing
+      const audioContext = new AudioContext();
+      audioContext.createMediaStreamSource(stream);
+      audioContextRef.current = audioContext;
+
+      // Get authentication token from our backend
       const ephemeralToken = await getEphemeralToken();
 
-      setStatus('Establishing connection...');
+      // Create WebRTC peer connection
       const pc = new RTCPeerConnection();
       peerConnectionRef.current = pc;
 
-      // Hidden <audio> element for inbound assistant TTS
+      // Create audio element for playing AI responses
       const audioEl = document.createElement('audio');
       audioEl.autoplay = true;
 
-      // Inbound track => assistant's TTS
+      // Handle incoming audio track from OpenAI
       pc.ontrack = event => {
         audioEl.srcObject = event.streams[0];
-
-        // Optional: measure inbound volume
-        const AudioContextClass =
-          window.AudioContext ||
-          (window as typeof window & { webkitAudioContext?: typeof AudioContext })
-            .webkitAudioContext;
-        if (!AudioContextClass) return;
-        const audioCtx = new AudioContextClass();
-        const src = audioCtx.createMediaStreamSource(event.streams[0]);
-        const inboundAnalyzer = audioCtx.createAnalyser();
-        inboundAnalyzer.fftSize = 256;
-        src.connect(inboundAnalyzer);
-        analyserRef.current = inboundAnalyzer;
-
-        // Start volume monitoring
-        volumeIntervalRef.current = window.setInterval(() => {
-          setCurrentVolume(getVolume());
-        }, 100);
       };
 
-      // Data channel for transcripts
+      // Create data channel for control messages
       const dataChannel = pc.createDataChannel('response');
       dataChannelRef.current = dataChannel;
-
-      dataChannel.onopen = () => {
-        // console.log("Data channel open");
-        configureDataChannel(dataChannel);
-      };
+      dataChannel.onopen = () => configureDataChannel(dataChannel);
       dataChannel.onmessage = handleDataChannelMessage;
 
-      // Add local (mic) track
+      // Add microphone track to peer connection
       pc.addTrack(stream.getTracks()[0]);
 
-      // Create offer & set local description
+      // Create and set local offer
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
 
-      // Send SDP offer to OpenAI Realtime
+      // Send offer to OpenAI Realtime API
       const baseUrl = 'https://api.openai.com/v1/realtime';
-      const model = 'gpt-realtime-mini-2025-10-06';
-      const response = await fetch(`${baseUrl}?model=${model}&voice=${voice}`, {
+      const response = await fetch(`${baseUrl}?model=${MODELS.REALTIME}&voice=${voice}`, {
         method: 'POST',
         body: offer.sdp,
         headers: {
@@ -606,73 +592,57 @@ export default function useWebRTCAudioSession(
         },
       });
 
-      // Set remote description
+      // Set remote description from OpenAI's answer
       const answerSdp = await response.text();
       await pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
 
+      // Session is now active
       setIsSessionActive(true);
-      setStatus('Session established successfully!');
-
-      // Start timer
-      sessionStartTimeRef.current = Date.now();
-      timerIntervalRef.current = window.setInterval(() => {
-        if (sessionStartTimeRef.current) {
-          const duration = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
-          setSessionDuration(duration);
-        }
-      }, 1000);
     } catch (err) {
       console.error('startSession error:', err);
-      setStatus(`Error: ${err}`);
       stopSession();
     }
   }
 
   /**
-   * Stop the session & cleanup
+   * Stop the current WebRTC session and cleanup all resources
+   * Closes data channel, peer connection, audio context, and media stream
    */
   function stopSession() {
+    // Close data channel
     if (dataChannelRef.current) {
       dataChannelRef.current.close();
       dataChannelRef.current = null;
     }
+
+    // Close peer connection
     if (peerConnectionRef.current) {
       peerConnectionRef.current.close();
       peerConnectionRef.current = null;
     }
+
+    // Close audio context
     if (audioContextRef.current) {
       audioContextRef.current.close();
       audioContextRef.current = null;
     }
+
+    // Stop all media tracks (releases microphone)
     if (audioStreamRef.current) {
       audioStreamRef.current.getTracks().forEach(track => track.stop());
       audioStreamRef.current = null;
     }
-    if (audioIndicatorRef.current) {
-      audioIndicatorRef.current.classList.remove('active');
-    }
-    if (volumeIntervalRef.current) {
-      clearInterval(volumeIntervalRef.current);
-      volumeIntervalRef.current = null;
-    }
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-      timerIntervalRef.current = null;
-    }
-    analyserRef.current = null;
 
+    // Reset ephemeral message state
     ephemeralUserMessageIdRef.current = null;
 
-    setCurrentVolume(0);
+    // Update session state
     setIsSessionActive(false);
-    setStatus('Session stopped');
-    setMsgs([]);
-    // DON'T clear conversation - preserve chat history after session ends
-    // setConversation([]);
   }
 
   /**
-   * Toggle start/stop from a single button
+   * Toggle session on/off
+   * Convenience function for start/stop button
    */
   function handleStartStopClick() {
     if (isSessionActive) {
@@ -682,137 +652,86 @@ export default function useWebRTCAudioSession(
     }
   }
 
+  // ============================================
+  // AUDIO BUFFER CONTROL
+  // ============================================
+
   /**
-   * Manually commit audio buffer (stop speaking and process)
+   * Commit the audio buffer and request AI response
+   * Called when user stops talking (releases push-to-talk)
    */
   function commitAudioBuffer() {
-    if (!dataChannelRef.current || dataChannelRef.current.readyState !== 'open') {
-      console.error('Data channel not ready');
-      return;
-    }
+    if (!dataChannelRef.current || dataChannelRef.current.readyState !== 'open') return;
 
-    // Send input_audio_buffer.commit event
-    const commitMessage = {
-      type: 'input_audio_buffer.commit',
-    };
+    // Commit the audio that was recorded
+    dataChannelRef.current.send(JSON.stringify({ type: 'input_audio_buffer.commit' }));
 
-    dataChannelRef.current.send(JSON.stringify(commitMessage));
-
-    // Create response to process the audio
-    const response = {
-      type: 'response.create',
-    };
-
-    dataChannelRef.current.send(JSON.stringify(response));
+    // Request AI to generate a response
+    dataChannelRef.current.send(JSON.stringify({ type: 'response.create' }));
   }
 
-  /**
-   * Send a text message through the data channel
-   */
-  function sendTextMessage(text: string) {
-    if (!dataChannelRef.current || dataChannelRef.current.readyState !== 'open') {
-      console.error('Data channel not ready');
-      return;
-    }
-
-    const messageId = uuidv4();
-
-    // Add message to conversation immediately
-    const newMessage: Conversation = {
-      id: messageId,
-      role: 'user',
-      text,
-      timestamp: new Date().toISOString(),
-      isFinal: true,
-      status: 'final',
-    };
-
-    setConversation(prev => [...prev, newMessage]);
-
-    // Send message through data channel
-    const message = {
-      type: 'conversation.item.create',
-      item: {
-        type: 'message',
-        role: 'user',
-        content: [
-          {
-            type: 'input_text',
-            text: text,
-          },
-        ],
-      },
-    };
-
-    const response = {
-      type: 'response.create',
-    };
-
-    dataChannelRef.current.send(JSON.stringify(message));
-    dataChannelRef.current.send(JSON.stringify(response));
-  }
+  // ============================================
+  // PUSH-TO-TALK CONTROLS
+  // ============================================
 
   /**
-   * Start Push-to-Talk recording
-   * Creates ephemeral user message and starts recording audio
+   * Start push-to-talk mode
+   * Called when user presses and holds the talk button
    */
   function startPushToTalk() {
-    if (!isSessionActive || !dataChannelRef.current) {
-      console.warn('Cannot start PTT: session not active');
-      return;
-    }
+    if (!isSessionActive || !dataChannelRef.current) return;
 
     setIsPushToTalkActive(true);
-
-    // Create ephemeral user message
     getOrCreateEphemeralUserId();
-
-    console.log('🎤 PTT: Recording started');
   }
 
   /**
-   * Stop Push-to-Talk recording
+   * Stop push-to-talk mode
+   * Called when user releases the talk button
    * Commits audio buffer and triggers AI response
    */
   function stopPushToTalk() {
-    if (!isSessionActive || !dataChannelRef.current) {
-      return;
-    }
+    if (!isSessionActive || !dataChannelRef.current) return;
 
     setIsPushToTalkActive(false);
-
-    // Commit the audio buffer to trigger AI response
     commitAudioBuffer();
-
-    console.log('🛑 PTT: Recording stopped, processing...');
   }
 
-  // Cleanup on unmount
+  // ============================================
+  // CONVERSATION MANAGEMENT
+  // ============================================
+
+  /**
+   * Clear all conversation history
+   */
+  function clearConversation() {
+    setConversation([]);
+    ephemeralUserMessageIdRef.current = null;
+  }
+
+  // ============================================
+  // CLEANUP EFFECT
+  // ============================================
+
+  /**
+   * Cleanup effect - stops session when component unmounts
+   */
   useEffect(() => {
     return () => stopSession();
   }, []);
 
+  // ============================================
+  // RETURN PUBLIC API
+  // ============================================
+
   return {
-    status,
     isSessionActive,
-    audioIndicatorRef,
-    startSession,
-    stopSession,
-    handleStartStopClick,
-    commitAudioBuffer,
-    registerFunction,
-    msgs,
-    currentVolume,
     conversation,
-    sendTextMessage,
-    // Push-to-Talk functions
     isPushToTalkActive,
     startPushToTalk,
     stopPushToTalk,
-    // Token & Timer tracking
-    inputTokens,
-    outputTokens,
-    sessionDuration,
-    estimatedCost,
+    handleStartStopClick,
+    stopSession,
+    clearConversation,
   };
 }
