@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import OpenAI from 'openai';
 import { MODELS } from '@/lib/ai/openai-client';
+import { creditService } from '@/lib/subscription';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -84,7 +85,30 @@ The hint should:
       response.choices[0]?.message?.content ||
       'Coba jawab dengan sopan menggunakan kata-kata yang sesuai dengan situasi.';
 
-    return NextResponse.json({ hint });
+    // Deduct credits for hint generation (usage-based billing)
+    const inputTokens = response.usage?.prompt_tokens || 0;
+    const outputTokens = response.usage?.completion_tokens || 0;
+
+    const creditResult = await creditService.deductCreditsFromUsage(
+      session.userId,
+      {
+        model: MODELS.ANALYSIS,
+        inputTokens,
+        outputTokens,
+      },
+      sessionId,
+      'free_conversation_hint',
+      'Hint generation for free conversation'
+    );
+
+    console.log('[Free Conversation Hint] Credit deduction:', {
+      sessionId,
+      tokensUsed: { input: inputTokens, output: outputTokens },
+      creditsDeducted: creditResult.credits,
+      usdCost: creditResult.usdCost,
+    });
+
+    return NextResponse.json({ hint, creditsUsed: creditResult.credits });
   } catch (error) {
     console.error('Free conversation hint API error:', error);
     return NextResponse.json(

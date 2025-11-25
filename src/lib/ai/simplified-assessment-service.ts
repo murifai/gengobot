@@ -5,6 +5,7 @@ import { Task } from '@prisma/client';
 import { SimplifiedAssessment } from '@/types/assessment';
 import { ObjectiveTracking } from './objective-detection';
 import { MODELS } from './openai-client';
+import { creditService } from '@/lib/subscription';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -22,6 +23,8 @@ interface GenerateAssessmentParams {
   objectiveStatus: ObjectiveTracking[];
   startTime: Date;
   endTime: Date;
+  userId: string;
+  attemptId: string;
 }
 
 export class SimplifiedAssessmentService {
@@ -29,7 +32,8 @@ export class SimplifiedAssessmentService {
    * Generate simplified assessment based on conversation and objectives
    */
   static async generateAssessment(params: GenerateAssessmentParams): Promise<SimplifiedAssessment> {
-    const { task, conversationHistory, objectiveStatus, startTime, endTime } = params;
+    const { task, conversationHistory, objectiveStatus, startTime, endTime, userId, attemptId } =
+      params;
 
     // Calculate statistics
     const duration = Math.round((endTime.getTime() - startTime.getTime()) / 1000);
@@ -44,7 +48,9 @@ export class SimplifiedAssessmentService {
     const conversationFeedback = await this.generateConversationFeedback(
       task,
       conversationHistory,
-      objectiveStatus
+      objectiveStatus,
+      userId,
+      attemptId
     );
 
     // Generate next steps
@@ -95,7 +101,9 @@ export class SimplifiedAssessmentService {
   private static async generateConversationFeedback(
     task: Task,
     conversationHistory: Message[],
-    objectiveStatus: ObjectiveTracking[]
+    objectiveStatus: ObjectiveTracking[],
+    userId: string,
+    attemptId: string
   ): Promise<SimplifiedAssessment['conversationFeedback']> {
     const prompt = this.buildFeedbackPrompt(task, conversationHistory, objectiveStatus);
 
@@ -113,6 +121,29 @@ export class SimplifiedAssessmentService {
         response_format: { type: 'json_object' },
         temperature: 0.7,
         max_tokens: 1000,
+      });
+
+      // Deduct credits for feedback generation (usage-based billing)
+      const inputTokens = response.usage?.prompt_tokens || 0;
+      const outputTokens = response.usage?.completion_tokens || 0;
+
+      const creditResult = await creditService.deductCreditsFromUsage(
+        userId,
+        {
+          model: MODELS.ANALYSIS,
+          inputTokens,
+          outputTokens,
+        },
+        attemptId,
+        'task_assessment_feedback',
+        'AI feedback generation for task assessment'
+      );
+
+      console.log('[Assessment Feedback] Credit deduction:', {
+        attemptId,
+        tokensUsed: { input: inputTokens, output: outputTokens },
+        creditsDeducted: creditResult.credits,
+        usdCost: creditResult.usdCost,
       });
 
       const feedbackData = JSON.parse(response.choices[0]?.message?.content || '{}');

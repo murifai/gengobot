@@ -62,6 +62,8 @@ export async function POST(request: NextRequest) {
       objectiveStatus: finalObjectiveStatus,
       startTime: attempt.startTime,
       endTime: attempt.endTime || new Date(),
+      userId: attempt.userId,
+      attemptId,
     });
 
     // Set the attemptId
