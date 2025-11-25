@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth/admin-auth';
+import { CREDIT_CONVERSION_RATE } from '@/lib/subscription/credit-config';
+
+// USD to IDR conversion rate
+const USD_TO_IDR = 15500;
 
 export async function GET() {
   try {
@@ -23,6 +27,9 @@ export async function GET() {
       recentPayments,
       totalPayments,
       completedPayments,
+      // New: API usage queries
+      totalAPIUsage,
+      usageByType,
     ] = await Promise.all([
       // Total revenue
       prisma.pendingPayment.aggregate({
@@ -96,6 +103,20 @@ export async function GET() {
       prisma.pendingPayment.count({
         where: { status: 'PAID' },
       }),
+
+      // Total API usage (credits used via USAGE transactions)
+      prisma.creditTransaction.aggregate({
+        _sum: { amount: true },
+        where: { type: 'USAGE' },
+      }),
+
+      // Usage breakdown by type
+      prisma.creditTransaction.groupBy({
+        by: ['usageType'],
+        _sum: { amount: true },
+        _count: true,
+        where: { type: 'USAGE' },
+      }),
     ]);
 
     // Calculate growth
@@ -114,8 +135,27 @@ export async function GET() {
       tierCounts[sub.tier] = sub._count.id;
     });
 
-    // Calculate estimated API costs (placeholder - needs real calculation)
-    const estimatedAPICost = Math.round((totalRevenue._sum.amount || 0) * 0.15);
+    // Calculate actual API costs from credit usage (1 credit = $0.0001 USD)
+    const totalCreditsUsed = Math.abs(totalAPIUsage._sum.amount || 0);
+    const actualAPICostUSD = totalCreditsUsed * CREDIT_CONVERSION_RATE;
+    const actualAPICostIDR = Math.round(actualAPICostUSD * USD_TO_IDR);
+
+    // Helper to get usage by type
+    const getTypeAmount = (type: string | null): number => {
+      const found = usageByType.find(item => item.usageType === type);
+      return found ? Math.abs(found._sum.amount || 0) : 0;
+    };
+
+    // Calculate usage by type in IDR
+    const textChatCredits = getTypeAmount('TEXT_CHAT');
+    const voiceCredits = getTypeAmount('VOICE_STANDARD');
+    const realtimeCredits = getTypeAmount('REALTIME');
+
+    const usageByTypeIDR = {
+      textChat: Math.round(textChatCredits * CREDIT_CONVERSION_RATE * USD_TO_IDR),
+      voice: Math.round(voiceCredits * CREDIT_CONVERSION_RATE * USD_TO_IDR),
+      realtime: Math.round(realtimeCredits * CREDIT_CONVERSION_RATE * USD_TO_IDR),
+    };
 
     // Group payments by month
     const monthlyData = new Map<string, number>();
@@ -136,14 +176,17 @@ export async function GET() {
         byMonth: byMonthArray,
       },
       expenses: {
-        total: estimatedAPICost,
-        apiUsage: estimatedAPICost,
+        total: actualAPICostIDR,
+        apiUsage: actualAPICostIDR,
+        credits: totalCreditsUsed,
+        costUSD: actualAPICostUSD,
+        byType: usageByTypeIDR,
       },
       profit: {
-        total: (totalRevenue._sum.amount || 0) - estimatedAPICost,
+        total: (totalRevenue._sum.amount || 0) - actualAPICostIDR,
         margin: totalRevenue._sum.amount
           ? (
-              ((totalRevenue._sum.amount - estimatedAPICost) / totalRevenue._sum.amount) *
+              ((totalRevenue._sum.amount - actualAPICostIDR) / totalRevenue._sum.amount) *
               100
             ).toFixed(1)
           : '0',

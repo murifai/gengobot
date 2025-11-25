@@ -4,6 +4,9 @@ import 'openai/shims/node';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { ttsService, TTSVoice } from '@/lib/voice/tts-service';
+import { auth } from '@/lib/auth/auth';
+import { UsageType } from '@prisma/client';
+import { creditService } from '@/lib/subscription';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -11,6 +14,12 @@ export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {
+    // Check user authentication
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const {
       text,
@@ -31,6 +40,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Text exceeds maximum length of 4096 characters' },
         { status: 400 }
+      );
+    }
+
+    // Check credits before synthesis (estimate based on character count)
+    const estimatedSeconds = Math.ceil(text.length / 15); // ~15 chars/sec for Japanese
+    const creditCheck = await creditService.checkCredits(
+      session.user.id,
+      UsageType.VOICE_STANDARD,
+      estimatedSeconds
+    );
+
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Insufficient credits',
+          message: creditCheck.reason,
+          creditsRequired: creditCheck.creditsRequired,
+          creditsAvailable: creditCheck.creditsAvailable,
+          isTrialUser: creditCheck.isTrialUser,
+        },
+        { status: 402 }
       );
     }
 
@@ -66,12 +96,26 @@ export async function POST(request: NextRequest) {
         break;
     }
 
+    // Deduct credits based on actual character count (usage-based billing)
+    const creditResult = await creditService.deductCreditsFromUsage(
+      session.user.id,
+      {
+        model: 'gpt-4o-mini-tts',
+        characterCount: result.characterCount,
+      },
+      undefined, // referenceId
+      'voice_synthesis',
+      'Text-to-speech synthesis'
+    );
+
     // Log synthesis for analytics
     console.log('[TTS] Speech synthesis completed:', {
       characterCount: result.characterCount,
       estimatedDuration: result.estimatedDuration,
       voice: result.voice,
       format: result.format,
+      creditsDeducted: creditResult.credits,
+      usdCost: creditResult.usdCost,
     });
 
     // Return audio as response

@@ -2,7 +2,7 @@
 // This file contains only constants, no SDK imports
 
 export const MODELS = {
-  RESPONSE: 'gpt-5-nano', // AI conversation response
+  RESPONSE: 'gpt-4o-mini', // AI conversation response
   ANALYSIS: 'gpt-4o-mini', // Feedback, hint, objective detection
   WHISPER: 'whisper-1',
   TTS: 'gpt-4o-mini-tts',

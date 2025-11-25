@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { AlertTriangle, Activity, DollarSign } from 'lucide-react';
+import { AlertTriangle, Activity, DollarSign, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface APIUsageAlertProps {
@@ -9,6 +9,11 @@ interface APIUsageAlertProps {
   limit: number;
   percentage: number;
   costInRupiah: number;
+  // New optional props for enhanced display
+  credits?: number;
+  transactions?: number;
+  costUSD?: number;
+  budgetIDR?: number;
 }
 
 function formatRupiah(amount: number): string {
@@ -30,9 +35,22 @@ function formatTokens(tokens: number): string {
   return tokens.toString();
 }
 
-export function APIUsageAlert({ current, limit, percentage, costInRupiah }: APIUsageAlertProps) {
+export function APIUsageAlert({
+  current,
+  limit,
+  percentage,
+  costInRupiah,
+  credits,
+  transactions,
+  costUSD,
+  budgetIDR,
+}: APIUsageAlertProps) {
   const isWarning = percentage >= 80;
   const isCritical = percentage >= 95;
+
+  // Use credits if available, otherwise fall back to current
+  const displayCredits = credits ?? current;
+  const displayBudget = budgetIDR ?? (limit > 0 ? limit * 0.155 : 0); // Approximate IDR if not provided
 
   return (
     <Card
@@ -44,7 +62,7 @@ export function APIUsageAlert({ current, limit, percentage, costInRupiah }: APIU
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
           <CardTitle className="text-sm font-medium">API Usage</CardTitle>
-          <CardDescription>OpenAI token consumption</CardDescription>
+          <CardDescription>Monthly OpenAI credit consumption</CardDescription>
         </div>
         {isWarning ? (
           <AlertTriangle
@@ -59,9 +77,7 @@ export function APIUsageAlert({ current, limit, percentage, costInRupiah }: APIU
           {/* Usage bar */}
           <div>
             <div className="flex justify-between text-sm mb-2">
-              <span>
-                {formatTokens(current)} / {formatTokens(limit)}
-              </span>
+              <span>{formatTokens(displayCredits)} credits</span>
               <span
                 className={cn(
                   'font-medium',
@@ -86,13 +102,30 @@ export function APIUsageAlert({ current, limit, percentage, costInRupiah }: APIU
             </div>
           </div>
 
-          {/* Cost display */}
-          <div className="flex items-center justify-between pt-2 border-t">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <DollarSign className="h-4 w-4" />
-              <span>Estimated cost</span>
+          {/* Stats display */}
+          <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+            <div className="flex items-center gap-2 text-sm">
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-muted-foreground">Cost</p>
+                <p className="font-medium">{formatRupiah(costInRupiah)}</p>
+                {costUSD !== undefined && (
+                  <p className="text-xs text-muted-foreground">(${costUSD.toFixed(4)})</p>
+                )}
+              </div>
             </div>
-            <span className="font-medium">{formatRupiah(costInRupiah)}</span>
+            <div className="flex items-center gap-2 text-sm">
+              <Zap className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-muted-foreground">Budget</p>
+                <p className="font-medium">{formatRupiah(displayBudget)}</p>
+                {transactions !== undefined && (
+                  <p className="text-xs text-muted-foreground">
+                    {transactions.toLocaleString()} transactions
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Warning message */}
@@ -107,12 +140,13 @@ export function APIUsageAlert({ current, limit, percentage, costInRupiah }: APIU
             >
               {isCritical ? (
                 <p>
-                  <strong>Critical:</strong> API usage has exceeded 95%. Consider upgrading your
-                  plan or reducing usage.
+                  <strong>Critical:</strong> API usage has exceeded 95% of budget. Consider
+                  reviewing usage patterns or adjusting budget.
                 </p>
               ) : (
                 <p>
-                  <strong>Warning:</strong> API usage has exceeded 80%. Monitor usage closely.
+                  <strong>Warning:</strong> API usage has exceeded 80% of budget. Monitor usage
+                  closely.
                 </p>
               )}
             </div>

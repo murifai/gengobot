@@ -12,7 +12,15 @@ export {
 export type { CreditCheck, CreditBalance, HistoryOptions } from './credit-config';
 
 // Credit service
-export { CreditService, creditService } from './credit-service';
+export {
+  CreditService,
+  creditService,
+  calculateCreditsFromUsage,
+  getUsageTypeFromModel,
+  aggregateUsage,
+} from './credit-service';
+
+export type { TokenUsage, CreditCalculationResult } from './credit-service';
 
 // Trial service
 export { TrialService, trialService } from './trial-service';

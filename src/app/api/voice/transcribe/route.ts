@@ -73,15 +73,24 @@ export async function POST(request: NextRequest) {
       language: result.language,
     });
 
-    // Deduct credits based on actual duration
+    // Deduct credits based on actual audio duration (usage-based billing)
     const actualDurationSeconds = Math.ceil(result.duration || estimatedSeconds);
-    await creditService.deductCredits(
+    const creditResult = await creditService.deductCreditsFromUsage(
       session.user.id,
-      UsageType.VOICE_STANDARD,
-      actualDurationSeconds,
+      {
+        model: 'whisper-1',
+        audioDurationSeconds: actualDurationSeconds,
+      },
       undefined, // referenceId
-      'voice_transcription'
+      'voice_transcription',
+      'Speech-to-text transcription'
     );
+
+    console.log('[Whisper] Credit deduction:', {
+      audioDurationSeconds: actualDurationSeconds,
+      creditsDeducted: creditResult.credits,
+      usdCost: creditResult.usdCost,
+    });
 
     return NextResponse.json({
       success: true,
@@ -89,7 +98,7 @@ export async function POST(request: NextRequest) {
       language: result.language,
       duration: result.duration,
       segments: result.segments,
-      creditsUsed: creditCheck.creditsRequired,
+      creditsUsed: creditResult.credits,
     });
   } catch (error) {
     console.error('[Whisper API] Error:', error);

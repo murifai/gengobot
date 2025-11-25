@@ -1,5 +1,53 @@
 import { SubscriptionTier, UsageType } from '@prisma/client';
 
+// =============================================================================
+// USAGE-BASED PRICING CONSTANTS (NEW SYSTEM)
+// =============================================================================
+
+/**
+ * OpenAI API pricing per model
+ * Prices are in USD per token/minute
+ * Source: https://openai.com/api/pricing/ (November 2025)
+ */
+export const OPENAI_PRICING = {
+  // GPT-4o-mini - Used for RESPONSE (text chat) and ANALYSIS (feedback, hints)
+  'gpt-4o-mini': {
+    input: 0.15 / 1_000_000, // $0.15 per 1M tokens
+    output: 0.6 / 1_000_000, // $0.60 per 1M tokens
+  },
+  // Whisper (Speech-to-Text)
+  'whisper-1': {
+    perMinute: 0.006, // $0.006 per minute
+  },
+  // TTS (Text-to-Speech)
+  'gpt-4o-mini-tts': {
+    inputPerChar: 0.6 / 1_000_000, // $0.60 per 1M chars
+    outputPerToken: 12.0 / 1_000_000, // $12 per 1M audio tokens
+  },
+  // Realtime API
+  'gpt-4o-realtime-preview': {
+    audioInputPerMin: 0.036, // $0.036 per minute (~450 tokens/sec)
+    audioOutputPerMin: 0.091, // $0.091 per minute (~450 tokens/sec)
+    textInput: 0.6 / 1_000_000, // $0.60 per 1M tokens
+    textOutput: 2.4 / 1_000_000, // $2.40 per 1M tokens
+  },
+} as const;
+
+/**
+ * Credit conversion rate
+ * 1 credit = $0.0001 USD
+ * This means: $1.00 = 10,000 credits
+ */
+export const CREDIT_CONVERSION_RATE = 0.0001;
+
+// =============================================================================
+// LEGACY FIXED-RATE COSTS (DEPRECATED - kept for backward compatibility)
+// =============================================================================
+
+/**
+ * @deprecated Use calculateCreditsFromUsage() from credit-calculator.ts instead
+ * These fixed rates will be removed in a future version
+ */
 // Credit costs per usage type
 export const CREDIT_COSTS = {
   VOICE_STANDARD_PER_MINUTE: 100,
@@ -7,13 +55,25 @@ export const CREDIT_COSTS = {
   TEXT_CHAT_PER_MESSAGE: 4,
 } as const;
 
-// Tier configurations
+/**
+ * Tier configurations
+ *
+ * Credit values represent USD worth of API usage:
+ * - 1 credit = $0.0001 USD (CREDIT_CONVERSION_RATE)
+ * - 5,000 credits = $0.50 USD (trial)
+ * - 6,000 credits = $0.60 USD (Basic tier monthly)
+ * - 16,500 credits = $1.65 USD (Pro tier monthly)
+ *
+ * Approximate usage per tier (based on typical usage patterns):
+ * - Basic (6,000 credits): ~2,000 text exchanges OR ~10 hours voice
+ * - Pro (16,500 credits): ~5,500 text exchanges OR ~27 hours voice OR ~2 hours realtime
+ */
 export const TIER_CONFIG = {
   [SubscriptionTier.FREE]: {
     monthlyCredits: 0,
-    trialCredits: 5000,
+    trialCredits: 5000, // $0.50 USD worth of API usage
     trialDays: 14,
-    trialDailyLimit: 500,
+    trialDailyLimit: 500, // $0.05 USD daily limit during trial
     textDailyLimit: 20,
     customCharacters: 1,
     textUnlimited: false,
@@ -22,7 +82,7 @@ export const TIER_CONFIG = {
     maxChatrooms: 5, // Free tier limited to 5 chatrooms
   },
   [SubscriptionTier.BASIC]: {
-    monthlyCredits: 6000,
+    monthlyCredits: 6000, // $0.60 USD worth of API usage
     trialCredits: 0,
     trialDays: 0,
     trialDailyLimit: 0,
@@ -34,7 +94,7 @@ export const TIER_CONFIG = {
     maxChatrooms: 5, // Basic tier limited to 5 chatrooms
   },
   [SubscriptionTier.PRO]: {
-    monthlyCredits: 16500,
+    monthlyCredits: 16500, // $1.65 USD worth of API usage
     trialCredits: 0,
     trialDays: 0,
     trialDailyLimit: 0,
@@ -82,8 +142,28 @@ export function getDiscountedPrice(
   };
 }
 
-// Helper function to get credit cost for usage type
+/**
+ * @deprecated Use calculateCreditsFromUsage() from credit-calculator.ts instead.
+ * This function uses fixed rates which don't reflect actual API costs.
+ * Kept for backward compatibility during migration.
+ *
+ * @example
+ * // Old way (deprecated):
+ * const cost = getCreditCost(UsageType.TEXT_CHAT, 1);
+ *
+ * // New way:
+ * import { calculateCreditsFromUsage } from './credit-calculator';
+ * const { credits } = calculateCreditsFromUsage({
+ *   model: 'gpt-5-nano',
+ *   inputTokens: 3050,
+ *   outputTokens: 150,
+ * });
+ */
 export function getCreditCost(usageType: UsageType, units: number): number {
+  console.warn(
+    '[Deprecated] getCreditCost() uses fixed rates. Use calculateCreditsFromUsage() for accurate usage-based billing.'
+  );
+
   switch (usageType) {
     case UsageType.VOICE_STANDARD:
       // units = seconds, convert to minutes and round up
@@ -101,8 +181,21 @@ export function getCreditCost(usageType: UsageType, units: number): number {
   }
 }
 
-// Helper function to estimate minutes from credits
+/**
+ * @deprecated This function uses fixed rates which don't reflect actual API costs.
+ * With usage-based billing, estimates depend on actual token usage patterns.
+ * Consider showing users their credit balance and recent usage trends instead.
+ *
+ * For rough estimates with the new system:
+ * - Text chat: ~3 credits per exchange (varies by message length)
+ * - Voice: ~10 credits per minute of audio
+ * - Realtime: ~127 credits per minute (audio in + out)
+ */
 export function estimateMinutesFromCredits(credits: number, usageType: UsageType): number {
+  console.warn(
+    '[Deprecated] estimateMinutesFromCredits() uses fixed rates. Usage-based billing makes estimates variable.'
+  );
+
   switch (usageType) {
     case UsageType.VOICE_STANDARD:
       return Math.floor(credits / CREDIT_COSTS.VOICE_STANDARD_PER_MINUTE);

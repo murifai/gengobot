@@ -14,6 +14,12 @@ import {
   CreditBalance,
   HistoryOptions,
 } from './credit-config';
+import {
+  TokenUsage,
+  CreditCalculationResult,
+  calculateCreditsFromUsage,
+  getUsageTypeFromModel,
+} from './credit-calculator';
 import { notifyCreditUsage } from '@/lib/notification/notification-service';
 
 export class CreditService {
@@ -205,6 +211,174 @@ export class CreditService {
     await this.checkUsageThresholdsAndNotify(userId, subscription, newCreditsUsed);
 
     return transaction;
+  }
+
+  /**
+   * Deduct credits based on actual API token usage (NEW USAGE-BASED SYSTEM)
+   *
+   * This method calculates credits from actual OpenAI API usage data,
+   * ensuring credits accurately reflect real API costs.
+   *
+   * @param userId - User ID to deduct credits from
+   * @param usage - Token usage data from API response
+   * @param referenceId - Optional reference ID (e.g., conversation ID)
+   * @param referenceType - Optional reference type (e.g., 'free_conversation')
+   * @param description - Optional description for the transaction
+   * @param forceDeduct - Force credit deduction even for unlimited text tiers (used for voice context)
+   * @returns Credits deducted and USD cost
+   *
+   * @example
+   * // After a text chat API call
+   * await creditService.deductCreditsFromUsage(
+   *   userId,
+   *   { model: 'gpt-4o-mini', inputTokens: 3050, outputTokens: 150 },
+   *   sessionId,
+   *   'free_conversation',
+   *   'Text chat message'
+   * );
+   *
+   * @example
+   * // Force deduct for voice context (even for paid tiers with unlimited text)
+   * await creditService.deductCreditsFromUsage(
+   *   userId,
+   *   { model: 'gpt-4o-mini', inputTokens: 3050, outputTokens: 150 },
+   *   sessionId,
+   *   'free_conversation_voice',
+   *   'Voice chat text generation',
+   *   true // forceDeduct
+   * );
+   */
+  async deductCreditsFromUsage(
+    userId: string,
+    usage: TokenUsage,
+    referenceId?: string,
+    referenceType?: string,
+    description?: string,
+    forceDeduct: boolean = false
+  ): Promise<{ credits: number; usdCost: number; transaction: CreditTransaction | null }> {
+    const { credits, usdCost, breakdown } = calculateCreditsFromUsage(usage);
+
+    // If no credits to deduct, return early
+    if (credits === 0) {
+      return { credits: 0, usdCost: 0, transaction: null };
+    }
+
+    const subscription = await this.getOrCreateSubscription(userId);
+    const usageType = getUsageTypeFromModel(usage.model);
+
+    // For paid tiers with unlimited text, don't deduct for text chat
+    // UNLESS forceDeduct is true (used for voice context where all credits should be tracked)
+    if (
+      !forceDeduct &&
+      usageType === UsageType.TEXT_CHAT &&
+      subscription.tier !== SubscriptionTier.FREE &&
+      TIER_CONFIG[subscription.tier].textUnlimited
+    ) {
+      // Record the transaction with 0 deduction but store usage metadata
+      const transaction = await prisma.creditTransaction.create({
+        data: {
+          userId,
+          type: CreditTransactionType.USAGE,
+          amount: 0,
+          balance: subscription.creditsRemaining,
+          usageType,
+          referenceId,
+          referenceType,
+          description: description || 'Text chat (unlimited)',
+          metadata: {
+            model: usage.model,
+            inputTokens: usage.inputTokens,
+            outputTokens: usage.outputTokens,
+            usdCost,
+            breakdown,
+            unlimitedTextChat: true,
+          },
+        },
+      });
+      return { credits: 0, usdCost, transaction };
+    }
+
+    // For FREE tier users (trial)
+    if (subscription.tier === SubscriptionTier.FREE) {
+      const newTrialCreditsUsed = subscription.trialCreditsUsed + credits;
+      const newTrialDailyUsed = subscription.trialDailyUsed + credits;
+      const newBalance = TIER_CONFIG[SubscriptionTier.FREE].trialCredits - newTrialCreditsUsed;
+
+      await prisma.subscription.update({
+        where: { userId },
+        data: {
+          trialCreditsUsed: newTrialCreditsUsed,
+          trialDailyUsed: newTrialDailyUsed,
+        },
+      });
+
+      const transaction = await prisma.creditTransaction.create({
+        data: {
+          userId,
+          type: CreditTransactionType.USAGE,
+          amount: -credits,
+          balance: newBalance,
+          usageType,
+          referenceId,
+          referenceType,
+          description: description || `Trial usage: ${usageType}`,
+          metadata: {
+            model: usage.model,
+            inputTokens: usage.inputTokens,
+            outputTokens: usage.outputTokens,
+            audioDurationSeconds: usage.audioDurationSeconds,
+            audioInputTokens: usage.audioInputTokens,
+            audioOutputTokens: usage.audioOutputTokens,
+            characterCount: usage.characterCount,
+            usdCost,
+            breakdown,
+          },
+        },
+      });
+
+      return { credits, usdCost, transaction };
+    }
+
+    // For paid tiers
+    const newCreditsUsed = subscription.creditsUsed + credits;
+    const newCreditsRemaining = subscription.creditsRemaining - credits;
+
+    await prisma.subscription.update({
+      where: { userId },
+      data: {
+        creditsUsed: newCreditsUsed,
+        creditsRemaining: newCreditsRemaining,
+      },
+    });
+
+    const transaction = await prisma.creditTransaction.create({
+      data: {
+        userId,
+        type: CreditTransactionType.USAGE,
+        amount: -credits,
+        balance: newCreditsRemaining,
+        usageType,
+        referenceId,
+        referenceType,
+        description: description || `Usage: ${usageType}`,
+        metadata: {
+          model: usage.model,
+          inputTokens: usage.inputTokens,
+          outputTokens: usage.outputTokens,
+          audioDurationSeconds: usage.audioDurationSeconds,
+          audioInputTokens: usage.audioInputTokens,
+          audioOutputTokens: usage.audioOutputTokens,
+          characterCount: usage.characterCount,
+          usdCost,
+          breakdown,
+        },
+      },
+    });
+
+    // Check usage thresholds and send notifications
+    await this.checkUsageThresholdsAndNotify(userId, subscription, newCreditsUsed);
+
+    return { credits, usdCost, transaction };
   }
 
   /**
@@ -488,3 +662,11 @@ export class CreditService {
 
 // Export singleton instance
 export const creditService = new CreditService();
+
+// Re-export types and utilities from credit-calculator for convenience
+export type { TokenUsage, CreditCalculationResult } from './credit-calculator';
+export {
+  calculateCreditsFromUsage,
+  getUsageTypeFromModel,
+  aggregateUsage,
+} from './credit-calculator';

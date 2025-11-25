@@ -140,13 +140,14 @@ ${learningObjectives.map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
       },
     ];
 
-    // Create streaming response
+    // Create streaming response with usage tracking
     const stream = await openai.chat.completions.create({
       model: MODELS.RESPONSE,
       messages: conversationMessages,
       temperature: 0.7,
       max_tokens: 300,
       stream: true,
+      stream_options: { include_usage: true }, // Enable usage tracking for usage-based credits
     });
 
     // Create readable stream for SSE
@@ -155,6 +156,9 @@ ${learningObjectives.map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
       async start(controller) {
         try {
           let fullResponse = '';
+          // Track token usage for usage-based credit deduction
+          let inputTokens = 0;
+          let outputTokens = 0;
 
           for await (const chunk of stream) {
             const content = chunk.choices[0]?.delta?.content || '';
@@ -163,6 +167,12 @@ ${learningObjectives.map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
               // Send SSE format: data: {json}\n\n
               const data = JSON.stringify({ content, done: false });
               controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+            }
+
+            // Capture usage from the final chunk (contains total token counts)
+            if (chunk.usage) {
+              inputTokens = chunk.usage.prompt_tokens;
+              outputTokens = chunk.usage.completion_tokens;
             }
           }
 
@@ -189,6 +199,10 @@ ${learningObjectives.map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
           let audioData: string | undefined;
           let audioType: string | undefined;
 
+          // Track TTS credit deduction
+          let ttsCreditsDeducted = 0;
+          let ttsUsdCost = 0;
+
           // Only generate TTS if user sent a voice message
           if (isVoiceMessage) {
             try {
@@ -212,11 +226,28 @@ ${learningObjectives.map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
                 const audioBuffer = await synthesis.audioBlob.arrayBuffer();
                 audioData = Buffer.from(audioBuffer).toString('base64');
                 audioType = 'audio/mpeg';
+
+                // Deduct credits for TTS usage
+                const ttsResult = await creditService.deductCreditsFromUsage(
+                  attempt.userId,
+                  {
+                    model: 'gpt-4o-mini-tts',
+                    characterCount: fullResponse.length,
+                  },
+                  attemptId,
+                  'task_attempt_tts',
+                  'TTS synthesis for voice response'
+                );
+                ttsCreditsDeducted = ttsResult.credits;
+                ttsUsdCost = ttsResult.usdCost;
               }
 
               console.log('[Streaming] TTS result:', {
                 success: synthesis.success,
                 hasAudioData: !!audioData,
+                characterCount: fullResponse.length,
+                ttsCreditsDeducted,
+                ttsUsdCost,
                 error: synthesis.error,
               });
             } catch (ttsError) {
@@ -253,14 +284,31 @@ ${learningObjectives.map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
             },
           });
 
-          // Deduct credit for text chat message
-          await creditService.deductCredits(
+          // Deduct credits based on actual token usage (usage-based billing)
+          // For voice messages, force deduct text credits even for unlimited text tiers
+          // This ensures voice chat uses credits while text-only chat remains unlimited
+          const creditResult = await creditService.deductCreditsFromUsage(
             attempt.userId,
-            UsageType.TEXT_CHAT,
-            1,
+            {
+              model: MODELS.RESPONSE,
+              inputTokens,
+              outputTokens,
+            },
             attemptId,
-            'task_attempt'
+            isVoiceMessage ? 'task_attempt_voice' : 'task_attempt',
+            isVoiceMessage ? 'Voice chat text generation' : 'Task chat message',
+            isVoiceMessage // forceDeduct: true for voice messages
           );
+
+          console.log('[Task Stream] Credit deduction:', {
+            attemptId,
+            tokensUsed: { input: inputTokens, output: outputTokens },
+            textCreditsDeducted: creditResult.credits,
+            textUsdCost: creditResult.usdCost,
+            ttsCreditsDeducted,
+            ttsUsdCost,
+            totalCreditsDeducted: creditResult.credits + ttsCreditsDeducted,
+          });
 
           // Send completion event with audio data (base64)
           const doneData = JSON.stringify({

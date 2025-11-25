@@ -33,6 +33,13 @@ interface EarningReportsTabProps {
   expenses: {
     total: number;
     apiUsage: number;
+    credits?: number;
+    costUSD?: number;
+    byType?: {
+      textChat: number;
+      voice: number;
+      realtime: number;
+    };
   };
   profit: {
     total: number;
@@ -151,7 +158,25 @@ export function EarningReportsTab({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatRupiah(expenses.apiUsage)}</div>
-            <p className="text-xs text-muted-foreground">OpenAI usage</p>
+            <p className="text-xs text-muted-foreground">
+              {expenses.credits?.toLocaleString() || 0} credits used
+            </p>
+            {expenses.byType && (
+              <div className="mt-3 space-y-1 text-xs">
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Text Chat:</span>
+                  <span>{formatRupiah(expenses.byType.textChat)}</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Voice:</span>
+                  <span>{formatRupiah(expenses.byType.voice)}</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Realtime:</span>
+                  <span>{formatRupiah(expenses.byType.realtime)}</span>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

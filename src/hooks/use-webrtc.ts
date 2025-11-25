@@ -111,6 +111,25 @@ export default function useWebRTCAudioSession(
   const pendingAssistantMessagesRef = useRef<Conversation[]>([]);
 
   // ============================================
+  // TOKEN USAGE TRACKING (for usage-based credits)
+  // ============================================
+
+  /** Track audio input tokens (user speech) */
+  const audioInputTokensRef = useRef<number>(0);
+
+  /** Track audio output tokens (AI speech) */
+  const audioOutputTokensRef = useRef<number>(0);
+
+  /** Track text input tokens (instructions, context) */
+  const textInputTokensRef = useRef<number>(0);
+
+  /** Track text output tokens (transcription, etc.) */
+  const textOutputTokensRef = useRef<number>(0);
+
+  /** Session start time for duration tracking */
+  const sessionStartTimeRef = useRef<number | null>(null);
+
+  // ============================================
   // TRANSCRIPTION VALIDATION
   // Filters out Whisper hallucinations from background noise
   // ============================================
@@ -487,6 +506,40 @@ export default function useWebRTCAudioSession(
           break;
         }
 
+        // ----------------------------------------
+        // USAGE TRACKING EVENTS (for credit deduction)
+        // ----------------------------------------
+
+        // Response completed - contains usage data
+        case 'response.done': {
+          // Extract usage data from response
+          const usage = msg.response?.usage;
+          if (usage) {
+            // Accumulate token usage
+            if (usage.input_tokens) {
+              textInputTokensRef.current += usage.input_tokens;
+            }
+            if (usage.output_tokens) {
+              textOutputTokensRef.current += usage.output_tokens;
+            }
+            // Audio tokens might be in different fields depending on API version
+            if (usage.input_token_details?.audio_tokens) {
+              audioInputTokensRef.current += usage.input_token_details.audio_tokens;
+            }
+            if (usage.output_token_details?.audio_tokens) {
+              audioOutputTokensRef.current += usage.output_token_details.audio_tokens;
+            }
+
+            console.log('[WebRTC] Usage accumulated:', {
+              audioInput: audioInputTokensRef.current,
+              audioOutput: audioOutputTokensRef.current,
+              textInput: textInputTokensRef.current,
+              textOutput: textOutputTokensRef.current,
+            });
+          }
+          break;
+        }
+
         default:
           // Ignore unhandled message types
           break;
@@ -536,6 +589,13 @@ export default function useWebRTCAudioSession(
    */
   async function startSession() {
     try {
+      // Reset token usage counters for new session
+      audioInputTokensRef.current = 0;
+      audioOutputTokensRef.current = 0;
+      textInputTokensRef.current = 0;
+      textOutputTokensRef.current = 0;
+      sessionStartTimeRef.current = Date.now();
+
       // Check for getUserMedia support
       if (!navigator.mediaDevices?.getUserMedia) {
         throw new Error(
@@ -605,10 +665,63 @@ export default function useWebRTCAudioSession(
   }
 
   /**
+   * Deduct credits for realtime session usage
+   * Called when session ends to charge for actual usage
+   */
+  async function deductCreditsForSession() {
+    // Calculate session duration
+    const sessionDurationSeconds = sessionStartTimeRef.current
+      ? Math.ceil((Date.now() - sessionStartTimeRef.current) / 1000)
+      : 0;
+
+    // Only deduct if there was actual usage
+    const hasUsage =
+      audioInputTokensRef.current > 0 ||
+      audioOutputTokensRef.current > 0 ||
+      textInputTokensRef.current > 0 ||
+      textOutputTokensRef.current > 0;
+
+    if (!hasUsage) {
+      console.log('[WebRTC] No usage to deduct');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/realtime/deduct-credits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          audioInputTokens: audioInputTokensRef.current,
+          audioOutputTokens: audioOutputTokensRef.current,
+          textInputTokens: textInputTokensRef.current,
+          textOutputTokens: textOutputTokensRef.current,
+          sessionDurationSeconds,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('[WebRTC] Credits deducted:', {
+          credits: result.credits,
+          usdCost: result.usdCost,
+          sessionDurationSeconds,
+        });
+      } else {
+        console.error('[WebRTC] Failed to deduct credits:', response.status);
+      }
+    } catch (error) {
+      console.error('[WebRTC] Error deducting credits:', error);
+    }
+  }
+
+  /**
    * Stop the current WebRTC session and cleanup all resources
    * Closes data channel, peer connection, audio context, and media stream
    */
   function stopSession() {
+    // Deduct credits for the session (fire-and-forget, don't block cleanup)
+    deductCreditsForSession();
+
     // Close data channel
     if (dataChannelRef.current) {
       dataChannelRef.current.close();
@@ -635,6 +748,9 @@ export default function useWebRTCAudioSession(
 
     // Reset ephemeral message state
     ephemeralUserMessageIdRef.current = null;
+
+    // Reset session start time
+    sessionStartTimeRef.current = null;
 
     // Update session state
     setIsSessionActive(false);

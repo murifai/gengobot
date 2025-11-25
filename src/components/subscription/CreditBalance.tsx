@@ -1,12 +1,11 @@
 'use client';
 
-import { Zap, Clock, MessageSquare, Mic } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
-import { SubscriptionTier, UsageType } from '@prisma/client';
-import { CREDIT_COSTS, estimateMinutesFromCredits } from '@/lib/subscription/credit-config';
+import { SubscriptionTier } from '@prisma/client';
 
 interface CreditBalanceProps {
   total: number;
@@ -41,11 +40,6 @@ export function CreditBalance({
   const formatCredits = (credits: number) => {
     return new Intl.NumberFormat('id-ID').format(credits);
   };
-
-  // Estimate usage in minutes
-  const voiceMinutes = estimateMinutesFromCredits(remaining, UsageType.VOICE_STANDARD);
-  const realtimeMinutes = estimateMinutesFromCredits(remaining, UsageType.REALTIME);
-  const textMessages = Math.floor(remaining / CREDIT_COSTS.TEXT_CHAT_PER_MESSAGE);
 
   if (compact) {
     return (
@@ -104,30 +98,6 @@ export function CreditBalance({
             <Progress value={trialDailyUsed} max={trialDailyLimit} className="h-1.5" />
           </div>
         )}
-
-        {/* Estimated usage */}
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Estimasi Penggunaan
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="flex flex-col items-center rounded-lg bg-muted/50 p-2">
-              <Mic className="h-4 w-4 text-muted-foreground mb-1" />
-              <span className="text-sm font-medium">{voiceMinutes}</span>
-              <span className="text-xs text-muted-foreground">menit voice</span>
-            </div>
-            <div className="flex flex-col items-center rounded-lg bg-muted/50 p-2">
-              <Clock className="h-4 w-4 text-muted-foreground mb-1" />
-              <span className="text-sm font-medium">{realtimeMinutes}</span>
-              <span className="text-xs text-muted-foreground">menit realtime</span>
-            </div>
-            <div className="flex flex-col items-center rounded-lg bg-muted/50 p-2">
-              <MessageSquare className="h-4 w-4 text-muted-foreground mb-1" />
-              <span className="text-sm font-medium">{textMessages}</span>
-              <span className="text-xs text-muted-foreground">pesan chat</span>
-            </div>
-          </div>
-        </div>
 
         {/* Period end date */}
         {periodEnd && (

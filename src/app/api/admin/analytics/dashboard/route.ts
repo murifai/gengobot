@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth/admin-auth';
+import { CREDIT_CONVERSION_RATE } from '@/lib/subscription/credit-config';
+
+// USD to IDR conversion rate
+const USD_TO_IDR = 15500;
+
+// Monthly API budget in IDR (configurable)
+const MONTHLY_API_BUDGET_IDR = 2000000; // Rp 2,000,000
 
 export async function GET() {
   try {
@@ -24,6 +31,9 @@ export async function GET() {
       usersByDomicile,
       totalRevenue,
       monthlyRevenue,
+      // API usage queries
+      monthlyAPIUsage,
+      totalAPIUsage,
     ] = await Promise.all([
       // Total users
       prisma.user.count(),
@@ -106,6 +116,23 @@ export async function GET() {
           createdAt: { gte: startOfMonth },
         },
       }),
+
+      // Monthly API usage (credits used this month)
+      prisma.creditTransaction.aggregate({
+        _sum: { amount: true },
+        _count: true,
+        where: {
+          type: 'USAGE',
+          createdAt: { gte: startOfMonth },
+        },
+      }),
+
+      // Total API usage (all time)
+      prisma.creditTransaction.aggregate({
+        _sum: { amount: true },
+        _count: true,
+        where: { type: 'USAGE' },
+      }),
     ]);
 
     // Transform subscriptions by tier
@@ -134,12 +161,28 @@ export async function GET() {
     const totalRevenueAmount = totalRevenue._sum.amount || 0;
     const monthlyRevenueAmount = monthlyRevenue._sum.amount || 0;
 
-    // Get API usage data (placeholder - needs actual implementation based on your tracking)
+    // Calculate API usage from CreditTransaction
+    const monthlyCredits = Math.abs(monthlyAPIUsage._sum.amount || 0);
+    const totalCredits = Math.abs(totalAPIUsage._sum.amount || 0);
+    const monthlyCostUSD = monthlyCredits * CREDIT_CONVERSION_RATE;
+    const monthlyCostIDR = Math.round(monthlyCostUSD * USD_TO_IDR);
+    const totalCostIDR = Math.round(totalCredits * CREDIT_CONVERSION_RATE * USD_TO_IDR);
+
+    // Calculate percentage of budget used
+    const percentageUsed =
+      MONTHLY_API_BUDGET_IDR > 0 ? (monthlyCostIDR / MONTHLY_API_BUDGET_IDR) * 100 : 0;
+
+    // API usage data for dashboard
     const apiUsage = {
-      current: 0,
-      limit: 100000,
-      percentage: 0,
-      costInRupiah: 0,
+      credits: monthlyCredits,
+      transactions: monthlyAPIUsage._count || 0,
+      costUSD: monthlyCostUSD,
+      costInRupiah: monthlyCostIDR,
+      budgetIDR: MONTHLY_API_BUDGET_IDR,
+      percentage: parseFloat(percentageUsed.toFixed(1)),
+      // Legacy fields for backward compatibility
+      current: monthlyCredits,
+      limit: Math.round(MONTHLY_API_BUDGET_IDR / (CREDIT_CONVERSION_RATE * USD_TO_IDR)), // Budget in credits
     };
 
     return NextResponse.json({
@@ -166,8 +209,14 @@ export async function GET() {
       earnings: {
         totalRevenue: totalRevenueAmount,
         monthlyRevenue: monthlyRevenueAmount,
-        profit: Math.round(totalRevenueAmount * 0.7), // Estimated 70% profit margin
-        expenses: Math.round(totalRevenueAmount * 0.3), // Estimated 30% expenses
+        profit: totalRevenueAmount - totalCostIDR,
+        expenses: totalCostIDR,
+        profitMargin:
+          totalRevenueAmount > 0
+            ? parseFloat(
+                (((totalRevenueAmount - totalCostIDR) / totalRevenueAmount) * 100).toFixed(1)
+              )
+            : 0,
       },
       apiUsage,
     });
