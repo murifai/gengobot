@@ -1,28 +1,37 @@
 'use client';
 
 import { useState } from 'react';
-import DeckLearningWithSRS from './DeckLearningWithSRS';
+import FlashcardNeo from './FlashcardNeo';
 import DeckStatistics from './DeckStatistics';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
 
 interface Flashcard {
   id: string;
   cardType: string;
+  // Kana fields
+  character?: string;
+  romaji?: string;
+  strokeSvg?: string;
+  // Kanji fields
   kanji?: string;
   kanjiMeaning?: string;
   onyomi?: string;
   kunyomi?: string;
+  // Vocabulary fields
   word?: string;
   wordMeaning?: string;
   reading?: string;
   partOfSpeech?: string;
+  // Grammar fields
   grammarPoint?: string;
   grammarMeaning?: string;
   usageNote?: string;
+  // Common fields
   exampleSentence?: string;
   exampleTranslation?: string;
   notes?: string;
+  audioUrl?: string;
+  exampleAudioUrl?: string;
+  // SRS fields
   nextReviewDate?: string;
   easeFactor: number;
   interval: number;
@@ -77,7 +86,7 @@ export default function DeckLearningWithStats({
   // Learning View - Active SRS learning session
   if (viewMode === 'learning') {
     return (
-      <DeckLearningWithSRS
+      <FlashcardNeo
         deck={deck}
         sessionId={sessionId}
         onComplete={handleCompleteLearning}
@@ -89,13 +98,26 @@ export default function DeckLearningWithStats({
   // Completed View - Show stats after completion
   if (viewMode === 'completed') {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+      <div className="min-h-screen bg-background p-4">
         <div className="max-w-4xl mx-auto">
           {/* Completion Header */}
-          <Card className="p-8 text-center mb-6">
-            <div className="flex justify-center mb-4">
+          <div
+            className="p-8 text-center mb-6 bg-white"
+            style={{
+              border: '3px solid #000',
+              boxShadow: '4px 4px 0px 0px #000',
+            }}
+          >
+            <div
+              className="w-20 h-20 mx-auto mb-4 flex items-center justify-center"
+              style={{
+                backgroundColor: 'var(--tertiary-green, #22c55e)',
+                border: '3px solid #000',
+                boxShadow: '3px 3px 0px 0px #000',
+              }}
+            >
               <svg
-                className="w-16 h-16 text-green-500"
+                className="w-12 h-12 text-white"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -103,33 +125,44 @@ export default function DeckLearningWithStats({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  strokeWidth={3}
+                  d="M5 13l4 4L19 7"
                 />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Sesi Belajar Selesai!
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Hebat! Kamu telah menyelesaikan sesi belajar untuk deck <strong>{deck.name}</strong>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Sesi Belajar Selesai!</h1>
+            <p className="text-muted-foreground">
+              Hebat! Kamu telah menyelesaikan sesi belajar untuk deck{' '}
+              <strong className="text-foreground">{deck.name}</strong>
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-              Lihat progresmu di bawah ini
-            </p>
-          </Card>
+            <p className="text-sm text-muted-foreground mt-2">Lihat progresmu di bawah ini</p>
+          </div>
 
           {/* Statistics */}
           <DeckStatistics deckId={deck.id} />
 
           {/* Action Buttons */}
-          <div className="mt-8 flex gap-4 justify-center">
-            <Button onClick={onComplete} size="lg">
+          <div className="mt-8 flex gap-4 justify-center flex-wrap">
+            <button
+              onClick={onComplete}
+              className="px-8 py-4 font-bold text-lg bg-primary text-white transition-transform hover:translate-y-[-2px]"
+              style={{
+                border: '3px solid #000',
+                boxShadow: '4px 4px 0px 0px #000',
+              }}
+            >
               Selesai
-            </Button>
-            <Button onClick={onExit} variant="secondary" size="lg">
+            </button>
+            <button
+              onClick={onExit}
+              className="px-8 py-4 font-bold text-lg bg-white text-foreground transition-transform hover:translate-y-[-2px]"
+              style={{
+                border: '3px solid #000',
+                boxShadow: '4px 4px 0px 0px #000',
+              }}
+            >
               Kembali ke Daftar Deck
-            </Button>
+            </button>
           </div>
         </div>
       </div>

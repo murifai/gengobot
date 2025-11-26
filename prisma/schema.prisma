@@ -166,6 +166,8 @@ model User {
   voucherRedemptions VoucherRedemption[]
   pendingPayments    PendingPayment[]
   notifications      Notification[]
+  favoriteDecks      UserFavorite[]
+  studyingDecks      UserStudyingDeck[]
 
   @@index([email])
   @@index([isAdmin])
@@ -332,8 +334,11 @@ model Deck {
   name        String
   description String? @db.Text
   isPublic    Boolean @default(false)
-  category    String? // Kanji, Vocabulary, Grammar, Mixed, etc.
-  difficulty  String? // N1-N5 JLPT levels
+  category    String? // Kanji, Vocabulary, Grammar, Mixed, Hiragana, Katakana, etc.
+  difficulty  String? // N1-N5 JLPT levels, or "unspecified" for non-JLPT content
+
+  // Share feature
+  shareToken String? @unique // Unique token for shareable links
 
   // Analytics
   totalCards   Int    @default(0)
@@ -346,16 +351,19 @@ model Deck {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  creator       User           @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  creator       User              @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   flashcards    Flashcard[]
   studySessions StudySession[]
   taskDecks     TaskDeck[]
+  favorites     UserFavorite[]
+  studyingUsers UserStudyingDeck[]
 
   @@index([createdBy])
   @@index([category])
   @@index([difficulty])
   @@index([isActive])
   @@index([isPublic])
+  @@index([shareToken])
 }
 
 // Flashcard model - Individual study cards with spaced repetition
@@ -364,7 +372,12 @@ model Flashcard {
   deckId String
 
   // Card type determines which fields are used
-  cardType String // "kanji", "vocabulary", "grammar"
+  cardType String // "kanji", "vocabulary", "grammar", "hiragana", "katakana"
+
+  // Hiragana/Katakana Card Fields
+  character String? // The kana character (あ, ア, etc.)
+  romaji    String? // Romanized reading (a, ka, etc.)
+  strokeSvg String? @db.Text // KanjiVG SVG data for stroke animation
 
   // Kanji Card Fields
   kanji        String?
@@ -388,6 +401,10 @@ model Flashcard {
   exampleTranslation String? @db.Text
   notes              String? @db.Text
   tags               Json? // Array of tags for filtering
+
+  // Audio Fields (optional upload, fallback to Web Speech API)
+  audioUrl        String? // Main pronunciation audio URL
+  exampleAudioUrl String? // Example sentence audio URL
 
   // Spaced Repetition Algorithm (SM-2)
   easeFactor     Float     @default(2.5) // Difficulty rating
@@ -462,6 +479,38 @@ model StudySession {
   @@index([deckId])
   @@index([startTime])
   @@index([isCompleted])
+}
+
+// UserFavorite model - Track user's favorite decks
+model UserFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  deckId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deck Deck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deckId])
+  @@index([userId])
+  @@index([deckId])
+}
+
+// UserStudyingDeck model - Track decks user is currently studying
+model UserStudyingDeck {
+  id          String   @id @default(cuid())
+  userId      String
+  deckId      String
+  lastStudied DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deck Deck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deckId])
+  @@index([userId])
+  @@index([deckId])
+  @@index([lastStudied])
 }
 
 // FreeConversation model - Free conversation sessions (Kaiwa Bebas)

@@ -51,23 +51,43 @@ export async function GET(request: Request, { params }: RouteParams) {
         deckId: deckId,
         isCompleted: true,
       },
-      include: {
-        reviews: {
-          select: {
-            rating: true,
-          },
-        },
-      },
       orderBy: {
         endTime: 'desc',
       },
     });
 
+    // Get total cards in deck
+    const totalCardsInDeck = await prisma.flashcard.count({
+      where: {
+        deckId: deckId,
+        isActive: true,
+      },
+    });
+
+    // Get unique cards mastery status based on LATEST review for each card
+    // This prevents duplicate counting when reviewing the same card multiple times
+    const latestReviews = await prisma.$queryRaw<Array<{ flashcardId: string; rating: string }>>`
+      SELECT DISTINCT ON (fr."flashcardId")
+        fr."flashcardId",
+        fr."rating"
+      FROM "FlashcardReview" fr
+      INNER JOIN "StudySession" ss ON fr."sessionId" = ss."id"
+      INNER JOIN "Flashcard" f ON fr."flashcardId" = f."id"
+      WHERE ss."userId" = ${dbUser.id}
+        AND f."deckId" = ${deckId}
+        AND f."isActive" = true
+      ORDER BY fr."flashcardId", fr."reviewedAt" DESC
+    `;
+
+    // Count unique hafal and belum hafal
+    const uniqueHafal = latestReviews.filter(r => r.rating === 'hafal').length;
+    const uniqueBelumHafal = latestReviews.filter(r => r.rating === 'belum_hafal').length;
+    const uniqueReviewedCards = latestReviews.length;
+    const notReviewedCards = totalCardsInDeck - uniqueReviewedCards;
+
     // Calculate overall statistics
     const totalSessions = sessions.length;
     const totalCardsReviewed = sessions.reduce((sum, s) => sum + s.cardsReviewed, 0);
-    const totalHafal = sessions.reduce((sum, s) => sum + s.hafalCount, 0);
-    const totalBelumHafal = sessions.reduce((sum, s) => sum + s.belumHafalCount, 0);
 
     // Calculate total study time (in minutes)
     const totalStudyTime = sessions.reduce((sum, s) => {
@@ -78,11 +98,11 @@ export async function GET(request: Request, { params }: RouteParams) {
       return sum;
     }, 0);
 
-    // Calculate mastery percentage
-    const totalRatings = totalHafal + totalBelumHafal;
-    const masteredPercentage = totalRatings > 0 ? Math.round((totalHafal / totalRatings) * 100) : 0;
+    // Calculate mastery percentage based on unique cards vs total cards in deck
+    const masteredPercentage =
+      totalCardsInDeck > 0 ? Math.round((uniqueHafal / totalCardsInDeck) * 100) : 0;
     const notMasteredPercentage =
-      totalRatings > 0 ? Math.round((totalBelumHafal / totalRatings) * 100) : 0;
+      totalCardsInDeck > 0 ? Math.round((uniqueBelumHafal / totalCardsInDeck) * 100) : 0;
 
     // Calculate study streak (consecutive days with sessions for this deck)
     const studyStreak = await calculateDeckStudyStreak(dbUser.id, deckId);
@@ -114,6 +134,12 @@ export async function GET(request: Request, { params }: RouteParams) {
         studyStreak,
         masteredPercentage,
         notMasteredPercentage,
+        // New unique card stats
+        totalCardsInDeck,
+        uniqueHafal,
+        uniqueBelumHafal,
+        uniqueReviewedCards,
+        notReviewedCards,
       },
       recentSessions,
     });

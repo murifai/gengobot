@@ -64,7 +64,9 @@ export default function DeckLearningWithSRS({
 
   const currentCard = deck.flashcards[currentIndex];
   const totalCards = deck.flashcards.length;
-  const progress = ((ratedCards.size / totalCards) * 100).toFixed(0);
+  // Progress based on current position, not rated cards count
+  // This prevents stuck progress when user hasn't rated yet
+  const progress = (((currentIndex + 1) / totalCards) * 100).toFixed(0);
 
   // Minimum swipe distance (in px)
   const minSwipeDistance = 50;

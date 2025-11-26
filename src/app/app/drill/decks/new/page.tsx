@@ -80,7 +80,8 @@ export default function NewDeckPage() {
         alert(
           `Deck imported successfully!\n${data.cardsImported} cards imported${data.errors.length > 0 ? `\n${data.errors.length} errors found` : ''}`
         );
-        router.push(`/app/drill/decks/${data.deckId}/edit`);
+        // Redirect to card list page (not settings) so user can immediately manage cards
+        router.push(`/app/drill/decks/${data.deckId}`);
       } else {
         alert(`Failed to import deck: ${data.error || 'Unknown error'}`);
       }
@@ -118,7 +119,8 @@ export default function NewDeckPage() {
       if (response.ok) {
         const deck = await response.json();
         alert('Deck created successfully!');
-        router.push(`/app/drill/decks/${deck.id}/edit`);
+        // Redirect to card list page (not settings) so user can immediately add cards
+        router.push(`/app/drill/decks/${deck.id}`);
       } else {
         const data = await response.json();
         alert(`Failed to create deck: ${data.error}`);

@@ -60,10 +60,26 @@ export async function GET() {
       return sum;
     }, 0);
 
-    // Get rating distribution
+    // Get rating distribution based on UNIQUE cards (latest review only)
+    // This prevents double counting when reviewing the same card multiple times
+    const latestReviews = await prisma.$queryRaw<Array<{ flashcardId: string; rating: string }>>`
+      SELECT DISTINCT ON (fr."flashcardId")
+        fr."flashcardId",
+        fr."rating"
+      FROM "FlashcardReview" fr
+      INNER JOIN "StudySession" ss ON fr."sessionId" = ss."id"
+      WHERE ss."userId" = ${dbUser.id}
+      ORDER BY fr."flashcardId", fr."reviewedAt" DESC
+    `;
+
+    const uniqueHafal = latestReviews.filter(r => r.rating === 'hafal').length;
+    const uniqueBelumHafal = latestReviews.filter(r => r.rating === 'belum_hafal').length;
+
     const ratingDistribution = {
-      belumHafal: sessions.reduce((sum, s) => sum + s.belumHafalCount, 0),
-      hafal: sessions.reduce((sum, s) => sum + s.hafalCount, 0),
+      belumHafal: uniqueBelumHafal,
+      hafal: uniqueHafal,
+      // Also include cumulative for reference
+      totalReviews: sessions.reduce((sum, s) => sum + s.hafalCount + s.belumHafalCount, 0),
     };
 
     // Get cards due for review today
