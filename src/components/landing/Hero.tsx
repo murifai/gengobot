@@ -33,7 +33,7 @@ export function Hero() {
         </div>
         {/* Image placeholder */}
         <div className="flex-1 w-full max-w-lg">
-          <div className="aspect-square rounded-2xl bg-gradient-to-br from-primary/10 to-chart-2/10 border-2 border-border flex items-center justify-center">
+          <div className="aspect-square rounded-base bg-gradient-to-br from-primary/10 to-chart-2/10 border-2 border-border shadow-shadow flex items-center justify-center">
             <p className="text-muted-foreground">Hero Image</p>
           </div>
         </div>

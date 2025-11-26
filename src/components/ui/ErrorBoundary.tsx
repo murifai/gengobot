@@ -101,8 +101,8 @@ interface ErrorFallbackProps {
 
 function ErrorFallback({ error, onReset }: ErrorFallbackProps) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+    <div className="min-h-screen flex items-center justify-center bg-secondary-background px-4">
+      <div className="max-w-md w-full bg-background rounded-base border-2 border-border shadow-shadow p-8">
         <div className="flex items-center justify-center w-12 h-12 mx-auto bg-primary/10 rounded-full mb-4">
           <svg
             className="w-6 h-6 text-primary"
@@ -119,15 +119,15 @@ function ErrorFallback({ error, onReset }: ErrorFallbackProps) {
           </svg>
         </div>
 
-        <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-2">
+        <h2 className="text-2xl font-bold text-center text-foreground mb-2">
           予期しないエラーが発生しました
         </h2>
-        <p className="text-sm text-center text-gray-600 dark:text-gray-400 mb-6">
+        <p className="text-sm text-center text-muted-foreground mb-6">
           An unexpected error occurred
         </p>
 
         {error && (
-          <div className="bg-primary/10 border border-primary/30 rounded-md p-4 mb-6">
+          <div className="bg-primary/10 border-2 border-primary/30 rounded-base p-4 mb-6">
             <p className="text-sm font-mono text-red-800 dark:text-red-300 break-all">
               {error.message}
             </p>
@@ -137,20 +137,20 @@ function ErrorFallback({ error, onReset }: ErrorFallbackProps) {
         <div className="space-y-3">
           <button
             onClick={onReset}
-            className="w-full px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors duration-200"
+            className="w-full px-4 py-2 bg-primary text-white rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all duration-200"
           >
             もう一度試す (Try Again)
           </button>
 
           <button
             onClick={() => (window.location.href = '/')}
-            className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
+            className="w-full px-4 py-2 bg-secondary-background text-foreground rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all duration-200"
           >
             ホームに戻る (Go Home)
           </button>
         </div>
 
-        <p className="text-xs text-center text-gray-500 dark:text-gray-500 mt-6">
+        <p className="text-xs text-center text-muted-foreground mt-6">
           問題が続く場合は、サポートにお問い合わせください
           <br />
           If the problem persists, please contact support
@@ -179,7 +179,7 @@ export function TaskError({
   onCancel,
 }: TaskErrorProps) {
   return (
-    <div className="bg-primary/10 border border-primary/30 rounded-lg p-6">
+    <div className="bg-primary/10 border-2 border-primary/30 rounded-base p-6">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0">
           <svg
@@ -211,7 +211,7 @@ export function TaskError({
             {onRetry && (
               <button
                 onClick={onRetry}
-                className="px-3 py-1.5 text-sm bg-primary text-white rounded hover:brightness-90 transition-all"
+                className="px-3 py-1.5 text-sm bg-primary text-white rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
               >
                 再試行 (Retry)
               </button>
@@ -219,7 +219,7 @@ export function TaskError({
             {onCancel && (
               <button
                 onClick={onCancel}
-                className="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                className="px-3 py-1.5 text-sm bg-secondary-background text-foreground rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
               >
                 キャンセル (Cancel)
               </button>

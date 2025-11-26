@@ -81,16 +81,14 @@ export function HintButton({
       </Button>
 
       {showTooltip && hint && (
-        <div className="absolute bottom-full left-0 right-0 mb-2 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
-          <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap pr-6">
-            {hint}
-          </p>
+        <div className="absolute bottom-full left-0 right-0 mb-2 p-4 bg-background rounded-base border-2 border-border shadow-shadow z-50">
+          <p className="text-sm text-foreground whitespace-pre-wrap pr-6">{hint}</p>
           <button
             onClick={() => setShowTooltip(false)}
-            className="absolute top-2 right-2 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+            className="absolute top-2 right-2 p-1 hover:bg-main/20 rounded-base"
             aria-label="Close hint"
           >
-            <X className="h-4 w-4 text-gray-500" />
+            <X className="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
       )}

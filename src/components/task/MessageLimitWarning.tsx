@@ -24,10 +24,10 @@ export function MessageLimitWarning({
 
   return (
     <div
-      className={`animate-slide-down mb-4 rounded-lg border-2 ${
+      className={`animate-slide-down mb-4 rounded-base border-2 shadow-shadow ${
         isWarning
-          ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400 dark:border-yellow-600'
-          : 'bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-600'
+          ? 'bg-yellow-50 dark:bg-yellow-900/20 border-border'
+          : 'bg-red-50 dark:bg-red-900/20 border-border'
       }`}
     >
       <div className="flex items-start gap-3 p-4">
@@ -71,7 +71,7 @@ export function MessageLimitWarning({
           {/* Progress indicator */}
           <div className="mt-3 flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-muted-foreground" />
-            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+            <div className="flex-1 h-2 bg-muted rounded-base border-2 border-border overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
                   isWarning ? 'bg-yellow-500' : 'bg-red-500'
@@ -93,7 +93,7 @@ export function MessageLimitWarning({
         {isCritical && onComplete && (
           <button
             onClick={onComplete}
-            className="flex-shrink-0 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white font-medium text-sm py-2 px-4 rounded-lg transition-colors shadow-md"
+            className="flex-shrink-0 bg-red-600 hover:bg-red-700 text-white font-medium text-sm py-2 px-4 rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
           >
             Complete Task
           </button>

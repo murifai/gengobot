@@ -43,7 +43,7 @@ export default function TaskResumeDialog({
       {/* Dialog */}
       <div className="flex min-h-full items-center justify-center p-4">
         <div
-          className={`relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full transform transition-all duration-300 ${
+          className={`relative bg-background rounded-base border-2 border-border shadow-shadow max-w-md w-full transform transition-all duration-300 ${
             show ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
           }`}
         >
@@ -51,9 +51,9 @@ export default function TaskResumeDialog({
           <div className="px-6 pt-6 pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                <div className="flex-shrink-0 w-10 h-10 rounded-base border-2 border-border bg-primary/10 flex items-center justify-center">
                   <svg
-                    className="w-6 h-6 text-primary-600 dark:text-primary-400"
+                    className="w-6 h-6 text-primary"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -66,7 +66,7 @@ export default function TaskResumeDialog({
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <h3 className="text-lg font-semibold text-foreground">
                   Continue Previous Session?
                 </h3>
               </div>
@@ -75,7 +75,7 @@ export default function TaskResumeDialog({
 
           {/* Content */}
           <div className="px-6 pb-6">
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
+            <p className="text-muted-foreground mb-6">
               You have an ongoing conversation for{' '}
               <span className="font-semibold">{taskTitle}</span>.
             </p>
@@ -85,17 +85,7 @@ export default function TaskResumeDialog({
               {/* Continue Button */}
               <button
                 onClick={onContinue}
-                className="w-full flex items-center justify-center px-4 py-3 font-medium rounded-lg transition-colors duration-200 shadow-sm"
-                style={{
-                  backgroundColor: 'var(--primary)',
-                  color: 'white',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.opacity = '0.9';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.opacity = '1';
-                }}
+                className="w-full flex items-center justify-center px-4 py-3 font-medium rounded-base border-2 border-border shadow-shadow bg-primary text-primary-foreground hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all duration-200"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -117,7 +107,7 @@ export default function TaskResumeDialog({
               {/* Start New Button */}
               <button
                 onClick={onStartNew}
-                className="w-full flex items-center justify-center px-4 py-3 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-lg border-2 border-gray-300 dark:border-gray-600 transition-colors duration-200"
+                className="w-full flex items-center justify-center px-4 py-3 bg-background hover:bg-main/10 text-foreground font-medium rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all duration-200"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -133,7 +123,7 @@ export default function TaskResumeDialog({
               {/* Cancel Button */}
               <button
                 onClick={onCancel}
-                className="w-full px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-200"
+                className="w-full px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
               >
                 Go Back to Tasks
               </button>

@@ -245,9 +245,9 @@ export default function VoiceRecorder({
           {/* Push-to-Talk Hint */}
           {!isRecording && (
             <div className="text-center mb-2">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 Press and hold{' '}
-                <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs font-mono">
+                <kbd className="px-2 py-1 bg-secondary-background border-2 border-border rounded-base text-xs font-mono">
                   Space
                 </kbd>{' '}
                 for push-to-talk
@@ -276,10 +276,10 @@ export default function VoiceRecorder({
               <>
                 <button
                   onClick={stopRecording}
-                  className="w-16 h-16 rounded-full bg-gray-600 hover:bg-gray-700 text-white flex items-center justify-center"
+                  className="w-16 h-16 rounded-full bg-secondary-background border-2 border-border hover:bg-muted text-foreground flex items-center justify-center"
                   aria-label="Stop recording"
                 >
-                  <div className="w-6 h-6 bg-white rounded-sm" />
+                  <div className="w-6 h-6 bg-foreground rounded-sm" />
                 </button>
 
                 <button
@@ -314,13 +314,13 @@ export default function VoiceRecorder({
             <div className="recording-status space-y-2">
               {/* Duration and Progress */}
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">{formatDuration(duration)}</span>
-                <span className="text-gray-400">{formatDuration(remainingTime)}</span>
+                <span className="text-foreground/80">{formatDuration(duration)}</span>
+                <span className="text-muted-foreground">{formatDuration(remainingTime)}</span>
               </div>
 
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-secondary-background rounded-base h-2 border-2 border-border overflow-hidden">
                 <div
-                  className="bg-primary h-2 rounded-full transition-all"
+                  className="bg-primary h-full transition-all"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -328,11 +328,11 @@ export default function VoiceRecorder({
               {/* Volume Indicator */}
               <div className="volume-indicator">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">Volume:</span>
-                  <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                  <span className="text-xs text-muted-foreground">Volume:</span>
+                  <div className="flex-1 bg-secondary-background rounded-base h-1.5 border border-border overflow-hidden">
                     <div
-                      className={`h-1.5 rounded-full transition-all ${
-                        isVoiceActive ? 'bg-tertiary-green' : 'bg-gray-400'
+                      className={`h-full transition-all ${
+                        isVoiceActive ? 'bg-tertiary-green' : 'bg-muted-foreground/50'
                       }`}
                       style={{ width: `${volumeLevel * 100}%` }}
                     />
@@ -345,10 +345,10 @@ export default function VoiceRecorder({
                 <div className="flex items-center gap-2 text-xs">
                   <div
                     className={`w-2 h-2 rounded-full ${
-                      isVoiceActive ? 'bg-tertiary-green' : 'bg-gray-400'
+                      isVoiceActive ? 'bg-tertiary-green' : 'bg-muted-foreground/50'
                     }`}
                   />
-                  <span className="text-gray-600 dark:text-gray-400">
+                  <span className="text-muted-foreground">
                     {isVoiceActive ? 'Voice detected' : 'Listening...'}
                   </span>
                 </div>

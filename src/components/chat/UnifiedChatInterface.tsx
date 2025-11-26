@@ -58,17 +58,17 @@ export default function UnifiedChatInterface({
   const [isSidebarOpen, setIsSidebarOpen] = useState(sidebarDefaultOpen);
 
   return (
-    <div className={cn('fixed inset-0 flex flex-col bg-gray-50 dark:bg-gray-900', className)}>
+    <div className={cn('fixed inset-0 flex flex-col bg-secondary-background', className)}>
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 shrink-0">
+      <div className="bg-background border-b-2 border-border px-4 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 shrink-0">
         {onBack && (
           <button
             onClick={onBack}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="p-2 hover:bg-main/20 rounded-base transition-colors"
             aria-label="Go back"
           >
             <svg
-              className="w-6 h-6 text-gray-900 dark:text-white"
+              className="w-6 h-6 text-foreground"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -83,8 +83,8 @@ export default function UnifiedChatInterface({
           </button>
         )}
         <div className="flex-1">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
-          {subtitle && <p className="text-sm text-gray-600 dark:text-gray-400">{subtitle}</p>}
+          <h2 className="text-xl font-bold text-foreground">{title}</h2>
+          {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
         </div>
         {/* Custom Header Actions */}
         {headerActions && <div className="flex items-center gap-2">{headerActions}</div>}
@@ -92,11 +92,11 @@ export default function UnifiedChatInterface({
         {sidebar && (
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="p-2 hover:bg-main/20 rounded-base transition-colors"
             aria-label={isSidebarOpen ? 'Hide hints' : 'Show hints'}
             title={isSidebarOpen ? 'Hide hints' : 'Show hints'}
           >
-            <span className="text-sm font-medium text-gray-900 dark:text-white sm:inline">
+            <span className="text-sm font-medium text-foreground sm:inline">
               💡 <span className="hidden sm:inline">{isSidebarOpen ? 'Hide' : 'Hints'}</span>
             </span>
           </button>
@@ -107,7 +107,7 @@ export default function UnifiedChatInterface({
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar (optional) */}
         {sidebar && isSidebarOpen && (
-          <div className="w-64 sm:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto shrink-0 transition-all duration-300">
+          <div className="w-64 sm:w-80 bg-background border-r-2 border-border overflow-y-auto shrink-0 transition-all duration-300">
             {sidebar}
           </div>
         )}
@@ -119,7 +119,7 @@ export default function UnifiedChatInterface({
             {messages.length === 0 && emptyStateMessage ? (
               <div className="flex items-center justify-center h-full text-center px-4">
                 <div>
-                  <p className="text-gray-600 dark:text-gray-400 text-lg">{emptyStateMessage}</p>
+                  <p className="text-muted-foreground text-lg">{emptyStateMessage}</p>
                 </div>
               </div>
             ) : (
@@ -133,7 +133,7 @@ export default function UnifiedChatInterface({
           </div>
 
           {/* Input Area */}
-          <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-4 shrink-0">
+          <div className="bg-background border-t-2 border-border px-4 py-4 shrink-0">
             <ChatInput
               onSend={onSendMessage}
               onVoiceRecording={onVoiceRecording}

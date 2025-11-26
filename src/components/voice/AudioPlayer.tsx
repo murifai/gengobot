@@ -230,7 +230,7 @@ export default function AudioPlayer({
 
   return (
     <div className={`audio-player ${className}`}>
-      {error && <div className="text-red-600 text-sm mb-2">{error}</div>}
+      {error && <div className="text-primary text-sm mb-2">{error}</div>}
 
       {showControls && (
         <div className="audio-controls space-y-3">
@@ -280,7 +280,7 @@ export default function AudioPlayer({
 
             {/* Time Display */}
             <div className="flex-1 space-y-1">
-              <div className="flex justify-between text-sm text-gray-600">
+              <div className="flex justify-between text-sm text-foreground/80">
                 <span>{formatTime(currentTime)}</span>
                 <span>{formatTime(duration)}</span>
               </div>
@@ -293,7 +293,7 @@ export default function AudioPlayer({
                 value={currentTime}
                 onChange={handleSeek}
                 disabled={isLoading || !!error}
-                className="w-full h-2 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed"
+                className="w-full h-2 rounded-base appearance-none cursor-pointer disabled:cursor-not-allowed"
                 style={{
                   background: `linear-gradient(to right, var(--primary) 0%, var(--primary) ${progress}%, hsl(var(--muted)) ${progress}%, hsl(var(--muted)) 100%)`,
                 }}
@@ -305,7 +305,7 @@ export default function AudioPlayer({
           <div className="flex items-center gap-4 text-sm">
             {/* Volume Control */}
             <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 text-foreground/80" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
                   d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z"
@@ -319,18 +319,20 @@ export default function AudioPlayer({
                 step="0.1"
                 value={currentVolume}
                 onChange={handleVolumeChange}
-                className="w-20 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                className="w-20 h-1.5 bg-secondary-background rounded-base appearance-none cursor-pointer"
               />
-              <span className="text-xs text-gray-500 w-8">{Math.round(currentVolume * 100)}%</span>
+              <span className="text-xs text-muted-foreground w-8">
+                {Math.round(currentVolume * 100)}%
+              </span>
             </div>
 
             {/* Playback Speed */}
             <div className="flex items-center gap-2">
-              <span className="text-gray-600">Speed:</span>
+              <span className="text-foreground/80">Speed:</span>
               <select
                 value={currentPlaybackRate}
                 onChange={e => handlePlaybackRateChange(parseFloat(e.target.value))}
-                className="px-2 py-1 border border-gray-300 rounded text-sm"
+                className="px-2 py-1 border-2 border-border rounded-base text-sm bg-background"
               >
                 <option value="0.5">0.5x</option>
                 <option value="0.75">0.75x</option>

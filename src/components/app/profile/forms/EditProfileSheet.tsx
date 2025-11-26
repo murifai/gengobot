@@ -74,7 +74,7 @@ export function EditProfileSheet({ user, open, onOpenChange, onSave }: EditProfi
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-6">
           {error && (
-            <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+            <div className="p-3 bg-destructive/10 border-2 border-destructive rounded-base">
               <p className="text-sm text-destructive">{error}</p>
             </div>
           )}

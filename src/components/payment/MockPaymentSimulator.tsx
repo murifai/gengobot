@@ -67,7 +67,12 @@ export function MockPaymentSimulator({
   };
 
   return (
-    <Card className={cn('border-dashed border-2 border-yellow-300 bg-yellow-50', className)}>
+    <Card
+      className={cn(
+        'border-dashed border-2 border-tertiary-yellow bg-tertiary-yellow/10',
+        className
+      )}
+    >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -78,12 +83,12 @@ export function MockPaymentSimulator({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-yellow-700">
+        <p className="text-sm text-foreground">
           Gunakan tombol di bawah untuk mensimulasikan hasil pembayaran. Fitur ini hanya tersedia di
           mode development.
         </p>
 
-        <div className="bg-white rounded-lg p-3 border border-yellow-200">
+        <div className="bg-background rounded-base p-3 border-2 border-border">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Invoice ID</span>
             <span className="font-mono text-xs">{invoiceId}</span>
@@ -99,9 +104,9 @@ export function MockPaymentSimulator({
             onClick={() => simulatePayment('PAID')}
             disabled={isLoading}
             variant="outline"
-            className="flex flex-col items-center gap-1 h-auto py-3 border-green-300 hover:bg-green-50"
+            className="flex flex-col items-center gap-1 h-auto py-3 border-tertiary-green hover:bg-tertiary-green/10"
           >
-            <CheckCircle className="h-5 w-5 text-green-600" />
+            <CheckCircle className="h-5 w-5 text-tertiary-green" />
             <span className="text-xs">Berhasil</span>
           </Button>
 
@@ -109,9 +114,9 @@ export function MockPaymentSimulator({
             onClick={() => simulatePayment('EXPIRED')}
             disabled={isLoading}
             variant="outline"
-            className="flex flex-col items-center gap-1 h-auto py-3 border-gray-300 hover:bg-gray-50"
+            className="flex flex-col items-center gap-1 h-auto py-3"
           >
-            <Clock className="h-5 w-5 text-gray-600" />
+            <Clock className="h-5 w-5 text-muted-foreground" />
             <span className="text-xs">Kadaluarsa</span>
           </Button>
 
@@ -119,15 +124,15 @@ export function MockPaymentSimulator({
             onClick={() => simulatePayment('FAILED')}
             disabled={isLoading}
             variant="outline"
-            className="flex flex-col items-center gap-1 h-auto py-3 border-red-300 hover:bg-red-50"
+            className="flex flex-col items-center gap-1 h-auto py-3 border-primary hover:bg-primary/10"
           >
-            <XCircle className="h-5 w-5 text-red-600" />
+            <XCircle className="h-5 w-5 text-primary" />
             <span className="text-xs">Gagal</span>
           </Button>
         </div>
 
         {isLoading && (
-          <div className="flex items-center justify-center gap-2 text-sm text-yellow-700">
+          <div className="flex items-center justify-center gap-2 text-sm text-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             Memproses simulasi...
           </div>
@@ -136,8 +141,10 @@ export function MockPaymentSimulator({
         {result && (
           <div
             className={cn(
-              'flex items-center gap-2 text-sm p-3 rounded-md',
-              result.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+              'flex items-center gap-2 text-sm p-3 rounded-base border-2 border-border',
+              result.success
+                ? 'bg-tertiary-green/10 text-tertiary-green'
+                : 'bg-primary/10 text-primary'
             )}
           >
             {result.success ? (

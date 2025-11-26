@@ -57,9 +57,9 @@ export default function DeckReview({ deck, onComplete, onExit }: DeckReviewProps
 
   if (!currentCard) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <Card className="max-w-2xl w-full p-8 text-center bg-white dark:bg-white">
-          <p className="text-gray-900 mb-4">Tidak ada kartu dalam dek ini.</p>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-2xl w-full p-8 text-center">
+          <p className="text-foreground mb-4">Tidak ada kartu dalam dek ini.</p>
           <Button onClick={onExit}>Kembali</Button>
         </Card>
       </div>
@@ -100,40 +100,42 @@ export default function DeckReview({ deck, onComplete, onExit }: DeckReviewProps
             {/* Front - Kanji */}
             <div className="mb-8">
               <div className="text-center mb-6">
-                <div className="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium mb-4">
+                <div className="inline-block px-3 py-1 bg-tertiary-purple/20 text-tertiary-purple rounded-base border-2 border-border text-sm font-medium mb-4">
                   Kartu Kanji
                 </div>
               </div>
-              <div className="text-8xl font-bold text-center text-gray-900 mb-4">
+              <div className="text-8xl font-bold text-center text-foreground mb-4">
                 {currentCard.kanji}
               </div>
             </div>
 
             {/* Back - Answer */}
             {showAnswer && (
-              <div className="space-y-4 bg-yellow-100 p-6 rounded-lg">
+              <div className="space-y-4 bg-tertiary-yellow/20 p-6 rounded-base border-2 border-border">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-700 mb-1">Arti</h3>
-                  <p className="text-lg text-gray-900">{currentCard.kanjiMeaning}</p>
+                  <h3 className="text-lg font-bold text-foreground mb-1">Arti</h3>
+                  <p className="text-lg text-foreground">{currentCard.kanjiMeaning}</p>
                 </div>
                 {currentCard.onyomi && (
                   <div>
-                    <h3 className="text-lg font-bold text-gray-700 mb-1">On&apos;yomi</h3>
-                    <p className="text-lg text-gray-900">{currentCard.onyomi}</p>
+                    <h3 className="text-lg font-bold text-foreground mb-1">On&apos;yomi</h3>
+                    <p className="text-lg text-foreground">{currentCard.onyomi}</p>
                   </div>
                 )}
                 {currentCard.kunyomi && (
                   <div>
-                    <h3 className="text-lg font-bold text-gray-700 mb-1">Kun&apos;yomi</h3>
-                    <p className="text-lg text-gray-900">{currentCard.kunyomi}</p>
+                    <h3 className="text-lg font-bold text-foreground mb-1">Kun&apos;yomi</h3>
+                    <p className="text-lg text-foreground">{currentCard.kunyomi}</p>
                   </div>
                 )}
                 {currentCard.exampleSentence && (
                   <div>
-                    <h3 className="text-lg font-bold text-gray-700 mb-1">Contoh</h3>
-                    <p className="text-lg text-gray-900 mb-2">{currentCard.exampleSentence}</p>
+                    <h3 className="text-lg font-bold text-foreground mb-1">Contoh</h3>
+                    <p className="text-lg text-foreground mb-2">{currentCard.exampleSentence}</p>
                     {currentCard.exampleTranslation && (
-                      <p className="text-sm text-gray-700">{currentCard.exampleTranslation}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {currentCard.exampleTranslation}
+                      </p>
                     )}
                   </div>
                 )}
@@ -148,37 +150,41 @@ export default function DeckReview({ deck, onComplete, onExit }: DeckReviewProps
             {/* Front - Word */}
             <div className="mb-8">
               <div className="text-center mb-6">
-                <div className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium mb-4">
+                <div className="inline-block px-3 py-1 bg-tertiary-green/20 text-tertiary-green rounded-base border-2 border-border text-sm font-medium mb-4">
                   Kartu Kosakata
                 </div>
               </div>
-              <div className="text-6xl font-bold text-center text-gray-900 mb-2">
+              <div className="text-6xl font-bold text-center text-foreground mb-2">
                 {currentCard.word}
               </div>
               {currentCard.reading && (
-                <div className="text-2xl text-center text-gray-600">{currentCard.reading}</div>
+                <div className="text-2xl text-center text-muted-foreground">
+                  {currentCard.reading}
+                </div>
               )}
             </div>
 
             {/* Back - Answer */}
             {showAnswer && (
-              <div className="space-y-4 bg-green-100 p-6 rounded-lg">
+              <div className="space-y-4 bg-tertiary-green/20 p-6 rounded-base border-2 border-border">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-700 mb-1">Arti</h3>
-                  <p className="text-lg text-gray-900">{currentCard.wordMeaning}</p>
+                  <h3 className="text-lg font-bold text-foreground mb-1">Arti</h3>
+                  <p className="text-lg text-foreground">{currentCard.wordMeaning}</p>
                 </div>
                 {currentCard.partOfSpeech && (
                   <div>
-                    <h3 className="text-lg font-bold text-gray-700 mb-1">Jenis Kata</h3>
-                    <p className="text-gray-900">{currentCard.partOfSpeech}</p>
+                    <h3 className="text-lg font-bold text-foreground mb-1">Jenis Kata</h3>
+                    <p className="text-foreground">{currentCard.partOfSpeech}</p>
                   </div>
                 )}
                 {currentCard.exampleSentence && (
                   <div>
-                    <h3 className="text-lg font-bold text-gray-700 mb-1">Contoh</h3>
-                    <p className="text-lg text-gray-900 mb-2">{currentCard.exampleSentence}</p>
+                    <h3 className="text-lg font-bold text-foreground mb-1">Contoh</h3>
+                    <p className="text-lg text-foreground mb-2">{currentCard.exampleSentence}</p>
                     {currentCard.exampleTranslation && (
-                      <p className="text-sm text-gray-700">{currentCard.exampleTranslation}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {currentCard.exampleTranslation}
+                      </p>
                     )}
                   </div>
                 )}
@@ -193,34 +199,36 @@ export default function DeckReview({ deck, onComplete, onExit }: DeckReviewProps
             {/* Front - Grammar Point */}
             <div className="mb-8">
               <div className="text-center mb-6">
-                <div className="inline-block px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium mb-4">
+                <div className="inline-block px-3 py-1 bg-orange-100 text-orange-700 rounded-base border-2 border-border text-sm font-medium mb-4">
                   Kartu Grammar
                 </div>
               </div>
-              <div className="text-4xl font-bold text-center text-gray-900">
+              <div className="text-4xl font-bold text-center text-foreground">
                 {currentCard.grammarPoint}
               </div>
             </div>
 
             {/* Back - Answer */}
             {showAnswer && (
-              <div className="space-y-4 bg-orange-100 p-6 rounded-lg">
+              <div className="space-y-4 bg-orange-100 p-6 rounded-base border-2 border-border">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-700 mb-1">Arti</h3>
-                  <p className="text-lg text-gray-900">{currentCard.grammarMeaning}</p>
+                  <h3 className="text-lg font-bold text-foreground mb-1">Arti</h3>
+                  <p className="text-lg text-foreground">{currentCard.grammarMeaning}</p>
                 </div>
                 {currentCard.usageNote && (
                   <div>
-                    <h3 className="text-lg font-bold text-gray-700 mb-1">Catatan Penggunaan</h3>
-                    <p className="text-gray-900 whitespace-pre-wrap">{currentCard.usageNote}</p>
+                    <h3 className="text-lg font-bold text-foreground mb-1">Catatan Penggunaan</h3>
+                    <p className="text-foreground whitespace-pre-wrap">{currentCard.usageNote}</p>
                   </div>
                 )}
                 {currentCard.exampleSentence && (
                   <div>
-                    <h3 className="text-lg font-bold text-gray-700 mb-1">Contoh</h3>
-                    <p className="text-lg text-gray-900 mb-2">{currentCard.exampleSentence}</p>
+                    <h3 className="text-lg font-bold text-foreground mb-1">Contoh</h3>
+                    <p className="text-lg text-foreground mb-2">{currentCard.exampleSentence}</p>
                     {currentCard.exampleTranslation && (
-                      <p className="text-sm text-gray-700">{currentCard.exampleTranslation}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {currentCard.exampleTranslation}
+                      </p>
                     )}
                   </div>
                 )}
@@ -230,34 +238,36 @@ export default function DeckReview({ deck, onComplete, onExit }: DeckReviewProps
         );
 
       default:
-        return <p className="text-center text-gray-900">Jenis kartu tidak dikenal</p>;
+        return <p className="text-center text-foreground">Jenis kartu tidak dikenal</p>;
     }
   };
 
   // Completed View - Show stats after completion
   if (viewMode === 'completed') {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+      <div className="min-h-screen bg-background p-4">
         <div className="max-w-4xl mx-auto">
           {/* Completion Header */}
           <Card className="p-8 text-center mb-6">
             <div className="flex justify-center mb-4">
-              <svg
-                className="w-16 h-16 text-green-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+              <div className="w-16 h-16 rounded-base border-2 border-border bg-tertiary-green/20 flex items-center justify-center">
+                <svg
+                  className="w-10 h-10 text-tertiary-green"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Sesi Selesai!</h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <h1 className="text-3xl font-bold text-foreground mb-2">Sesi Selesai!</h1>
+            <p className="text-muted-foreground">
               Kerja bagus! Kamu telah menyelesaikan review untuk deck {deck.name}
             </p>
           </Card>
@@ -289,19 +299,19 @@ export default function DeckReview({ deck, onComplete, onExit }: DeckReviewProps
 
   // Review View - Active learning session
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="max-w-3xl w-full">
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{deck.name}</h1>
+            <h1 className="text-2xl font-bold text-foreground">{deck.name}</h1>
             {deck.description && (
-              <p className="text-sm text-gray-600 dark:text-gray-400">{deck.description}</p>
+              <p className="text-sm text-muted-foreground">{deck.description}</p>
             )}
           </div>
           <button
             onClick={onExit}
-            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-sm"
+            className="text-muted-foreground hover:text-foreground text-sm transition-colors"
           >
             Keluar
           </button>
@@ -309,29 +319,29 @@ export default function DeckReview({ deck, onComplete, onExit }: DeckReviewProps
 
         {/* Progress Bar */}
         <div className="mb-6">
-          <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+          <div className="flex justify-between text-sm text-muted-foreground mb-2">
             <span>
               Kartu {currentIndex + 1} dari {totalCards}
             </span>
             <span>{progress}% direview</span>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+          <div className="w-full bg-secondary-background rounded-base h-2 border-2 border-border overflow-hidden">
             <div
-              className="h-2 rounded-full transition-all duration-300"
+              className="h-full transition-all duration-300"
               style={{ width: `${progress}%`, backgroundColor: 'var(--secondary)' }}
             />
           </div>
         </div>
 
         {/* Card */}
-        <Card className="p-8 mb-6 min-h-[400px] flex flex-col justify-between bg-white dark:bg-white">
+        <Card className="p-8 mb-6 min-h-[400px] flex flex-col justify-between">
           <div>{renderCardContent()}</div>
 
           {/* Notes */}
           {showAnswer && currentCard.notes && (
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-              <h3 className="text-sm font-medium text-gray-700 mb-1">Catatan</h3>
-              <p className="text-sm text-gray-900 whitespace-pre-wrap">{currentCard.notes}</p>
+            <div className="mt-4 p-4 bg-secondary/10 rounded-base border-2 border-border border-l-4 border-l-secondary">
+              <h3 className="text-sm font-medium text-foreground mb-1">Catatan</h3>
+              <p className="text-sm text-foreground whitespace-pre-wrap">{currentCard.notes}</p>
             </div>
           )}
         </Card>
@@ -342,12 +352,12 @@ export default function DeckReview({ deck, onComplete, onExit }: DeckReviewProps
           <button
             onClick={handlePrevious}
             disabled={currentIndex === 0}
-            className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="p-3 rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-background"
             title="Kartu sebelumnya"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-gray-700 dark:text-gray-300"
+              className="h-6 w-6 text-foreground"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -378,12 +388,12 @@ export default function DeckReview({ deck, onComplete, onExit }: DeckReviewProps
           <button
             onClick={showAnswer ? handleNext : handleShowAnswer}
             disabled={!showAnswer && currentIndex === totalCards - 1}
-            className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="p-3 rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-background"
             title={showAnswer ? 'Kartu berikutnya' : 'Tampilkan jawaban dulu'}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-gray-700 dark:text-gray-300"
+              className="h-6 w-6 text-foreground"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"

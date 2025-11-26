@@ -56,15 +56,18 @@ export function Features() {
         {features.map((feature, index) => {
           const Icon = feature.icon;
           return (
-            <Card key={index} className="border-border hover:shadow-md transition-shadow">
+            <Card
+              key={index}
+              className="hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+            >
               <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-base border-2 border-border bg-primary/10 flex items-center justify-center mb-4">
                   <Icon className="h-6 w-6 text-primary" />
                 </div>
                 <CardTitle>{feature.title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-16 rounded bg-muted mb-4" />
+                <div className="h-16 rounded-base bg-muted border-2 border-border mb-4" />
                 <CardDescription>{feature.description}</CardDescription>
               </CardContent>
             </Card>

@@ -205,7 +205,7 @@ export function EditProfilePage({ user }: EditProfilePageProps) {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
+          <div className="p-4 bg-destructive/10 border-2 border-destructive rounded-base">
             <p className="text-sm text-destructive">{error}</p>
           </div>
         )}
@@ -223,7 +223,7 @@ export function EditProfilePage({ user }: EditProfilePageProps) {
               <div className="space-y-4">
                 <ImageCrop file={fileToCrop} onCrop={handleCroppedImage} aspect={1} circularCrop>
                   <div className="flex flex-col items-center gap-4">
-                    <ImageCropContent className="max-h-[300px] rounded-lg overflow-hidden" />
+                    <ImageCropContent className="max-h-[300px] rounded-base overflow-hidden" />
                     <div className="flex items-center gap-2">
                       <ImageCropReset type="button" />
                       <ImageCropApply type="button">

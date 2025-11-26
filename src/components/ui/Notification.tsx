@@ -200,7 +200,7 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
 
   return (
     <div
-      className={`${styles.bg} ${styles.border} border rounded-lg shadow-lg p-4 animate-slide-in-right`}
+      className={`${styles.bg} ${styles.border} border-2 rounded-base shadow-shadow p-4 animate-slide-in-right`}
       role="alert"
     >
       <div className="flex items-start gap-3">
@@ -221,7 +221,7 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
 
         <button
           onClick={onClose}
-          className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
           aria-label="Close notification"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

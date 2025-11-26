@@ -41,15 +41,15 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
       <div className="space-y-4">
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-            <p className="text-sm text-red-600">{error}</p>
+          <div className="bg-primary/10 border-2 border-primary rounded-base p-3">
+            <p className="text-sm text-primary">{error}</p>
           </div>
         )}
 
         <Button
           type="button"
           variant="outline"
-          className="w-full flex items-center justify-center gap-3 border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 h-12"
+          className="w-full flex items-center justify-center gap-3 h-12"
           onClick={handleGoogleSignIn}
           disabled={loading}
         >
@@ -74,7 +74,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           {loading ? 'Memuat...' : 'Masuk dengan Google'}
         </Button>
 
-        <div className="text-center text-xs text-gray-500 dark:text-gray-400">
+        <div className="text-center text-xs text-muted-foreground">
           <p>Dengan masuk, Anda menyetujui</p>
           <p>Syarat & Ketentuan dan Kebijakan Privasi kami</p>
         </div>

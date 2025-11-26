@@ -190,7 +190,7 @@ function TourOverlay({ tour, currentStep, onNext, onPrevious, onSkip }: TourOver
 
       {/* Tooltip */}
       <div
-        className="fixed z-50 bg-card border border-border rounded-lg shadow-xl p-6 max-w-sm"
+        className="fixed z-50 bg-card border-2 border-border rounded-base shadow-shadow p-6 max-w-sm"
         style={tooltipStyle}
       >
         <div className="mb-4">
@@ -201,7 +201,7 @@ function TourOverlay({ tour, currentStep, onNext, onPrevious, onSkip }: TourOver
         {step.action && (
           <button
             onClick={step.action.onClick}
-            className="w-full mb-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            className="w-full mb-4 px-4 py-2 bg-primary text-primary-foreground rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
           >
             {step.action.label}
           </button>
@@ -230,7 +230,7 @@ function TourOverlay({ tour, currentStep, onNext, onPrevious, onSkip }: TourOver
             {currentStep > 0 && (
               <button
                 onClick={onPrevious}
-                className="px-3 py-1 text-sm bg-muted text-foreground rounded hover:bg-accent transition-colors"
+                className="px-3 py-1 text-sm bg-muted text-foreground rounded-base border-2 border-border hover:bg-accent transition-colors"
               >
                 戻る
               </button>
@@ -238,7 +238,7 @@ function TourOverlay({ tour, currentStep, onNext, onPrevious, onSkip }: TourOver
 
             <button
               onClick={onNext}
-              className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+              className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
             >
               {currentStep === tour.steps.length - 1 ? '完了' : '次へ'}
             </button>

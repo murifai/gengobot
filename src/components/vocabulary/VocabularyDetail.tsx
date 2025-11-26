@@ -46,7 +46,7 @@ export default function VocabularyDetail({ vocab, onClose, position }: Vocabular
   return (
     <div
       ref={popupRef}
-      className="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl border-2 border-blue-500/20 dark:border-blue-400/20 p-3 min-w-[200px] max-w-[280px]"
+      className="fixed z-50 bg-background rounded-base shadow-shadow border-2 border-border p-3 min-w-[200px] max-w-[280px]"
       style={{
         left: position ? `${Math.min(position.x, window.innerWidth - 300)}px` : '50%',
         top: position ? `${Math.min(position.y + 10, window.innerHeight - 200)}px` : '50%',
@@ -56,27 +56,21 @@ export default function VocabularyDetail({ vocab, onClose, position }: Vocabular
       {/* Content */}
       <div className="space-y-2">
         {/* Kosakata (Word) */}
-        <div className="text-2xl font-bold text-gray-900 dark:text-white text-center">
-          {vocab.word}
-        </div>
+        <div className="text-2xl font-bold text-foreground text-center">{vocab.word}</div>
 
         {/* Cara Baca (Reading) */}
         <div className="text-center space-y-0.5">
           {hiraganaReading !== vocab.word && (
-            <div className="text-base text-gray-600 dark:text-gray-300">{hiraganaReading}</div>
+            <div className="text-base text-foreground/80">{hiraganaReading}</div>
           )}
-          {romajiReading && (
-            <div className="text-sm text-gray-500 dark:text-gray-400">({romajiReading})</div>
-          )}
+          {romajiReading && <div className="text-sm text-muted-foreground">({romajiReading})</div>}
         </div>
 
         {/* Kata Dasar (Base Form) - for conjugated verbs/adjectives */}
         {vocab.baseForm && vocab.baseForm !== vocab.word && (
-          <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-            <div className="text-xs text-gray-500 dark:text-gray-400 text-center mb-0.5">
-              Kata Dasar:
-            </div>
-            <div className="text-sm font-medium text-gray-700 dark:text-gray-300 text-center">
+          <div className="pt-2 border-t-2 border-border">
+            <div className="text-xs text-muted-foreground text-center mb-0.5">Kata Dasar:</div>
+            <div className="text-sm font-medium text-foreground/80 text-center">
               {vocab.baseForm}
             </div>
           </div>
@@ -84,8 +78,8 @@ export default function VocabularyDetail({ vocab, onClose, position }: Vocabular
 
         {/* Arti (Meaning in Indonesian) */}
         {vocab.meaning && (
-          <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-            <div className="text-sm text-gray-700 dark:text-gray-300 text-center italic">
+          <div className="pt-2 border-t-2 border-border">
+            <div className="text-sm text-foreground/80 text-center italic">
               &ldquo;{vocab.meaning}&rdquo;
             </div>
           </div>

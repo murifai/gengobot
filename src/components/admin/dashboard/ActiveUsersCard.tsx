@@ -52,9 +52,9 @@ export function ActiveUsersCard({
             <span>Activity rate</span>
             <span>{activePercentage}%</span>
           </div>
-          <div className="h-2 w-full rounded-full bg-muted">
+          <div className="h-2 w-full rounded-base bg-secondary-background border-2 border-border overflow-hidden">
             <div
-              className="h-2 rounded-full bg-tertiary-green transition-all"
+              className="h-full bg-tertiary-green transition-all"
               style={{ width: `${Math.min(parseFloat(activePercentage), 100)}%` }}
             />
           </div>

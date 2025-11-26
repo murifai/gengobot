@@ -18,7 +18,7 @@
   --accent: #f8f8f8;
   --accent-foreground: #121207;
   --destructive: #ef4343;
-  --border: #e6e6e6;
+  --border: #000000;
   --input: #e6e6e6;
   --ring: #ff6176;
   --chart-1: #f2727d;
@@ -35,9 +35,10 @@
   --sidebar-border: #e5e7eb;
   --sidebar-ring: #ff5e75;
 
-  --font-sans: Plus Jakarta Sans, sans-serif;
-  --font-serif: Playfair Display, serif;
+  --font-sans: var(--font-sora), sans-serif;
+  --font-serif: var(--font-shippori), serif;
   --font-mono: Roboto Mono, monospace;
+  --font-japanese: var(--font-shippori), "Hiragino Kaku Gothic Pro", "Yu Gothic", sans-serif;
 
   --radius: 0.25rem;
 
@@ -53,6 +54,11 @@
   --card-grammar: #FFB347;
   --card-grammar-back: #FFF3E0;
 
+  /* Neobrutalism Core */
+  --main: var(--primary);
+  --main-foreground: var(--primary-foreground);
+  --secondary-background: var(--secondary);
+
   /* Neobrutalism specific */
   --neo-border: 3px solid #000000;
   --neo-shadow: 4px 4px 0px 0px #000000;
@@ -60,14 +66,24 @@
   --neo-shadow-active: 2px 2px 0px 0px #000000;
   --tertiary-green: #22c55e;
 
-  --shadow-2xs: 2px 2px 0px 1px #000000;
-  --shadow-xs: 2px 2px 0px 1px #000000;
-  --shadow-sm: 2px 2px 0px 1px #000000, 2px 1px 2px 0px #000000;
-  --shadow: 2px 2px 0px 1px #000000, 2px 1px 2px 0px #000000;
-  --shadow-md: 2px 2px 0px 1px #000000, 2px 2px 4px 0px #000000;
-  --shadow-lg: 2px 2px 0px 1px #000000, 2px 4px 6px 0px #000000;
-  --shadow-xl: 2px 2px 0px 1px #000000, 2px 8px 10px 0px #000000;
-  --shadow-2xl: 2px 2px 0px 1px #000000;
+  /* Shadow System for Neo Brutalism */
+  --shadow-shadow: 4px 4px 0px 0px var(--border);
+  --box-shadow-x: 4px;
+  --box-shadow-y: 4px;
+  --reverse-box-shadow-x: -4px;
+  --reverse-box-shadow-y: -4px;
+
+  --shadow-2xs: 2px 2px 0px 0px #000000;
+  --shadow-xs: 2px 2px 0px 0px #000000;
+  --shadow-sm: 3px 3px 0px 0px #000000;
+  --shadow: 4px 4px 0px 0px #000000;
+  --shadow-md: 4px 4px 0px 0px #000000;
+  --shadow-lg: 5px 5px 0px 0px #000000;
+  --shadow-xl: 6px 6px 0px 0px #000000;
+  --shadow-2xl: 8px 8px 0px 0px #000000;
+
+  /* Rounded Base for Neo Brutalism */
+  --radius-base: 5px;
 
   --spacing: 0.25rem;
 }
@@ -105,14 +121,21 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
+  /* Neo Brutalism Color Mappings */
+  --color-main: var(--main);
+  --color-main-foreground: var(--main-foreground);
+  --color-secondary-background: var(--secondary-background);
+
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-serif: var(--font-serif);
+  --font-japanese: var(--font-japanese);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-base: var(--radius-base);
 
   --shadow-2xs: var(--shadow-2xs);
   --shadow-xs: var(--shadow-xs);
@@ -122,6 +145,7 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+  --shadow-shadow: var(--shadow-shadow);
 }
 
 .dark {
@@ -140,7 +164,7 @@
   --accent: #27272a;
   --accent-foreground: #fafafa;
   --destructive: #ff6467;
-  --border: #ffffff1a;
+  --border: #fafafa;
   --input: #ffffff26;
   --ring: #71717b;
   --chart-1: #f2727d;
@@ -157,20 +181,27 @@
   --sidebar-border: #27272a;
   --sidebar-ring: #f2727d;
 
-  --shadow-2xs: 0 1px 3px 0px #000000;
-  --shadow-xs: 0 1px 3px 0px #000000;
-  --shadow-sm: 0 1px 3px 0px #000000, 0 1px 2px -1px #000000;
-  --shadow: 0 1px 3px 0px #000000, 0 1px 2px -1px #000000;
-  --shadow-md: 0 1px 3px 0px #000000, 0 2px 4px -1px #000000;
-  --shadow-lg: 0 1px 3px 0px #000000, 0 4px 6px -1px #000000;
-  --shadow-xl: 0 1px 3px 0px #000000, 0 8px 10px -1px #000000;
-  --shadow-2xl: 0 1px 3px 0px #000000;
+  /* Neobrutalism Core - Dark Mode */
+  --main: var(--primary);
+  --main-foreground: var(--primary-foreground);
+  --secondary-background: var(--secondary);
+
+  /* Shadow System for Neo Brutalism - Dark Mode */
+  --shadow-shadow: 4px 4px 0px 0px var(--border);
+  --shadow-2xs: 2px 2px 0px 0px #fafafa;
+  --shadow-xs: 2px 2px 0px 0px #fafafa;
+  --shadow-sm: 3px 3px 0px 0px #fafafa;
+  --shadow: 4px 4px 0px 0px #fafafa;
+  --shadow-md: 4px 4px 0px 0px #fafafa;
+  --shadow-lg: 5px 5px 0px 0px #fafafa;
+  --shadow-xl: 6px 6px 0px 0px #fafafa;
+  --shadow-2xl: 8px 8px 0px 0px #fafafa;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
 
 /* Smooth transitions */
@@ -408,6 +439,7 @@ html {
 ruby {
   ruby-position: over;
   ruby-align: center;
+  font-family: var(--font-japanese);
 }
 
 ruby rt {
@@ -415,11 +447,13 @@ ruby rt {
   line-height: 1;
   opacity: 0.8;
   user-select: none;
+  font-family: var(--font-japanese);
 }
 
 /* Furigana text container needs extra line height */
 .furigana-text {
   line-height: 2.5em !important;
+  font-family: var(--font-japanese);
 }
 
 .furigana-text ruby {
@@ -440,6 +474,27 @@ ruby rt {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
+}
+
+/* Font utility classes */
+.font-japanese {
+  font-family: var(--font-japanese);
+}
+
+.font-romaji {
+  font-family: var(--font-sans);
+}
+
+/* Auto-apply Japanese font to Japanese characters */
+:lang(ja),
+[lang="ja"] {
+  font-family: var(--font-japanese);
+}
+
+/* Japanese text styling - apply to elements containing Japanese */
+.japanese-text,
+.jp-text {
+  font-family: var(--font-japanese);
 }

@@ -33,16 +33,16 @@ export function CharacterCard({ character, onSelect, onEdit, onDelete }: Charact
     relationshipLabels[character.relationshipType] || character.relationshipType;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+    <div className="bg-background rounded-base border-2 border-border shadow-shadow p-6 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="text-xl font-bold text-dark dark:text-white">{character.name}</h3>
+          <h3 className="text-xl font-bold text-foreground">{character.name}</h3>
           {character.nameRomaji && character.nameRomaji !== character.name && (
-            <p className="text-sm text-gray-500 dark:text-gray-400">{character.nameRomaji}</p>
+            <p className="text-sm text-muted-foreground">{character.nameRomaji}</p>
           )}
           <span
-            className={`inline-block mt-2 px-3 py-1 ${relationshipColor} text-white text-sm rounded-full`}
+            className={`inline-block mt-2 px-3 py-1 ${relationshipColor} text-white text-sm rounded-base border-2 border-border`}
           >
             {relationshipLabel}
           </span>
@@ -51,7 +51,7 @@ export function CharacterCard({ character, onSelect, onEdit, onDelete }: Charact
           {onEdit && character.isUserCreated && (
             <button
               onClick={() => onEdit(character)}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:text-secondary transition-colors"
+              className="p-2 text-muted-foreground hover:text-secondary transition-colors"
               aria-label="Edit character"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,7 +67,7 @@ export function CharacterCard({ character, onSelect, onEdit, onDelete }: Charact
           {onDelete && character.isUserCreated && (
             <button
               onClick={() => onDelete(character.id)}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary transition-colors"
+              className="p-2 text-muted-foreground hover:text-primary transition-colors"
               aria-label="Delete character"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,21 +85,21 @@ export function CharacterCard({ character, onSelect, onEdit, onDelete }: Charact
 
       {/* Description */}
       {character.description && (
-        <p className="text-gray-600 dark:text-gray-300 mb-4">{character.description}</p>
+        <p className="text-muted-foreground mb-4">{character.description}</p>
       )}
 
       {/* Speaking Style */}
       {character.speakingStyle && (
         <div className="mb-4">
-          <span className="text-sm font-medium text-dark dark:text-white">Gaya Bicara:</span>
-          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{character.speakingStyle}</p>
+          <span className="text-sm font-medium text-foreground">Gaya Bicara:</span>
+          <p className="text-sm text-muted-foreground mt-1">{character.speakingStyle}</p>
         </div>
       )}
 
       {/* Voice */}
       <div className="mb-4">
-        <span className="text-sm font-medium text-dark dark:text-white">Suara:</span>
-        <span className="ml-2 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-sm capitalize">
+        <span className="text-sm font-medium text-foreground">Suara:</span>
+        <span className="ml-2 px-2 py-1 bg-secondary-background rounded-base border-2 border-border text-sm capitalize">
           {character.voice}
         </span>
       </div>
@@ -107,7 +107,7 @@ export function CharacterCard({ character, onSelect, onEdit, onDelete }: Charact
       {/* Chat Button */}
       <button
         onClick={() => onSelect(character)}
-        className="mt-4 w-full px-4 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+        className="mt-4 w-full px-4 py-3 bg-primary text-white rounded-base border-2 border-border shadow-shadow font-medium hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
       >
         Mulai Percakapan
       </button>
@@ -115,7 +115,7 @@ export function CharacterCard({ character, onSelect, onEdit, onDelete }: Charact
       {/* Preset Badge */}
       {!character.isUserCreated && (
         <div className="mt-3 text-center">
-          <span className="text-xs text-gray-500 dark:text-gray-400">Karakter Preset</span>
+          <span className="text-xs text-muted-foreground">Karakter Preset</span>
         </div>
       )}
     </div>

@@ -162,7 +162,7 @@ export function PaymentHistory({ className }: PaymentHistoryProps) {
               const statusDisplay = getStatusDisplay(payment.status);
 
               return (
-                <div key={payment.id} className="border rounded-lg p-4 space-y-3">
+                <div key={payment.id} className="border-2 border-border rounded-base p-4 space-y-3">
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="font-medium">

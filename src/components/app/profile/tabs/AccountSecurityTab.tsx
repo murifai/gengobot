@@ -103,7 +103,7 @@ export function AccountSecurityTab({ user }: AccountSecurityTabProps) {
       </Card>
 
       {/* Danger Zone */}
-      <Card className="border-destructive/50">
+      <Card className="border-2 border-destructive">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-5 w-5" />

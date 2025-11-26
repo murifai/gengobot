@@ -54,11 +54,11 @@ export default function SettingsClient({ user, dbUser }: SettingsClientProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <div className="min-h-screen bg-main">
+      <nav className="bg-background border-b-2 border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Settings</h1>
+            <h1 className="text-xl font-bold text-foreground">Settings</h1>
             <Button onClick={() => router.push('/dashboard')} variant="secondary">
               Back to Dashboard
             </Button>
@@ -68,42 +68,34 @@ export default function SettingsClient({ user, dbUser }: SettingsClientProps) {
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card className="p-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-            Account Settings
-          </h2>
+          <h2 className="text-2xl font-bold text-foreground mb-6">Account Settings</h2>
 
           {error && (
-            <div className="mb-4 p-4 bg-primary/10 border border-primary/30 rounded-lg">
-              <p className="text-red-800 dark:text-red-400">{error}</p>
+            <div className="mb-4 p-4 bg-primary/10 border-2 border-primary rounded-base">
+              <p className="text-primary">{error}</p>
             </div>
           )}
 
           {success && (
-            <div className="mb-4 p-4 bg-tertiary-green/10 border border-tertiary-green/30 rounded-lg">
-              <p className="text-green-800 dark:text-green-400">Settings saved successfully!</p>
+            <div className="mb-4 p-4 bg-tertiary-green/10 border-2 border-tertiary-green rounded-base">
+              <p className="text-tertiary-green">Settings saved successfully!</p>
             </div>
           )}
 
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Email
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Email</label>
               <Input
                 type="email"
                 value={user.email || ''}
                 disabled
-                className="bg-gray-100 dark:bg-gray-800"
+                className="bg-secondary-background"
               />
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Email cannot be changed
-              </p>
+              <p className="mt-1 text-sm text-muted-foreground">Email cannot be changed</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Display Name
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Display Name</label>
               <Input
                 type="text"
                 value={name}
@@ -113,13 +105,13 @@ export default function SettingsClient({ user, dbUser }: SettingsClientProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Japanese Proficiency Level
               </label>
               <select
                 value={proficiency}
                 onChange={e => setProficiency(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border-2 border-border rounded-base bg-background text-foreground focus:ring-2 focus:ring-primary"
               >
                 <option value="N5">N5 - Beginner</option>
                 <option value="N4">N4 - Elementary</option>
@@ -127,7 +119,7 @@ export default function SettingsClient({ user, dbUser }: SettingsClientProps) {
                 <option value="N2">N2 - Advanced</option>
                 <option value="N1">N1 - Expert</option>
               </select>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Your current JLPT proficiency level
               </p>
             </div>

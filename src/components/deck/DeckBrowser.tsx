@@ -98,26 +98,22 @@ export default function DeckBrowser() {
         <form onSubmit={handleSearch} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Search
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Search</label>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search decks..."
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border-2 border-border rounded-base bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Category
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Category</label>
               <select
                 value={categoryFilter}
                 onChange={e => setCategoryFilter(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border-2 border-border rounded-base bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary"
               >
                 <option value="">All Categories</option>
                 <option value="Kanji">Kanji</option>
@@ -128,13 +124,11 @@ export default function DeckBrowser() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Difficulty
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Difficulty</label>
               <select
                 value={difficultyFilter}
                 onChange={e => setDifficultyFilter(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border-2 border-border rounded-base bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary"
               >
                 <option value="">All Levels</option>
                 <option value="N5">N5</option>
@@ -169,21 +163,20 @@ export default function DeckBrowser() {
       {/* Deck Grid */}
       {decks.length === 0 ? (
         <Card className="p-12 text-center">
-          <p className="text-gray-600 dark:text-gray-400">No decks found</p>
+          <p className="text-muted-foreground">No decks found</p>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {decks.map(deck => (
-            <Card key={deck.id} className="p-6 hover:shadow-lg transition-shadow">
+            <Card
+              key={deck.id}
+              className="p-6 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+            >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                    {deck.name}
-                  </h3>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">{deck.name}</h3>
                   {deck.description && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                      {deck.description}
-                    </p>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{deck.description}</p>
                   )}
                 </div>
               </div>
@@ -191,7 +184,7 @@ export default function DeckBrowser() {
               <div className="flex flex-wrap gap-2 mb-4">
                 {deck.category && (
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    className={`px-3 py-1 rounded-base text-xs font-medium border-2 border-border ${
                       categoryColors[deck.category] || categoryColors.Mixed
                     }`}
                   >
@@ -200,7 +193,7 @@ export default function DeckBrowser() {
                 )}
                 {deck.difficulty && (
                   <span
-                    className={`px-3 py-1 rounded-lg text-xs font-medium border ${
+                    className={`px-3 py-1 rounded-base text-xs font-medium border-2 border-border ${
                       difficultyColors[deck.difficulty] || difficultyColors.N5
                     }`}
                   >
@@ -211,29 +204,23 @@ export default function DeckBrowser() {
 
               {/* Statistics Grid */}
               <div className="grid grid-cols-4 gap-2 mb-4">
-                <div className="text-center p-2 bg-secondary/10 rounded-lg">
+                <div className="text-center p-2 bg-secondary/10 rounded-base border-2 border-border">
                   <div className="text-xs text-secondary mb-1">Due</div>
-                  <div className="text-lg font-semibold text-blue-700 dark:text-blue-300">
-                    {deck.dueCards}
-                  </div>
+                  <div className="text-lg font-semibold text-secondary">{deck.dueCards}</div>
                 </div>
-                <div className="text-center p-2 bg-tertiary-green/10 rounded-lg">
+                <div className="text-center p-2 bg-tertiary-green/10 rounded-base border-2 border-border">
                   <div className="text-xs text-tertiary-green mb-1">New</div>
-                  <div className="text-lg font-semibold text-green-700 dark:text-green-300">
-                    {deck.newCards}
-                  </div>
+                  <div className="text-lg font-semibold text-tertiary-green">{deck.newCards}</div>
                 </div>
-                <div className="text-center p-2 bg-tertiary-purple/10 rounded-lg">
-                  <div className="text-xs text-purple-600 dark:text-purple-400 mb-1">Total</div>
-                  <div className="text-lg font-semibold text-purple-700 dark:text-purple-300">
+                <div className="text-center p-2 bg-tertiary-purple/10 rounded-base border-2 border-border">
+                  <div className="text-xs text-tertiary-purple mb-1">Total</div>
+                  <div className="text-lg font-semibold text-tertiary-purple">
                     {deck.totalCards}
                   </div>
                 </div>
-                <div className="text-center p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Studies</div>
-                  <div className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                    {deck.studyCount}
-                  </div>
+                <div className="text-center p-2 bg-secondary-background rounded-base border-2 border-border">
+                  <div className="text-xs text-muted-foreground mb-1">Studies</div>
+                  <div className="text-lg font-semibold text-foreground">{deck.studyCount}</div>
                 </div>
               </div>
 

@@ -101,21 +101,8 @@ export default function DeckLearningWithStats({
       <div className="min-h-screen bg-background p-4">
         <div className="max-w-4xl mx-auto">
           {/* Completion Header */}
-          <div
-            className="p-8 text-center mb-6 bg-white"
-            style={{
-              border: '3px solid #000',
-              boxShadow: '4px 4px 0px 0px #000',
-            }}
-          >
-            <div
-              className="w-20 h-20 mx-auto mb-4 flex items-center justify-center"
-              style={{
-                backgroundColor: 'var(--tertiary-green, #22c55e)',
-                border: '3px solid #000',
-                boxShadow: '3px 3px 0px 0px #000',
-              }}
-            >
+          <div className="p-8 text-center mb-6 bg-background rounded-base border-2 border-border shadow-shadow">
+            <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center bg-tertiary-green rounded-base border-2 border-border shadow-shadow">
               <svg
                 className="w-12 h-12 text-white"
                 fill="none"
@@ -145,21 +132,13 @@ export default function DeckLearningWithStats({
           <div className="mt-8 flex gap-4 justify-center flex-wrap">
             <button
               onClick={onComplete}
-              className="px-8 py-4 font-bold text-lg bg-primary text-white transition-transform hover:translate-y-[-2px]"
-              style={{
-                border: '3px solid #000',
-                boxShadow: '4px 4px 0px 0px #000',
-              }}
+              className="px-8 py-4 font-bold text-lg bg-primary text-primary-foreground rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
             >
               Selesai
             </button>
             <button
               onClick={onExit}
-              className="px-8 py-4 font-bold text-lg bg-white text-foreground transition-transform hover:translate-y-[-2px]"
-              style={{
-                border: '3px solid #000',
-                boxShadow: '4px 4px 0px 0px #000',
-              }}
+              className="px-8 py-4 font-bold text-lg bg-background text-foreground rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
             >
               Kembali ke Daftar Deck
             </button>

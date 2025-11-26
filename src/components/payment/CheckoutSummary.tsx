@@ -124,7 +124,7 @@ export function CheckoutSummary({
         </div>
 
         {/* Pricing breakdown */}
-        <div className="border-t pt-4 space-y-2">
+        <div className="border-t-2 border-border pt-4 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Subtotal</span>
             <span>{formatCurrency(pricing.originalTotal)}</span>
@@ -144,14 +144,14 @@ export function CheckoutSummary({
             </div>
           )}
 
-          <div className="flex justify-between font-medium text-lg pt-2 border-t">
+          <div className="flex justify-between font-medium text-lg pt-2 border-t-2 border-border">
             <span>Total</span>
             <span>{formatCurrency(finalAmount)}</span>
           </div>
         </div>
 
         {/* Voucher section */}
-        <div className="border-t pt-4">
+        <div className="border-t-2 border-border pt-4">
           {appliedVoucher ? (
             <VoucherApplied
               code={appliedVoucher.code}
@@ -179,7 +179,7 @@ export function CheckoutSummary({
 
         {/* Error message */}
         {error && (
-          <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-md">
+          <div className="flex items-center gap-2 text-sm text-primary bg-primary/10 p-3 rounded-base border-2 border-border">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>

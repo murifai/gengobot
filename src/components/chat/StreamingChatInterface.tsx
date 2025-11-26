@@ -126,11 +126,11 @@ export default function StreamingChatInterface({
       {/* Main Chat Area */}
       <div className="flex flex-col flex-1">
         {/* Header */}
-        <div className="bg-card border-b border-border px-4 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 shrink-0">
+        <div className="bg-card border-b-2 border-border px-4 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 shrink-0">
           {onBack && (
             <button
               onClick={onBack}
-              className="p-2 hover:bg-accent rounded-lg transition-colors"
+              className="p-2 hover:bg-accent rounded-base transition-colors"
               aria-label="Go back"
             >
               <svg
@@ -154,7 +154,7 @@ export default function StreamingChatInterface({
           </div>
           {/* Streaming Indicator */}
           {isStreaming && (
-            <div className="flex items-center gap-2 px-3 py-1 bg-secondary/10 rounded-full">
+            <div className="flex items-center gap-2 px-3 py-1 bg-secondary/10 rounded-base border-2 border-border">
               <div className="flex gap-1">
                 <div className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
                 <div className="w-2 h-2 bg-secondary rounded-full animate-pulse delay-75" />
@@ -167,7 +167,7 @@ export default function StreamingChatInterface({
           {sidebar && (
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-accent rounded-lg transition-colors flex items-center gap-1"
+              className="p-2 hover:bg-accent rounded-base transition-colors flex items-center gap-1"
               aria-label={isSidebarOpen ? 'Hide info' : 'Show info'}
               title={isSidebarOpen ? 'Hide info' : 'Show info'}
             >
@@ -185,7 +185,7 @@ export default function StreamingChatInterface({
 
         {/* Error Banner */}
         {error && (
-          <div className="bg-primary/10 border-b border-primary/30 px-4 py-3">
+          <div className="bg-primary/10 border-b-2 border-primary/30 px-4 py-3">
             <div className="flex items-center justify-between">
               <p className="text-sm text-primary">{error}</p>
               {onClearError && (
@@ -250,10 +250,10 @@ export default function StreamingChatInterface({
                 >
                   <div
                     className={cn(
-                      'max-w-[80%] rounded-2xl px-4 py-3 shadow-sm',
+                      'max-w-[80%] rounded-base px-4 py-3',
                       message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-card text-foreground border border-border'
+                        ? 'bg-primary text-primary-foreground border-2 border-border shadow-shadow'
+                        : 'bg-card text-foreground border-2 border-border shadow-shadow'
                     )}
                   >
                     {message.role === 'user' ? (
@@ -306,7 +306,7 @@ export default function StreamingChatInterface({
                       {message.role === 'assistant' && (
                         <button
                           onClick={() => setShowParser(!showParser)}
-                          className="flex items-center justify-center px-2 py-1 rounded transition-colors bg-card text-primary hover:bg-accent border border-border"
+                          className="flex items-center justify-center px-2 py-1 rounded-base transition-colors bg-card text-primary hover:bg-accent border-2 border-border"
                           aria-label={showParser ? 'Disable text parser' : 'Enable text parser'}
                           title={showParser ? 'Disable text parser' : 'Enable text parser'}
                         >
@@ -342,7 +342,7 @@ export default function StreamingChatInterface({
         )}
 
         {/* Input Area */}
-        <div className="bg-card border-t border-border p-4">
+        <div className="bg-card border-t-2 border-border p-4">
           <TaskChatInputV2
             onSend={onSendMessage}
             onVoiceRecording={async (blob, duration) => {
@@ -360,7 +360,7 @@ export default function StreamingChatInterface({
 
       {/* Sidebar */}
       {sidebar && isSidebarOpen && (
-        <div className="w-64 sm:w-80 md:w-96 bg-card border-l border-border overflow-y-auto">
+        <div className="w-64 sm:w-80 md:w-96 bg-card border-l-2 border-border overflow-y-auto">
           {sidebar}
         </div>
       )}

@@ -207,7 +207,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Title */}
       <div>
-        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Task Title <span className="text-primary">*</span>
         </label>
         <Input
@@ -215,14 +215,14 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
           value={formData.title}
           onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
           placeholder="e.g., Ordering at a Restaurant"
-          className={errors.title ? 'border-red-500' : ''}
+          className={errors.title ? 'border-primary' : ''}
         />
-        {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+        {errors.title && <p className="text-primary text-sm mt-1">{errors.title}</p>}
       </div>
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Description <span className="text-primary">*</span>
         </label>
         <textarea
@@ -230,24 +230,24 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
           onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
           placeholder="Brief description of the task"
           rows={3}
-          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-            errors.description ? 'border-red-500' : 'border-gray-300'
+          className={`w-full px-3 py-2 border-2 rounded-base focus:ring-2 focus:ring-primary bg-background text-foreground ${
+            errors.description ? 'border-primary' : 'border-border'
           }`}
         />
-        {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
+        {errors.description && <p className="text-primary text-sm mt-1">{errors.description}</p>}
       </div>
 
       {/* Category & Subcategory */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Category <span className="text-primary">*</span>
           </label>
           <select
             value={formData.category}
             onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-              errors.category ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-3 py-2 border-2 rounded-base focus:ring-2 focus:ring-primary bg-background text-foreground ${
+              errors.category ? 'border-primary' : 'border-border'
             }`}
           >
             <option value="">Select Category</option>
@@ -257,19 +257,17 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
               </option>
             ))}
           </select>
-          {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
+          {errors.category && <p className="text-primary text-sm mt-1">{errors.category}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-            Subcategory
-          </label>
+          <label className="block text-sm font-medium text-foreground mb-2">Subcategory</label>
           <select
             value={formData.subcategoryId || ''}
             onChange={e =>
               setFormData(prev => ({ ...prev, subcategoryId: e.target.value || null }))
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className="w-full px-3 py-2 border-2 border-border rounded-base focus:ring-2 focus:ring-primary bg-background text-foreground"
             disabled={!formData.category}
           >
             <option value="">{formData.category ? 'None' : 'Select a category first'}</option>
@@ -290,13 +288,13 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
       {/* Difficulty & Duration */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Difficulty Level <span className="text-primary">*</span>
           </label>
           <select
             value={formData.difficulty}
             onChange={e => setFormData(prev => ({ ...prev, difficulty: e.target.value }))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className="w-full px-3 py-2 border-2 border-border rounded-base focus:ring-2 focus:ring-primary bg-background text-foreground"
           >
             <option value="N5">N5 (Beginner)</option>
             <option value="N4">N4 (Elementary)</option>
@@ -307,7 +305,7 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Estimated Duration (minutes) <span className="text-primary">*</span>
           </label>
           <Input
@@ -317,17 +315,17 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
               setFormData(prev => ({ ...prev, estimatedDuration: parseInt(e.target.value) || 0 }))
             }
             min="1"
-            className={errors.estimatedDuration ? 'border-red-500' : ''}
+            className={errors.estimatedDuration ? 'border-primary' : ''}
           />
           {errors.estimatedDuration && (
-            <p className="text-red-500 text-sm mt-1">{errors.estimatedDuration}</p>
+            <p className="text-primary text-sm mt-1">{errors.estimatedDuration}</p>
           )}
         </div>
       </div>
 
       {/* Scenario */}
       <div>
-        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Scenario <span className="text-primary">*</span>
         </label>
         <textarea
@@ -335,16 +333,16 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
           onChange={e => setFormData(prev => ({ ...prev, scenario: e.target.value }))}
           placeholder="Detailed scenario description for the conversation"
           rows={4}
-          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-            errors.scenario ? 'border-red-500' : 'border-gray-300'
+          className={`w-full px-3 py-2 border-2 rounded-base focus:ring-2 focus:ring-primary bg-background text-foreground ${
+            errors.scenario ? 'border-primary' : 'border-border'
           }`}
         />
-        {errors.scenario && <p className="text-red-500 text-sm mt-1">{errors.scenario}</p>}
+        {errors.scenario && <p className="text-primary text-sm mt-1">{errors.scenario}</p>}
       </div>
 
       {/* Learning Objectives */}
       <div>
-        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Learning Objectives <span className="text-primary">*</span>
         </label>
         {formData.learningObjectives.map((objective, index) => (
@@ -377,24 +375,24 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
           + Add Objective
         </Button>
         {errors.learningObjectives && (
-          <p className="text-red-500 text-sm mt-1">{errors.learningObjectives}</p>
+          <p className="text-primary text-sm mt-1">{errors.learningObjectives}</p>
         )}
       </div>
 
       {/* AI System Prompt */}
-      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">AI Configuration</h3>
+      <div className="p-4 bg-secondary-background rounded-base border-2 border-border">
+        <h3 className="text-lg font-medium text-foreground mb-4">AI Configuration</h3>
 
         <PromptEditor
           prompt={formData.prompt}
           onChange={prompt => setFormData(prev => ({ ...prev, prompt }))}
         />
-        {errors.prompt && <p className="text-red-500 text-sm mt-2">{errors.prompt}</p>}
+        {errors.prompt && <p className="text-primary text-sm mt-2">{errors.prompt}</p>}
       </div>
 
       {/* Voice Settings */}
-      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Voice Settings</h3>
+      <div className="p-4 bg-secondary-background rounded-base border-2 border-border">
+        <h3 className="text-lg font-medium text-foreground mb-4">Voice Settings</h3>
 
         <VoiceSelector
           voice={formData.voice}
@@ -406,26 +404,24 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
 
       {/* Conversation Example */}
       <div>
-        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Conversation Example <span className="text-primary">*</span>
         </label>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-          Dialog format: T: teacher, G: student
-        </p>
+        <p className="text-sm text-muted-foreground mb-2">Dialog format: T: teacher, G: student</p>
         <textarea
           value={formData.conversationExample}
           onChange={e => setFormData(prev => ({ ...prev, conversationExample: e.target.value }))}
           placeholder="T: 〇〇さん、今の作業の進み具合はどうですか？&#10;G: はい、今は半分くらい終わっています。&#10;T: 次はどんな作業をする予定ですか？&#10;G: 部品の検品をする予定です。"
           rows={8}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white font-mono text-sm"
+          className="w-full px-3 py-2 border-2 border-border rounded-base focus:ring-2 focus:ring-primary bg-background text-foreground font-mono text-sm"
         />
         {errors.conversationExample && (
-          <p className="text-red-500 text-sm mt-1">{errors.conversationExample}</p>
+          <p className="text-primary text-sm mt-1">{errors.conversationExample}</p>
         )}
       </div>
 
       {/* Audio Example */}
-      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+      <div className="p-4 bg-secondary-background rounded-base border-2 border-border">
         <AudioUploader
           audioPath={formData.audioExample}
           onAudioChange={audioExample => setFormData(prev => ({ ...prev, audioExample }))}
@@ -445,18 +441,15 @@ export default function TaskEditorForm({ taskId, initialData }: TaskEditorFormPr
           id="isActive"
           checked={formData.isActive}
           onChange={e => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
-          className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+          className="w-4 h-4 text-primary border-2 border-border rounded-base focus:ring-primary"
         />
-        <label
-          htmlFor="isActive"
-          className="ml-2 text-sm font-medium text-gray-900 dark:text-white"
-        >
+        <label htmlFor="isActive" className="ml-2 text-sm font-medium text-foreground">
           Active (visible to users)
         </label>
       </div>
 
       {/* Actions */}
-      <div className="flex justify-end gap-4 pt-4 border-t">
+      <div className="flex justify-end gap-4 pt-4 border-t-2 border-border">
         <Button type="button" variant="secondary" onClick={() => router.back()} disabled={loading}>
           Cancel
         </Button>

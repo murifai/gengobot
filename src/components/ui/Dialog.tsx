@@ -45,7 +45,10 @@ export function Dialog({ open, onClose, children, size = 'md' }: DialogProps) {
             leaveTo="opacity-0 scale-95"
           >
             <HeadlessDialog.Panel
-              className={cn('w-full rounded-lg bg-card-background p-6 shadow-xl', sizes[size])}
+              className={cn(
+                'w-full rounded-base border-2 border-border bg-background p-6 shadow-shadow',
+                sizes[size]
+              )}
             >
               {children}
             </HeadlessDialog.Panel>

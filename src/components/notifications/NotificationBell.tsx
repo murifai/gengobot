@@ -114,76 +114,76 @@ export function NotificationBell() {
     const styles: Record<string, { icon: React.ReactNode; bgColor: string; textColor: string }> = {
       CREDITS_80_PERCENT: {
         icon: <CreditIcon />,
-        bgColor: 'bg-yellow-100 dark:bg-yellow-900/20',
-        textColor: 'text-yellow-600 dark:text-yellow-400',
+        bgColor: 'bg-tertiary-yellow/20',
+        textColor: 'text-tertiary-yellow',
       },
       CREDITS_95_PERCENT: {
         icon: <CreditIcon />,
-        bgColor: 'bg-orange-100 dark:bg-orange-900/20',
-        textColor: 'text-orange-600 dark:text-orange-400',
+        bgColor: 'bg-tertiary-orange/20',
+        textColor: 'text-tertiary-orange',
       },
       CREDITS_DEPLETED: {
         icon: <CreditIcon />,
-        bgColor: 'bg-red-100 dark:bg-red-900/20',
-        textColor: 'text-red-600 dark:text-red-400',
+        bgColor: 'bg-primary/20',
+        textColor: 'text-primary',
       },
       CREDITS_RENEWED: {
         icon: <CreditIcon />,
-        bgColor: 'bg-green-100 dark:bg-green-900/20',
-        textColor: 'text-green-600 dark:text-green-400',
+        bgColor: 'bg-tertiary-green/20',
+        textColor: 'text-tertiary-green',
       },
       TRIAL_STARTED: {
         icon: <TrialIcon />,
-        bgColor: 'bg-blue-100 dark:bg-blue-900/20',
-        textColor: 'text-blue-600 dark:text-blue-400',
+        bgColor: 'bg-tertiary-blue/20',
+        textColor: 'text-tertiary-blue',
       },
       TRIAL_ENDING_3_DAYS: {
         icon: <TrialIcon />,
-        bgColor: 'bg-yellow-100 dark:bg-yellow-900/20',
-        textColor: 'text-yellow-600 dark:text-yellow-400',
+        bgColor: 'bg-tertiary-yellow/20',
+        textColor: 'text-tertiary-yellow',
       },
       TRIAL_ENDING_1_DAY: {
         icon: <TrialIcon />,
-        bgColor: 'bg-orange-100 dark:bg-orange-900/20',
-        textColor: 'text-orange-600 dark:text-orange-400',
+        bgColor: 'bg-tertiary-orange/20',
+        textColor: 'text-tertiary-orange',
       },
       TRIAL_ENDED: {
         icon: <TrialIcon />,
-        bgColor: 'bg-red-100 dark:bg-red-900/20',
-        textColor: 'text-red-600 dark:text-red-400',
+        bgColor: 'bg-primary/20',
+        textColor: 'text-primary',
       },
       PAYMENT_SUCCESS: {
         icon: <PaymentIcon />,
-        bgColor: 'bg-green-100 dark:bg-green-900/20',
-        textColor: 'text-green-600 dark:text-green-400',
+        bgColor: 'bg-tertiary-green/20',
+        textColor: 'text-tertiary-green',
       },
       PAYMENT_FAILED: {
         icon: <PaymentIcon />,
-        bgColor: 'bg-red-100 dark:bg-red-900/20',
-        textColor: 'text-red-600 dark:text-red-400',
+        bgColor: 'bg-primary/20',
+        textColor: 'text-primary',
       },
       PAYMENT_EXPIRED: {
         icon: <PaymentIcon />,
-        bgColor: 'bg-gray-100 dark:bg-gray-900/20',
-        textColor: 'text-gray-600 dark:text-gray-400',
+        bgColor: 'bg-muted/20',
+        textColor: 'text-muted-foreground',
       },
       SYSTEM_ANNOUNCEMENT: {
         icon: <SystemIcon />,
-        bgColor: 'bg-purple-100 dark:bg-purple-900/20',
-        textColor: 'text-purple-600 dark:text-purple-400',
+        bgColor: 'bg-tertiary-purple/20',
+        textColor: 'text-tertiary-purple',
       },
       FEATURE_UPDATE: {
         icon: <SystemIcon />,
-        bgColor: 'bg-indigo-100 dark:bg-indigo-900/20',
-        textColor: 'text-indigo-600 dark:text-indigo-400',
+        bgColor: 'bg-tertiary-blue/20',
+        textColor: 'text-tertiary-blue',
       },
     };
 
     return (
       styles[type] || {
         icon: <SystemIcon />,
-        bgColor: 'bg-gray-100 dark:bg-gray-900/20',
-        textColor: 'text-gray-600 dark:text-gray-400',
+        bgColor: 'bg-muted/20',
+        textColor: 'text-muted-foreground',
       }
     );
   };
@@ -193,12 +193,12 @@ export function NotificationBell() {
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        className="relative p-2 rounded-base hover:bg-secondary-background transition-colors"
         aria-label="Notifications"
       >
         <BellIcon />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 h-5 w-5 flex items-center justify-center text-xs font-bold text-white bg-red-500 rounded-full">
+          <span className="absolute -top-0.5 -right-0.5 h-5 w-5 flex items-center justify-center text-xs font-bold text-primary-foreground bg-primary rounded-full">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -206,15 +206,12 @@ export function NotificationBell() {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-80 bg-background rounded-base shadow-shadow border-2 border-border z-50 overflow-hidden">
           {/* Header */}
-          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Notifications</h3>
+          <div className="px-4 py-3 border-b-2 border-border flex items-center justify-between">
+            <h3 className="font-semibold text-foreground">Notifications</h3>
             {unreadCount > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-              >
+              <button onClick={markAllAsRead} className="text-sm text-primary hover:underline">
                 Mark all read
               </button>
             )}
@@ -223,9 +220,9 @@ export function NotificationBell() {
           {/* Notifications List */}
           <div className="max-h-96 overflow-y-auto">
             {isLoading ? (
-              <div className="p-4 text-center text-gray-500 dark:text-gray-400">Loading...</div>
+              <div className="p-4 text-center text-muted-foreground">Loading...</div>
             ) : notifications.length === 0 ? (
-              <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+              <div className="p-8 text-center text-muted-foreground">
                 <BellIcon className="w-8 h-8 mx-auto mb-2 opacity-50" />
                 <p>No notifications</p>
               </div>
@@ -236,33 +233,33 @@ export function NotificationBell() {
                   <button
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`w-full text-left px-4 py-3 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${
-                      !notification.isRead ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''
+                    className={`w-full text-left px-4 py-3 border-b border-border hover:bg-secondary-background transition-colors ${
+                      !notification.isRead ? 'bg-primary/5' : ''
                     }`}
                   >
                     <div className="flex gap-3">
                       <div
-                        className={`flex-shrink-0 w-8 h-8 rounded-full ${style.bgColor} flex items-center justify-center`}
+                        className={`shrink-0 w-8 h-8 rounded-full ${style.bgColor} flex items-center justify-center`}
                       >
                         <span className={style.textColor}>{style.icon}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p
-                          className={`text-sm font-medium ${!notification.isRead ? 'text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}
+                          className={`text-sm font-medium ${!notification.isRead ? 'text-foreground' : 'text-foreground/80'}`}
                         >
                           {notification.title}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                           {notification.message}
                         </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                        <p className="text-xs text-muted-foreground/70 mt-1">
                           {formatDistanceToNow(new Date(notification.createdAt), {
                             addSuffix: true,
                           })}
                         </p>
                       </div>
                       {!notification.isRead && (
-                        <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2" />
+                        <div className="shrink-0 w-2 h-2 bg-primary rounded-full mt-2" />
                       )}
                     </div>
                   </button>
