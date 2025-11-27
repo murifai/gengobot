@@ -1,20 +1,27 @@
 import type { Metadata } from 'next';
-import { Sora, Shippori_Mincho } from 'next/font/google';
+import { Space_Grotesk, Shippori_Mincho, Zen_Kaku_Gothic_New } from 'next/font/google';
 import Script from 'next/script';
 import { Providers } from '@/components/providers';
 import { ReactEditLoader } from '@/components/dev/react-edit-loader';
 import './globals.css';
 
-const sora = Sora({
-  variable: '--font-sora',
+const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  display: 'swap', // Better font loading performance
+  preload: true,
+  variable: '--font-space-grotesk',
 });
 
 const shipporiMincho = Shippori_Mincho({
   variable: '--font-shippori',
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
+});
+
+const zenKakuGothic = Zen_Kaku_Gothic_New({
+  variable: '--font-zen-kaku',
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
 });
 
 export const metadata: Metadata = {
@@ -32,7 +39,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${sora.variable} ${shipporiMincho.variable} antialiased`}>
+      <body
+        className={`${spaceGrotesk.className} ${shipporiMincho.variable} ${zenKakuGothic.variable} antialiased`}
+      >
         <Script src="https://unpkg.com/react-grab/dist/index.global.js" strategy="lazyOnload" />
         <ReactEditLoader />
         <Providers>{children}</Providers>

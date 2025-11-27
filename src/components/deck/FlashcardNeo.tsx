@@ -330,7 +330,7 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
         <div className="text-center">
           {currentCard.cardType === 'hiragana' || currentCard.cardType === 'katakana' ? (
             <>
-              <div className="text-9xl font-bold text-black mb-4" style={{ fontFamily: 'serif' }}>
+              <div className="text-9xl font-bold text-black mb-4 font-jp-mincho">
                 {currentCard.character}
               </div>
               {currentCard.strokeSvg && (
@@ -342,7 +342,7 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
             </>
           ) : currentCard.cardType === 'kanji' ? (
             <>
-              <div className="text-9xl font-bold text-black" style={{ fontFamily: 'serif' }}>
+              <div className="text-9xl font-bold text-black font-jp-mincho">
                 {currentCard.kanji}
               </div>
               {currentCard.strokeSvg && (
@@ -354,7 +354,7 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
             </>
           ) : currentCard.cardType === 'vocabulary' ? (
             <>
-              <div className="text-6xl font-bold text-black mb-3" style={{ fontFamily: 'serif' }}>
+              <div className="text-6xl font-bold text-black mb-3 font-jp-mincho">
                 {currentCard.word}
               </div>
               {currentCard.reading && (
@@ -362,7 +362,7 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
               )}
             </>
           ) : currentCard.cardType === 'grammar' ? (
-            <div className="text-4xl font-bold text-black" style={{ fontFamily: 'serif' }}>
+            <div className="text-4xl font-bold text-black font-jp-mincho">
               {currentCard.grammarPoint}
             </div>
           ) : (

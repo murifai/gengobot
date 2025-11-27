@@ -35,10 +35,11 @@
   --sidebar-border: #e5e7eb;
   --sidebar-ring: #ff5e75;
 
-  --font-sans: var(--font-sora), sans-serif;
+  --font-sans: var(--font-space-grotesk), sans-serif;
   --font-serif: var(--font-shippori), serif;
   --font-mono: Roboto Mono, monospace;
-  --font-japanese: var(--font-shippori), "Hiragino Kaku Gothic Pro", "Yu Gothic", sans-serif;
+  --font-jp-gothic: var(--font-zen-kaku), "Hiragino Kaku Gothic Pro", "Yu Gothic", sans-serif;
+  --font-jp-mincho: var(--font-shippori), "Hiragino Mincho Pro", "Yu Mincho", serif;
 
   --radius: 0.25rem;
 
@@ -126,10 +127,11 @@
   --color-main-foreground: var(--main-foreground);
   --color-secondary-background: var(--secondary-background);
 
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
-  --font-serif: var(--font-serif);
-  --font-japanese: var(--font-japanese);
+  --font-sans: var(--font-space-grotesk), sans-serif;
+  --font-mono: Roboto Mono, monospace;
+  --font-serif: var(--font-shippori), serif;
+  --font-jp-gothic: var(--font-zen-kaku), "Hiragino Kaku Gothic Pro", "Yu Gothic", sans-serif;
+  --font-jp-mincho: var(--font-shippori), "Hiragino Mincho Pro", "Yu Mincho", serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -439,7 +441,6 @@ html {
 ruby {
   ruby-position: over;
   ruby-align: center;
-  font-family: var(--font-japanese);
 }
 
 ruby rt {
@@ -447,13 +448,11 @@ ruby rt {
   line-height: 1;
   opacity: 0.8;
   user-select: none;
-  font-family: var(--font-japanese);
 }
 
 /* Furigana text container needs extra line height */
 .furigana-text {
   line-height: 2.5em !important;
-  font-family: var(--font-japanese);
 }
 
 .furigana-text ruby {
@@ -478,23 +477,3 @@ ruby rt {
   }
 }
 
-/* Font utility classes */
-.font-japanese {
-  font-family: var(--font-japanese);
-}
-
-.font-romaji {
-  font-family: var(--font-sans);
-}
-
-/* Auto-apply Japanese font to Japanese characters */
-:lang(ja),
-[lang="ja"] {
-  font-family: var(--font-japanese);
-}
-
-/* Japanese text styling - apply to elements containing Japanese */
-.japanese-text,
-.jp-text {
-  font-family: var(--font-japanese);
-}
