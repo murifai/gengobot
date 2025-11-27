@@ -137,7 +137,6 @@ export function createReactEdit(userConfig: ReactEditConfig = {}): ReactEditAPI 
       saveEditToFile(editInfo);
 
       // Show feedback
-      const location = sourceLocation ? ` in ${sourceLocation.split('/').pop()}` : '';
       showToast(`Saved! Check .react-edit/ folder`);
 
       // Log to console for dev reference

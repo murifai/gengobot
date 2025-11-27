@@ -43,9 +43,9 @@ export interface ReactEditAPI {
   destroy: () => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FiberType =
   | string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   | (((...args: any[]) => any) & { displayName?: string; name?: string })
   | { displayName?: string };
 
