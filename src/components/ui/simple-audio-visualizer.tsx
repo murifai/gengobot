@@ -68,10 +68,10 @@ export function SimpleAudioVisualizer({
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
-    // Get the primary color from CSS variables
-    const primaryColor = getComputedStyle(document.documentElement)
-      .getPropertyValue('--primary')
-      .trim();
+    // Get colors from CSS variables
+    const styles = getComputedStyle(document.documentElement);
+    const mainColor = styles.getPropertyValue('--main').trim();
+    const bgColor = styles.getPropertyValue('--secondary-background').trim();
 
     const drawFrame = () => {
       if (!isRecording) return;
@@ -80,28 +80,25 @@ export function SimpleAudioVisualizer({
 
       analyser.getByteFrequencyData(dataArray);
 
-      // Clear canvas with background color
-      const bgColor = getComputedStyle(document.documentElement)
-        .getPropertyValue('--background')
-        .trim();
-      ctx.fillStyle = `hsl(${bgColor})`;
+      // Clear canvas with contrasting background
+      ctx.fillStyle = bgColor.startsWith('#') ? bgColor : `hsl(${bgColor})`;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const barWidth = canvas.width / bufferLength;
       const centerY = canvas.height / 2;
 
       for (let i = 0; i < bufferLength; i++) {
-        const barHeight = (dataArray[i] / 255) * (canvas.height / 2);
+        const barHeight = Math.max(2, (dataArray[i] / 255) * (canvas.height / 2));
         const x = barWidth * i;
 
-        // Primary color with opacity based on amplitude
-        const opacity = 0.3 + (dataArray[i] / 255) * 0.7;
-        ctx.fillStyle = primaryColor.startsWith('#')
-          ? primaryColor +
+        // Use main color with opacity based on amplitude for high contrast
+        const opacity = 0.4 + (dataArray[i] / 255) * 0.6;
+        ctx.fillStyle = mainColor.startsWith('#')
+          ? mainColor +
             Math.round(opacity * 255)
               .toString(16)
               .padStart(2, '0')
-          : `${primaryColor}${opacity}`;
+          : `hsl(${mainColor} / ${opacity})`;
 
         // Draw mirrored bars
         ctx.fillRect(x, centerY - barHeight, barWidth - 1, barHeight);

@@ -34,40 +34,36 @@ export default function PostTaskReview({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Post-Task Review</h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          Review your vocabulary usage and performance
-        </p>
+        <h2 className="text-xl font-bold text-foreground mb-2">Review Kosakata</h2>
+        <p className="text-muted-foreground">Lihat penggunaan kosakata dan performamu</p>
       </div>
 
       {/* Vocabulary Used Successfully */}
       {vocabularyUsed.length > 0 && (
         <Card className="p-4">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-            <span className="text-green-600">✓</span>
-            Vocabulary Used ({vocabularyUsed.length})
+          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+            <span className="text-tertiary-green">✓</span>
+            Kosakata yang Digunakan ({vocabularyUsed.length})
           </h3>
           <div className="space-y-2">
             {vocabularyUsed.map((vocab, idx) => (
               <div
                 key={idx}
-                className="p-3 bg-tertiary-green/10 rounded-lg border-l-4 border-green-500"
+                className="p-3 bg-tertiary-green/10 rounded-lg border-l-4 border-tertiary-green"
               >
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="flex items-baseline gap-2">
-                      <span className="font-bold text-gray-900 dark:text-white">{vocab.word}</span>
+                      <span className="font-bold text-foreground">{vocab.word}</span>
                       {vocab.reading && (
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          {vocab.reading}
-                        </span>
+                        <span className="text-sm text-muted-foreground">{vocab.reading}</span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{vocab.meaning}</p>
+                    <p className="text-sm text-muted-foreground">{vocab.meaning}</p>
                   </div>
                   {vocab.timesUsed && vocab.timesUsed > 1 && (
                     <span className="text-xs bg-tertiary-green/10 text-tertiary-green px-2 py-1 rounded">
-                      Used {vocab.timesUsed}x
+                      Digunakan {vocab.timesUsed}x
                     </span>
                   )}
                 </div>
@@ -80,28 +76,26 @@ export default function PostTaskReview({
       {/* Missed Opportunities */}
       {missedOpportunities.length > 0 && (
         <Card className="p-4">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-            <span className="text-yellow-600">⚠</span>
-            Missed Opportunities ({missedOpportunities.length})
+          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+            <span className="text-tertiary-yellow">⚠</span>
+            Kesempatan yang Terlewat ({missedOpportunities.length})
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-            These words from your study deck could have been used in the conversation:
+          <p className="text-sm text-muted-foreground mb-3">
+            Kata-kata ini dari deck studimu bisa digunakan dalam percakapan:
           </p>
           <div className="space-y-2">
             {missedOpportunities.map((vocab, idx) => (
               <div
                 key={idx}
-                className="p-3 bg-tertiary-yellow/10 rounded-lg border-l-4 border-yellow-500"
+                className="p-3 bg-tertiary-yellow/10 rounded-lg border-l-4 border-tertiary-yellow"
               >
                 <div className="flex items-baseline gap-2">
-                  <span className="font-bold text-gray-900 dark:text-white">{vocab.word}</span>
+                  <span className="font-bold text-foreground">{vocab.word}</span>
                   {vocab.reading && (
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {vocab.reading}
-                    </span>
+                    <span className="text-sm text-muted-foreground">{vocab.reading}</span>
                   )}
                 </div>
-                <p className="text-sm text-gray-700 dark:text-gray-300">{vocab.meaning}</p>
+                <p className="text-sm text-muted-foreground">{vocab.meaning}</p>
               </div>
             ))}
           </div>
@@ -111,18 +105,18 @@ export default function PostTaskReview({
       {/* New Words Encountered */}
       {newWordsEncountered.length > 0 && (
         <Card className="p-4">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-            <span className="text-blue-600">+</span>
-            New Words Encountered ({newWordsEncountered.length})
+          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+            <span className="text-secondary">+</span>
+            Kata Baru yang Ditemui ({newWordsEncountered.length})
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-            Add these words to your review queue for future practice:
+          <p className="text-sm text-muted-foreground mb-3">
+            Tambahkan kata-kata ini ke daftar review untuk latihan selanjutnya:
           </p>
           <div className="flex flex-wrap gap-2">
             {newWordsEncountered.map((word, idx) => (
               <span
                 key={idx}
-                className="px-3 py-1 bg-secondary/10 text-blue-900 dark:text-blue-300 rounded-full text-sm"
+                className="px-3 py-1 bg-secondary/10 text-secondary rounded-full text-sm"
               >
                 {word}
               </span>
@@ -132,22 +126,22 @@ export default function PostTaskReview({
       )}
 
       {/* Summary Stats */}
-      <Card className="p-4 bg-gray-50 dark:bg-gray-800">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-          Vocabulary Performance Summary
-        </h3>
+      <Card className="p-4 bg-secondary-background">
+        <h3 className="font-semibold text-foreground mb-3">Ringkasan Performa Kosakata</h3>
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
-            <div className="text-2xl font-bold text-green-600">{vocabularyUsed.length}</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400">Words Used</div>
+            <div className="text-2xl font-bold text-tertiary-green">{vocabularyUsed.length}</div>
+            <div className="text-xs text-muted-foreground">Digunakan</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-yellow-600">{missedOpportunities.length}</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400">Missed</div>
+            <div className="text-2xl font-bold text-tertiary-yellow">
+              {missedOpportunities.length}
+            </div>
+            <div className="text-xs text-muted-foreground">Terlewat</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-blue-600">{newWordsEncountered.length}</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400">New Words</div>
+            <div className="text-2xl font-bold text-secondary">{newWordsEncountered.length}</div>
+            <div className="text-xs text-muted-foreground">Kata Baru</div>
           </div>
         </div>
       </Card>
@@ -156,11 +150,11 @@ export default function PostTaskReview({
       <div className="flex gap-4">
         {(missedOpportunities.length > 0 || newWordsEncountered.length > 0) && (
           <Button onClick={handleAddAllToQueue} variant="secondary" className="flex-1">
-            Add All to Review Queue
+            Tambahkan ke Daftar Review
           </Button>
         )}
         <Button onClick={onContinue} className="flex-1">
-          Continue
+          Lanjutkan
         </Button>
       </div>
     </div>
