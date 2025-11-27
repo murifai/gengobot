@@ -224,7 +224,7 @@ export default function DeckBrowser() {
                 </div>
               </div>
 
-              <Link href={`/study/${deck.id}`}>
+              <Link href={`/app/drill/${deck.id}`}>
                 <Button variant="default" className="w-full">
                   Study Deck
                 </Button>

@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Sora, Shippori_Mincho } from 'next/font/google';
+import Script from 'next/script';
 import { Providers } from '@/components/providers';
+import { ReactEditLoader } from '@/components/dev/react-edit-loader';
 import './globals.css';
 
 const sora = Sora({
@@ -31,6 +33,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${sora.variable} ${shipporiMincho.variable} antialiased`}>
+        <Script src="https://unpkg.com/react-grab/dist/index.global.js" strategy="lazyOnload" />
+        <ReactEditLoader />
         <Providers>{children}</Providers>
       </body>
     </html>

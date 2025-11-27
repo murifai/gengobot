@@ -42,3 +42,6 @@ yarn-error.log*
 next-env.d.ts
 # Temporary audio files
 /public/audio/*.mp3
+
+# React Edit dev tool (text edits log)
+/.react-edit
