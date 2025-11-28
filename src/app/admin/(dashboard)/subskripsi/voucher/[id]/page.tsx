@@ -45,7 +45,7 @@ interface VoucherData {
 export default function EditVoucherPage() {
   const router = useRouter();
   const params = useParams();
-  const voucherId = params.id as string;
+  const voucherId = params?.id as string;
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
