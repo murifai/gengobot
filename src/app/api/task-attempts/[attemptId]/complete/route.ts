@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { calculateActiveMinutes, type ConversationHistory } from '@/lib/utils/active-time';
 
 /**
  * POST /api/task-attempts/[attemptId]/complete
@@ -62,9 +63,14 @@ export async function POST(
       (vocabularyGrammarAccuracy || 0) * 0.25 +
       (politeness || 0) * 0.2;
 
+    // Calculate active minutes from conversation history (excludes AFK time)
+    const conversationHistory = attempt.conversationHistory as ConversationHistory;
+    const activeMinutes = calculateActiveMinutes(conversationHistory);
+
     // Complete the task attempt
     // Note: Since Phase 6, we store SimplifiedAssessment in feedback field as JSON
     // The old score fields (taskAchievement, fluency, etc.) have been removed from the schema
+    // Active minutes is calculated on-demand from conversation history
     const completedAttempt = await prisma.taskAttempt.update({
       where: { id: attemptId },
       data: {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/auth';
 import { midtransService } from '@/lib/payment';
 import { SubscriptionTier } from '@prisma/client';
+import { validateTierChange } from '@/lib/subscription/tier-change-service';
 
 /**
  * POST /api/payment/checkout
@@ -34,6 +35,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Free tier does not require payment' }, { status: 400 });
     }
 
+    // Validate tier change (upgrade/downgrade/same tier)
+    const tierValidation = await validateTierChange(session.user.id, tier);
+
+    if (!tierValidation.allowed) {
+      return NextResponse.json(
+        {
+          error: tierValidation.message,
+          changeType: tierValidation.changeType,
+        },
+        { status: 400 }
+      );
+    }
+
+    // For downgrades, we still create the payment but the tier change is scheduled
+    // The webhook will handle scheduling the tier change after payment success
+
     // Create checkout
     const result = await midtransService.createSubscriptionInvoice(
       {
@@ -65,6 +82,12 @@ export async function POST(request: NextRequest) {
         originalAmount: result.originalAmount,
         discountAmount: result.discountAmount,
         finalAmount: result.finalAmount,
+      },
+      tierChange: {
+        changeType: tierValidation.changeType,
+        scheduledForNextPeriod: tierValidation.scheduledForNextPeriod || false,
+        currentPeriodEnd: tierValidation.currentPeriodEnd,
+        message: tierValidation.message,
       },
       mockMode: midtransService.isMockMode(),
       clientKey: midtransService.getClientKey(),

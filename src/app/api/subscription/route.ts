@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/auth';
 import { creditService, TIER_CONFIG, TIER_PRICING } from '@/lib/subscription';
+import { prisma } from '@/lib/prisma';
 
 /**
  * GET /api/subscription
@@ -17,9 +18,26 @@ export async function GET() {
     const balance = await creditService.getBalance(session.user.id);
     const subscription = await creditService.getOrCreateSubscription(session.user.id);
 
-    // Get tier config for display
-    const tierConfig = TIER_CONFIG[subscription.tier];
-    const tierPrice = TIER_PRICING[subscription.tier];
+    // Try to get tier config from database first (admin-configurable)
+    const dbTierConfig = await prisma.subscriptionTierConfig.findUnique({
+      where: { name: subscription.tier },
+    });
+
+    // Get fallback config from constants
+    const fallbackConfig = TIER_CONFIG[subscription.tier];
+    const fallbackPrice = TIER_PRICING[subscription.tier];
+
+    // Merge database config with fallback
+    const tierConfig = {
+      monthlyCredits: dbTierConfig?.credits ?? fallbackConfig.monthlyCredits,
+      customCharacters: fallbackConfig.customCharacters,
+      customCharactersUnlimited: fallbackConfig.customCharactersUnlimited,
+      textUnlimited: fallbackConfig.textUnlimited,
+      realtimeEnabled: fallbackConfig.realtimeEnabled,
+      price: dbTierConfig?.priceMonthly ?? fallbackPrice,
+      priceAnnual: dbTierConfig?.priceAnnual ?? fallbackPrice * 12,
+      features: dbTierConfig?.features ?? [],
+    };
 
     return NextResponse.json({
       subscription: {
@@ -31,13 +49,7 @@ export async function GET() {
         customCharactersUsed: subscription.customCharactersUsed,
       },
       balance,
-      tierConfig: {
-        monthlyCredits: tierConfig.monthlyCredits,
-        customCharacters: tierConfig.customCharacters,
-        customCharactersUnlimited: tierConfig.customCharactersUnlimited,
-        textUnlimited: tierConfig.textUnlimited,
-        price: tierPrice,
-      },
+      tierConfig,
     });
   } catch (error) {
     console.error('Error fetching subscription:', error);
