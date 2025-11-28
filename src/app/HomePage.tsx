@@ -17,7 +17,7 @@ export function HomePage() {
 
   // Auto-open login modal if redirected from protected route
   useEffect(() => {
-    if (searchParams.get('login') === 'required') {
+    if (searchParams?.get('login') === 'required') {
       openLoginModal();
     }
   }, [searchParams, openLoginModal]);

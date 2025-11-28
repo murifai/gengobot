@@ -21,10 +21,10 @@ const DURATION_OPTIONS: { value: DurationOption; label: string; discount?: strin
 export default function UpgradePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { tier: currentTier, isLoading } = useSubscription();
+  const { tier: currentTier, subscription, isLoading } = useSubscription();
 
   // Get initial tier from URL params
-  const tierParam = searchParams.get('tier') as SubscriptionTier | null;
+  const tierParam = searchParams?.get('tier') as SubscriptionTier | null;
 
   const [selectedTier, setSelectedTier] = useState<SubscriptionTier>(
     tierParam && (tierParam === SubscriptionTier.BASIC || tierParam === SubscriptionTier.PRO)
@@ -106,6 +106,10 @@ export default function UpgradePage() {
                 tier={SubscriptionTier.BASIC}
                 durationMonths={selectedDuration}
                 isCurrentPlan={currentTier === SubscriptionTier.BASIC}
+                currentTier={currentTier}
+                currentPeriodEnd={
+                  subscription?.currentPeriodEnd ? new Date(subscription.currentPeriodEnd) : null
+                }
                 onSelect={handleTierSelect}
                 className={
                   selectedTier === SubscriptionTier.BASIC && currentTier !== SubscriptionTier.BASIC
@@ -117,6 +121,10 @@ export default function UpgradePage() {
                 tier={SubscriptionTier.PRO}
                 durationMonths={selectedDuration}
                 isCurrentPlan={currentTier === SubscriptionTier.PRO}
+                currentTier={currentTier}
+                currentPeriodEnd={
+                  subscription?.currentPeriodEnd ? new Date(subscription.currentPeriodEnd) : null
+                }
                 onSelect={handleTierSelect}
                 className={
                   selectedTier === SubscriptionTier.PRO && currentTier !== SubscriptionTier.PRO

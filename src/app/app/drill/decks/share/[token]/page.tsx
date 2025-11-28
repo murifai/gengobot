@@ -36,7 +36,7 @@ interface SharedDeck {
 export default function SharedDeckPage() {
   const router = useRouter();
   const params = useParams();
-  const token = params.token as string;
+  const token = params?.token as string;
 
   const [deck, setDeck] = useState<SharedDeck | null>(null);
   const [loading, setLoading] = useState(true);

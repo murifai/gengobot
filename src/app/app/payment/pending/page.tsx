@@ -1,32 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Clock, Loader2, ArrowRight, RefreshCw } from 'lucide-react';
+import { Clock, ArrowRight, RefreshCw } from 'lucide-react';
 
 export default function PaymentPendingPage() {
-  const router = useRouter();
-  const [countdown, setCountdown] = useState(10);
-
-  useEffect(() => {
-    // Auto redirect countdown
-    const interval = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          router.push('/app/profile');
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [router]);
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="max-w-md w-full">
@@ -65,11 +44,6 @@ export default function PaymentPendingPage() {
               Refresh Halaman
             </Button>
           </div>
-
-          <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-            <Loader2 className="h-3 w-3 animate-spin" />
-            Redirect otomatis dalam {countdown} detik...
-          </p>
         </CardContent>
       </Card>
     </div>

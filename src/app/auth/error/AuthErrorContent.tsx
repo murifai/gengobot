@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export function AuthErrorContent() {
   const searchParams = useSearchParams();
-  const error = searchParams.get('error');
+  const error = searchParams?.get('error');
 
   return (
     <div className="w-full max-w-md space-y-4 text-center">
