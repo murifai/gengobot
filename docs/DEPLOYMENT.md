@@ -20,9 +20,10 @@ Create `.env` file based on `.env.example`:
 # Database
 DATABASE_URL="postgresql://..."
 
-# Authentication
+# Authentication (NextAuth v5)
 AUTH_SECRET="your-auth-secret-key"
 NEXTAUTH_URL="https://your-domain.com"
+AUTH_TRUST_HOST=true
 
 # OAuth (optional)
 GOOGLE_CLIENT_ID="..."

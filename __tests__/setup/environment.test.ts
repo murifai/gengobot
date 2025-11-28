@@ -10,7 +10,7 @@ describe('Konfigurasi Environment', () => {
 
   it('harus memiliki semua variabel environment yang diperlukan di template', () => {
     const envExample = fs.readFileSync('.env.example', 'utf-8');
-    const requiredVars = ['OPENAI_API_KEY', 'DATABASE_URL', 'NEXTAUTH_SECRET', 'NEXTAUTH_URL'];
+    const requiredVars = ['OPENAI_API_KEY', 'DATABASE_URL', 'AUTH_SECRET', 'NEXTAUTH_URL'];
 
     requiredVars.forEach(varName => {
       expect(envExample).toContain(varName);
