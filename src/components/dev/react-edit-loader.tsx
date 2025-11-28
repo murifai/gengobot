@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Script from 'next/script';
 
 export function ReactEditLoader() {
   useEffect(() => {
@@ -26,5 +27,10 @@ export function ReactEditLoader() {
     }
   }, []);
 
-  return null;
+  // Only load react-grab in development
+  if (process.env.NODE_ENV !== 'development') {
+    return null;
+  }
+
+  return <Script src="https://unpkg.com/react-grab/dist/index.global.js" strategy="lazyOnload" />;
 }

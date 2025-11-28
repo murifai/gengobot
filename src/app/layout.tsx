@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Space_Grotesk, Shippori_Mincho, Zen_Kaku_Gothic_New } from 'next/font/google';
-import Script from 'next/script';
 import { Providers } from '@/components/providers';
 import { ReactEditLoader } from '@/components/dev/react-edit-loader';
 import './globals.css';
@@ -42,7 +41,6 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.className} ${shipporiMincho.variable} ${zenKakuGothic.variable} antialiased`}
       >
-        <Script src="https://unpkg.com/react-grab/dist/index.global.js" strategy="lazyOnload" />
         <ReactEditLoader />
         <Providers>{children}</Providers>
       </body>
