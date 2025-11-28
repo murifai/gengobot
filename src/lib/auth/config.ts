@@ -54,7 +54,11 @@ export const authConfig: NextAuthConfig = {
 
           return true;
         } catch (error) {
-          console.error('[AUTH] Error in Google signIn callback:', error);
+          console.error('[AUTH] Error in Google signIn callback:', {
+            error: error instanceof Error ? error.message : error,
+            stack: error instanceof Error ? error.stack : undefined,
+            email: profile.email,
+          });
           return false;
         }
       }
