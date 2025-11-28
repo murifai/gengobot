@@ -11,6 +11,19 @@ export {
 
 export type { CreditCheck, CreditBalance, HistoryOptions } from './credit-config';
 
+// Tier sync utilities
+export {
+  getEffectiveTier,
+  getOrCreateSubscription,
+  syncUserTier,
+  syncAllUserTiers,
+  hasTierOrHigher,
+  isPaidTier,
+  getTierDisplayName,
+  planToTier,
+  tierToPlan,
+} from './tier-sync';
+
 // Credit service
 export {
   CreditService,

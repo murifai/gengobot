@@ -189,6 +189,9 @@ export interface InvoiceOptions {
   durationMonths?: number;
 }
 
+// Tier change type for subscription transitions
+export type TierChangeType = 'upgrade' | 'downgrade' | 'same' | 'new';
+
 // Subscription Checkout
 export interface CheckoutData {
   userId: string;
@@ -197,6 +200,8 @@ export interface CheckoutData {
   voucherCode?: string;
   payerEmail?: string;
   payerName?: string;
+  changeType?: TierChangeType;
+  scheduledForNextPeriod?: boolean;
 }
 
 export interface CheckoutResult {

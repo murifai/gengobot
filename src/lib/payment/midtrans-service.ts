@@ -19,22 +19,39 @@ import { notifyPaymentStatus } from '@/lib/notification/notification-service';
 import crypto from 'crypto';
 
 // Environment configuration
-const MIDTRANS_SERVER_KEY = process.env.MIDTRANS_SERVER_KEY || '';
-const MIDTRANS_CLIENT_KEY = process.env.MIDTRANS_CLIENT_KEY || '';
 const MIDTRANS_IS_PRODUCTION = process.env.MIDTRANS_IS_PRODUCTION === 'true';
+
+// Get the appropriate keys based on environment
+const getMidtransConfig = () => {
+  const isProduction = MIDTRANS_IS_PRODUCTION;
+  return {
+    serverKey: isProduction
+      ? process.env.MIDTRANS_SERVER_KEY_PRODUCTION || process.env.MIDTRANS_SERVER_KEY || ''
+      : process.env.MIDTRANS_SERVER_KEY_SANDBOX || process.env.MIDTRANS_SERVER_KEY || '',
+    clientKey: isProduction
+      ? process.env.MIDTRANS_CLIENT_KEY_PRODUCTION || process.env.MIDTRANS_CLIENT_KEY || ''
+      : process.env.MIDTRANS_CLIENT_KEY_SANDBOX || process.env.MIDTRANS_CLIENT_KEY || '',
+    snapUrl: isProduction
+      ? 'https://app.midtrans.com/snap/v1/transactions'
+      : 'https://app.sandbox.midtrans.com/snap/v1/transactions',
+    apiUrl: isProduction ? 'https://api.midtrans.com/v2' : 'https://api.sandbox.midtrans.com/v2',
+  };
+};
+
+// Get base URL for callbacks (supports ngrok for sandbox testing)
+const getBaseUrl = (): string => {
+  // In sandbox mode, prefer NGROK_URL if available for webhook accessibility
+  if (!MIDTRANS_IS_PRODUCTION && process.env.NGROK_URL) {
+    return process.env.NGROK_URL;
+  }
+  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+};
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-// Midtrans API URLs
-const MIDTRANS_SNAP_URL = MIDTRANS_IS_PRODUCTION
-  ? 'https://app.midtrans.com/snap/v1/transactions'
-  : 'https://app.sandbox.midtrans.com/snap/v1/transactions';
-
-const MIDTRANS_API_URL = MIDTRANS_IS_PRODUCTION
-  ? 'https://api.midtrans.com/v2'
-  : 'https://api.sandbox.midtrans.com/v2';
-
 // Mock mode for testing without Midtrans account
-const MOCK_MODE = !MIDTRANS_SERVER_KEY || process.env.MIDTRANS_MOCK_MODE === 'true';
+const config = getMidtransConfig();
+const MOCK_MODE = !config.serverKey || process.env.MIDTRANS_MOCK_MODE === 'true';
 
 export class MidtransService {
   /**
@@ -48,7 +65,7 @@ export class MidtransService {
    * Get Midtrans client key for frontend
    */
   getClientKey(): string {
-    return MIDTRANS_CLIENT_KEY;
+    return getMidtransConfig().clientKey;
   }
 
   /**
@@ -96,8 +113,12 @@ export class MidtransService {
       }
     }
 
-    // Generate order ID
-    const orderId = `gengo_${userId}_${tier}_${durationMonths}m_${Date.now()}`;
+    // Generate order ID (max 50 chars for Midtrans)
+    // Format: GNG-{shortUserId}-{tier initial}-{duration}-{timestamp}
+    const shortUserId = userId.replace('user_', '').substring(0, 8);
+    const tierInitial = tier.charAt(0).toUpperCase();
+    const timestamp = Date.now().toString(36); // Base36 for shorter timestamp
+    const orderId = `GNG-${shortUserId}-${tierInitial}${durationMonths}-${timestamp}`;
 
     // Create transaction request
     const transactionRequest: CreateSnapTransactionRequest = {
@@ -152,6 +173,8 @@ export class MidtransService {
         originalAmount: priceDetails.originalTotal,
         discountAmount,
         voucherCode,
+        changeType: checkoutData.changeType,
+        scheduledForNextPeriod: checkoutData.scheduledForNextPeriod,
       });
 
       return {
@@ -180,12 +203,13 @@ export class MidtransService {
       return this.createMockTransaction(request);
     }
 
-    const response = await fetch(MIDTRANS_SNAP_URL, {
+    const midtransConfig = getMidtransConfig();
+    const response = await fetch(midtransConfig.snapUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
-        Authorization: `Basic ${Buffer.from(MIDTRANS_SERVER_KEY + ':').toString('base64')}`,
+        Authorization: `Basic ${Buffer.from(midtransConfig.serverKey + ':').toString('base64')}`,
       },
       body: JSON.stringify(request),
     });
@@ -206,10 +230,11 @@ export class MidtransService {
       return this.getMockTransactionStatus(orderId);
     }
 
-    const response = await fetch(`${MIDTRANS_API_URL}/${orderId}/status`, {
+    const midtransConfig = getMidtransConfig();
+    const response = await fetch(`${midtransConfig.apiUrl}/${orderId}/status`, {
       headers: {
         Accept: 'application/json',
-        Authorization: `Basic ${Buffer.from(MIDTRANS_SERVER_KEY + ':').toString('base64')}`,
+        Authorization: `Basic ${Buffer.from(midtransConfig.serverKey + ':').toString('base64')}`,
       },
     });
 
@@ -252,7 +277,15 @@ export class MidtransService {
     // Handle different transaction statuses
     if (status === 'capture' || status === 'settlement') {
       if (fraudStatus === 'accept' || !fraudStatus) {
-        await this.handlePaymentSuccess(pendingPayment, notification);
+        // Cast metadata to expected type for handlePaymentSuccess
+        const paymentWithTypedMetadata = {
+          ...pendingPayment,
+          metadata: pendingPayment.metadata as {
+            changeType?: string;
+            scheduledForNextPeriod?: boolean;
+          } | null,
+        };
+        await this.handlePaymentSuccess(paymentWithTypedMetadata, notification);
       } else {
         await this.handlePaymentFailed(pendingPayment);
       }
@@ -268,6 +301,7 @@ export class MidtransService {
 
   /**
    * Verify Midtrans notification signature
+   * Signature = SHA512(order_id + status_code + gross_amount + server_key)
    */
   verifySignature(notification: MidtransNotification): boolean {
     const signatureKey = notification.signature_key;
@@ -275,12 +309,26 @@ export class MidtransService {
     const statusCode = notification.status_code;
     const grossAmount = notification.gross_amount;
 
+    const midtransConfig = getMidtransConfig();
     const hash = crypto
       .createHash('sha512')
-      .update(`${orderId}${statusCode}${grossAmount}${MIDTRANS_SERVER_KEY}`)
+      .update(`${orderId}${statusCode}${grossAmount}${midtransConfig.serverKey}`)
       .digest('hex');
 
-    return hash === signatureKey;
+    const isValid = hash === signatureKey;
+
+    if (!isValid) {
+      console.error('[MidtransService] Signature verification failed:', {
+        orderId,
+        statusCode,
+        grossAmount,
+        isProduction: MIDTRANS_IS_PRODUCTION,
+        receivedSignature: signatureKey?.substring(0, 20) + '...',
+        expectedSignature: hash.substring(0, 20) + '...',
+      });
+    }
+
+    return isValid;
   }
 
   /**
@@ -436,6 +484,8 @@ export class MidtransService {
       originalAmount: number;
       discountAmount: number;
       voucherCode?: string;
+      changeType?: string;
+      scheduledForNextPeriod?: boolean;
     }
   ): Promise<void> {
     const expiresAt = new Date();
@@ -459,6 +509,8 @@ export class MidtransService {
           discountAmount: metadata.discountAmount,
           voucherCode: metadata.voucherCode,
           snapToken: transaction.token,
+          changeType: metadata.changeType,
+          scheduledForNextPeriod: metadata.scheduledForNextPeriod,
         },
       },
     });
@@ -471,10 +523,19 @@ export class MidtransService {
       tier: SubscriptionTier;
       durationMonths: number;
       amount: number;
+      metadata?: {
+        changeType?: string;
+        scheduledForNextPeriod?: boolean;
+      } | null;
     },
     notification: MidtransNotification
   ): Promise<void> {
     const { userId, tier, durationMonths, amount } = pendingPayment;
+    const metadata = pendingPayment.metadata as {
+      changeType?: string;
+      scheduledForNextPeriod?: boolean;
+    } | null;
+    const isDowngrade = metadata?.changeType === 'downgrade' && metadata?.scheduledForNextPeriod;
 
     // Calculate subscription period
     const now = new Date();
@@ -491,7 +552,22 @@ export class MidtransService {
       where: { userId },
     });
 
-    if (existingSubscription) {
+    if (isDowngrade && existingSubscription) {
+      // For downgrades: schedule the tier change for when current period ends
+      await prisma.subscription.update({
+        where: { userId },
+        data: {
+          scheduledTier: tier,
+          scheduledTierStartAt: existingSubscription.currentPeriodEnd,
+          scheduledDurationMonths: durationMonths,
+        },
+      });
+
+      console.log(
+        `[MidtransService] Downgrade scheduled for user ${userId}: ${tier} starting ${existingSubscription.currentPeriodEnd}`
+      );
+    } else if (existingSubscription) {
+      // Immediate activation for upgrades and new subscriptions
       await prisma.subscription.update({
         where: { userId },
         data: {
@@ -507,9 +583,32 @@ export class MidtransService {
           trialEndDate: null,
           trialCreditsUsed: 0,
           trialDailyUsed: 0,
+          // Clear any scheduled changes
+          scheduledTier: null,
+          scheduledTierStartAt: null,
+          scheduledDurationMonths: null,
+        },
+      });
+
+      // Record credit grant for immediate activation
+      await prisma.creditTransaction.create({
+        data: {
+          userId,
+          type: CreditTransactionType.GRANT,
+          amount: totalCredits,
+          balance: totalCredits,
+          description: `${tier} subscription - ${durationMonths} month(s)`,
+          metadata: {
+            tier,
+            durationMonths,
+            amountPaid: amount,
+            paymentType: notification.payment_type,
+            transactionId: notification.transaction_id,
+          },
         },
       });
     } else {
+      // New subscription
       await prisma.subscription.create({
         data: {
           userId,
@@ -522,25 +621,25 @@ export class MidtransService {
           creditsRemaining: totalCredits,
         },
       });
-    }
 
-    // Record credit grant
-    await prisma.creditTransaction.create({
-      data: {
-        userId,
-        type: CreditTransactionType.GRANT,
-        amount: totalCredits,
-        balance: totalCredits,
-        description: `${tier} subscription - ${durationMonths} month(s)`,
-        metadata: {
-          tier,
-          durationMonths,
-          amountPaid: amount,
-          paymentType: notification.payment_type,
-          transactionId: notification.transaction_id,
+      // Record credit grant for new subscription
+      await prisma.creditTransaction.create({
+        data: {
+          userId,
+          type: CreditTransactionType.GRANT,
+          amount: totalCredits,
+          balance: totalCredits,
+          description: `${tier} subscription - ${durationMonths} month(s)`,
+          metadata: {
+            tier,
+            durationMonths,
+            amountPaid: amount,
+            paymentType: notification.payment_type,
+            transactionId: notification.transaction_id,
+          },
         },
-      },
-    });
+      });
+    }
 
     // Update pending payment status
     await prisma.pendingPayment.update({
@@ -555,7 +654,7 @@ export class MidtransService {
     });
 
     console.log(
-      `[MidtransService] Payment successful for user ${userId}: ${tier} x ${durationMonths} months`
+      `[MidtransService] Payment successful for user ${userId}: ${tier} x ${durationMonths} months${isDowngrade ? ' (scheduled)' : ''}`
     );
 
     // Send success notification
