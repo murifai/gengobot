@@ -579,6 +579,11 @@ model Subscription {
   // Character limits
   customCharactersUsed Int @default(0)
 
+  // Scheduled tier change (for downgrades)
+  scheduledTier        SubscriptionTier?
+  scheduledTierStartAt DateTime?
+  scheduledDurationMonths Int?
+
   // Metadata
   paymentCustomerId  String?
   paymentRecurringId String?
@@ -588,6 +593,7 @@ model Subscription {
 
   @@index([tier])
   @@index([status])
+  @@index([scheduledTierStartAt])
 }
 
 // CreditTransaction model - Track all credit movements
@@ -858,4 +864,35 @@ enum NotificationType {
   // System notifications
   SYSTEM_ANNOUNCEMENT
   FEATURE_UPDATE
+}
+
+// Dictionary Entry model - JMDict vocabulary data for in-chat lookup
+model DictionaryEntry {
+  id            String   @id @default(cuid())
+  entryId       Int      @unique // JMdict ent_seq
+
+  // Readings
+  kanji         String[] // Array of kanji writings
+  readings      String[] // Array of kana readings
+
+  // Meanings
+  meaningsEn    String[] // English meanings (from JMDict)
+  meaningsId    String[] // Indonesian (from static mapping)
+
+  // Part of speech
+  partsOfSpeech String[] // noun, verb, adj-i, etc.
+
+  // JLPT Level (if available)
+  jlptLevel     String?  // N5, N4, N3, N2, N1
+
+  // Frequency/Priority
+  priority      Int      @default(0) // Higher = more common
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([kanji])
+  @@index([readings])
+  @@index([jlptLevel])
+  @@index([priority])
 }
