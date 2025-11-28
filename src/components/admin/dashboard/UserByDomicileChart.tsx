@@ -1,7 +1,13 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart';
 
 interface DomicileData {
   domicile: string;
@@ -11,6 +17,13 @@ interface DomicileData {
 interface UserByDomicileChartProps {
   data: DomicileData[];
 }
+
+const chartConfig = {
+  count: {
+    label: 'Users',
+    color: 'var(--chart-2)',
+  },
+} satisfies ChartConfig;
 
 export function UserByDomicileChart({ data }: UserByDomicileChartProps) {
   const totalUsers = data.reduce((sum, item) => sum + item.count, 0);
@@ -30,45 +43,47 @@ export function UserByDomicileChart({ data }: UserByDomicileChartProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={formattedData}
-              layout="vertical"
-              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={false} />
-              <XAxis
-                type="number"
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={value => value.toLocaleString()}
-              />
-              <YAxis
-                type="category"
-                dataKey="displayName"
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                width={100}
-              />
-              <Tooltip
-                formatter={(value: number) => [value.toLocaleString(), 'Users']}
-                labelFormatter={label => {
-                  const item = formattedData.find(d => d.displayName === label);
-                  return item ? item.domicile : label;
-                }}
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                }}
-              />
-              <Bar dataKey="count" fill="hsl(var(--secondary))" radius={[0, 4, 4, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <BarChart
+            data={formattedData}
+            layout="vertical"
+            margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+          >
+            <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+            <XAxis
+              type="number"
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={value => value.toLocaleString()}
+            />
+            <YAxis
+              type="category"
+              dataKey="displayName"
+              tickLine={false}
+              axisLine={false}
+              width={100}
+              tickMargin={8}
+            />
+            <ChartTooltip
+              cursor={false}
+              content={
+                <ChartTooltipContent
+                  labelFormatter={(_, payload) => {
+                    const item = payload?.[0]?.payload;
+                    return item ? item.domicile : '';
+                  }}
+                />
+              }
+            />
+            <Bar
+              dataKey="count"
+              fill="var(--color-count)"
+              radius={[0, 4, 4, 0]}
+              strokeWidth={2}
+              stroke="hsl(var(--border))"
+            />
+          </BarChart>
+        </ChartContainer>
       </CardContent>
     </Card>
   );

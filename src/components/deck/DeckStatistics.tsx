@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { LoadingState } from '@/components/ui/LoadingState';
+import { UI_TEXT } from '@/lib/constants/ui-text';
 
 interface DeckStatsData {
   deckId: string;
@@ -113,8 +114,8 @@ export default function DeckStatistics({ deckId }: DeckStatisticsProps) {
             <div className="text-2xl font-bold text-foreground mb-1">
               {stats.overall.studyStreak}
             </div>
-            <div className="text-sm text-muted-foreground">Study Streak</div>
-            <div className="text-xs text-muted-foreground mt-1">hari</div>
+            <div className="text-sm text-muted-foreground">{UI_TEXT.deckStats.studyStreak}</div>
+            <div className="text-xs text-muted-foreground mt-1">{UI_TEXT.dashboard.days}</div>
           </div>
         </Card>
 
@@ -191,9 +192,9 @@ export default function DeckStatistics({ deckId }: DeckStatisticsProps) {
             <div className="text-2xl font-bold text-foreground mb-1">
               {formatTime(stats.overall.totalStudyTime)}
             </div>
-            <div className="text-sm text-muted-foreground">Study Time</div>
+            <div className="text-sm text-muted-foreground">{UI_TEXT.deckStats.studyTime}</div>
             <div className="text-xs text-muted-foreground mt-1">
-              {stats.overall.totalSessions} sesi
+              {stats.overall.totalSessions} {UI_TEXT.deckStats.sessions}
             </div>
           </div>
         </Card>

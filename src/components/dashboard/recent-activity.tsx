@@ -2,10 +2,14 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle2, BookOpen, Clock } from 'lucide-react';
+import { MessageSquare, MessageCircle, BookOpen, Clock } from 'lucide-react';
+import { UI_TEXT, formatRelativeTimeID } from '@/lib/constants/ui-text';
+import { ACTIVITY_COLORS } from '@/components/app/dashboard/AppDashboard';
+
+type ActivityType = 'roleplay' | 'kaiwa_bebas' | 'drill' | 'task_complete' | 'cards_learned';
 
 interface Activity {
-  type: 'task_complete' | 'cards_learned';
+  type: ActivityType;
   data: {
     title?: string;
     jlptLevel?: string;
@@ -22,20 +26,41 @@ interface RecentActivityProps {
   isLoading?: boolean;
 }
 
-// Simple relative time formatter without external dependencies
-function formatRelativeTime(date: Date): string {
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+// Map legacy types to new types
+function normalizeActivityType(type: ActivityType): 'roleplay' | 'kaiwa_bebas' | 'drill' {
+  if (type === 'task_complete') return 'roleplay';
+  if (type === 'cards_learned') return 'drill';
+  return type;
+}
 
-  if (diffInSeconds < 60) return 'just now';
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
-  return `${Math.floor(diffInSeconds / 604800)} weeks ago`;
+function ActivityIcon({ type }: { type: ActivityType }) {
+  const normalizedType = normalizeActivityType(type);
+  const colors = ACTIVITY_COLORS[normalizedType];
+
+  const iconProps = {
+    className: `h-4 w-4 ${colors.icon}`,
+  };
+
+  return (
+    <div className={`p-2 rounded-lg ${colors.iconBg}`}>
+      {normalizedType === 'roleplay' && <MessageSquare {...iconProps} />}
+      {normalizedType === 'kaiwa_bebas' && <MessageCircle {...iconProps} />}
+      {normalizedType === 'drill' && <BookOpen {...iconProps} />}
+    </div>
+  );
+}
+
+function getActivityTitle(activity: Activity): string {
+  const type = normalizeActivityType(activity.type);
+
+  if (type === 'drill') {
+    return activity.data.word || activity.data.deckName || 'Flashcard';
+  }
+
+  return activity.data.title || (type === 'roleplay' ? 'Roleplay' : 'Kaiwa Bebas');
 }
 
 export function RecentActivity({ activities, isLoading }: RecentActivityProps) {
-  // Safety check for activities prop
   const safeActivities = Array.isArray(activities) ? activities : [];
 
   if (isLoading) {
@@ -46,14 +71,14 @@ export function RecentActivity({ activities, isLoading }: RecentActivityProps) {
           <Skeleton className="h-4 w-48" />
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <Skeleton className="h-10 w-10 rounded-full" />
-                <div className="flex-1">
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-3 w-24" />
+              <div key={i} className="flex items-center justify-between py-2">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-8 w-8 rounded-lg" />
+                  <Skeleton className="h-4 w-32" />
                 </div>
+                <Skeleton className="h-3 w-20" />
               </div>
             ))}
           </div>
@@ -66,14 +91,14 @@ export function RecentActivity({ activities, isLoading }: RecentActivityProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-          <CardDescription>Your latest learning activities</CardDescription>
+          <CardTitle>{UI_TEXT.dashboard.recentActivity}</CardTitle>
+          <CardDescription>{UI_TEXT.dashboard.recentActivityDescription}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <Clock className="h-12 w-12 text-muted-foreground mb-3" />
             <p className="text-sm text-muted-foreground">
-              No recent activity. Start learning to see your progress here!
+              {UI_TEXT.dashboard.noActivity} {UI_TEXT.dashboard.startLearning}
             </p>
           </div>
         </CardContent>
@@ -84,56 +109,31 @@ export function RecentActivity({ activities, isLoading }: RecentActivityProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
-        <CardDescription>Your latest learning activities</CardDescription>
+        <CardTitle>{UI_TEXT.dashboard.recentActivity}</CardTitle>
+        <CardDescription>{UI_TEXT.dashboard.recentActivityDescription}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-1">
           {safeActivities.map((activity, index) => {
             const timestamp =
               typeof activity.timestamp === 'string'
                 ? new Date(activity.timestamp)
                 : activity.timestamp;
 
-            // Validate timestamp is a valid Date
             const isValidDate = timestamp instanceof Date && !isNaN(timestamp.getTime());
 
             return (
-              <div key={index} className="flex items-start gap-3">
-                <div
-                  className={`p-2 rounded-full ${
-                    activity.type === 'task_complete' ? 'bg-green-100' : 'bg-blue-100'
-                  }`}
-                >
-                  {activity.type === 'task_complete' ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  ) : (
-                    <BookOpen className="h-5 w-5 text-blue-600" />
-                  )}
+              <div
+                key={index}
+                className="flex items-center justify-between py-2 hover:bg-muted/50 rounded-lg px-2 -mx-2 transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <ActivityIcon type={activity.type} />
+                  <span className="text-sm font-medium truncate">{getActivityTitle(activity)}</span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  {activity.type === 'task_complete' ? (
-                    <>
-                      <p className="text-sm font-medium truncate">
-                        Completed: {activity.data.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {activity.data.jlptLevel}
-                        {activity.data.score !== null && activity.data.score !== undefined
-                          ? ` • Score: ${activity.data.score}%`
-                          : ''}
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-sm font-medium truncate">Reviewed: {activity.data.word}</p>
-                      <p className="text-xs text-muted-foreground">{activity.data.deckName}</p>
-                    </>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {isValidDate ? formatRelativeTime(timestamp) : 'Recently'}
-                  </p>
-                </div>
+                <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
+                  {isValidDate ? formatRelativeTimeID(timestamp) : UI_TEXT.common.recently}
+                </span>
               </div>
             );
           })}

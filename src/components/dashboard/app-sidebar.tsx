@@ -1,7 +1,15 @@
 'use client';
 
 import * as React from 'react';
-import { BookOpen, GraduationCap, Home, MessageSquare, User as UserIcon, Book } from 'lucide-react';
+import {
+  BookOpen,
+  GraduationCap,
+  Home,
+  MessageSquare,
+  User as UserIcon,
+  Book,
+  CreditCard,
+} from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import {
@@ -46,6 +54,11 @@ const items = [
 ];
 
 const bottomItems = [
+  {
+    title: 'Billing',
+    url: '/app/billing',
+    icon: CreditCard,
+  },
   {
     title: 'Profile',
     url: '/app/profile',

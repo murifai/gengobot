@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/Badge';
+import { UI_TEXT } from '@/lib/constants/ui-text';
 
 interface SimplifiedPostTaskReviewProps {
   assessment: SimplifiedAssessment;
@@ -55,7 +56,7 @@ export function SimplifiedPostTaskReview({
                 : 'text-yellow-900 dark:text-yellow-100'
             }`}
           >
-            {isFullyCompleted ? 'Task Completed!' : 'Task Incomplete'}
+            {isFullyCompleted ? UI_TEXT.feedback.taskCompleted : UI_TEXT.feedback.taskIncomplete}
           </CardTitle>
           <CardDescription
             className={
@@ -65,8 +66,8 @@ export function SimplifiedPostTaskReview({
             }
           >
             {isFullyCompleted
-              ? 'Great job working through this task'
-              : `You completed ${assessment.objectivesAchieved} of ${assessment.totalObjectives} objectives`}
+              ? UI_TEXT.feedback.greatJob
+              : `${UI_TEXT.feedback.completedObjectives} ${assessment.objectivesAchieved} ${UI_TEXT.feedback.ofObjectives} ${assessment.totalObjectives} ${UI_TEXT.feedback.objectives}`}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -79,11 +80,13 @@ export function SimplifiedPostTaskReview({
           >
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              <span>{assessment.statistics.durationMinutes} minutes</span>
+              <span>
+                {assessment.statistics.durationMinutes} {UI_TEXT.common.minutes}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
-              <span>{assessment.statistics.totalMessages} messages</span>
+              <span>{assessment.statistics.totalMessages} pesan</span>
             </div>
           </div>
         </CardContent>
@@ -95,17 +98,17 @@ export function SimplifiedPostTaskReview({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Target className="h-5 w-5 text-primary" />
-              <CardTitle>Learning Objectives</CardTitle>
+              <CardTitle>{UI_TEXT.feedback.learningObjectives}</CardTitle>
             </div>
             <Badge variant={completionPercentage === 100 ? 'default' : 'secondary'}>
-              {assessment.objectivesAchieved} / {assessment.totalObjectives} Completed
+              {assessment.objectivesAchieved} / {assessment.totalObjectives} {UI_TEXT.common.done}
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Progress</span>
+              <span>{UI_TEXT.feedback.progress}</span>
               <span>{completionPercentage}%</span>
             </div>
             <Progress value={completionPercentage} className="h-2" />
@@ -138,7 +141,7 @@ export function SimplifiedPostTaskReview({
                   </p>
                   {objective.achieved && objective.evidence.length > 0 && (
                     <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                      ✓ Demonstrated in conversation
+                      ✓ {UI_TEXT.feedback.demonstratedInConversation}
                     </p>
                   )}
                 </div>
@@ -153,13 +156,13 @@ export function SimplifiedPostTaskReview({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            Feedback & Insights
+            {UI_TEXT.feedback.feedbackInsights}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Overall Feedback */}
           <div>
-            <h3 className="font-semibold text-lg mb-2">Overall Assessment</h3>
+            <h3 className="font-semibold text-lg mb-2">{UI_TEXT.feedback.overallAssessment}</h3>
             <p className="text-muted-foreground leading-relaxed">
               {assessment.conversationFeedback.overallFeedback}
             </p>
@@ -169,7 +172,7 @@ export function SimplifiedPostTaskReview({
           {assessment.conversationFeedback.strengths.length > 0 && (
             <div>
               <h3 className="font-semibold text-lg mb-3 text-green-700 dark:text-green-400">
-                💪 What You Did Well
+                💪 {UI_TEXT.feedback.whatYouDidWell}
               </h3>
               <ul className="space-y-2">
                 {assessment.conversationFeedback.strengths.map((strength, index) => (
@@ -186,7 +189,7 @@ export function SimplifiedPostTaskReview({
           {assessment.conversationFeedback.areasToImprove.length > 0 && (
             <div>
               <h3 className="font-semibold text-lg mb-3 text-blue-700 dark:text-blue-400">
-                🎯 Areas to Focus On
+                🎯 {UI_TEXT.feedback.areasToFocus}
               </h3>
               <ul className="space-y-2">
                 {assessment.conversationFeedback.areasToImprove.map((area, index) => (
@@ -213,7 +216,7 @@ export function SimplifiedPostTaskReview({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5 text-primary" />
-            Recommended Next Steps
+            {UI_TEXT.feedback.nextSteps}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -234,12 +237,12 @@ export function SimplifiedPostTaskReview({
       <div className="flex gap-4 justify-center pt-4">
         {onRetry && (
           <Button onClick={onRetry} variant="outline" size="lg">
-            Retry This Task
+            {UI_TEXT.feedback.retryTask}
           </Button>
         )}
         {onBackToTasks && (
           <Button onClick={onBackToTasks} size="lg">
-            Back to Tasks
+            {UI_TEXT.feedback.backToTasks}
           </Button>
         )}
       </div>

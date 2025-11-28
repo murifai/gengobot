@@ -21,6 +21,9 @@ export {
 // Pricing
 export { PricingTable, PricingComparison } from './PricingTable';
 
+// Usage Chart
+export { CreditUsageChart } from './CreditUsageChart';
+
 // Voucher
 export { VoucherInput } from './VoucherInput';
 export { VoucherApplied } from './VoucherApplied';

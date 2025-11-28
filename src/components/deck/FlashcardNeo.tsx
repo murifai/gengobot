@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Volume2, VolumeX, RotateCcw, X, Check, ArrowLeft } from 'lucide-react';
+import { Volume2, VolumeX, Repeat, X, Check, ArrowLeft } from 'lucide-react';
 import { playAudio, stopAudio } from '@/lib/audio';
 
 interface Flashcard {
@@ -91,18 +91,11 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
   const [submittingRating, setSubmittingRating] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Swipe state
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [dragOffset, setDragOffset] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-
   const currentCard = deck.flashcards[currentIndex];
   const totalCards = deck.flashcards.length;
   const progress = Math.round(((currentIndex + 1) / totalCards) * 100);
 
   const cardColors = CARD_COLORS[currentCard?.cardType] || CARD_COLORS.vocabulary;
-  const minSwipeDistance = 50;
 
   useEffect(() => {
     setReviewStartTime(Date.now());
@@ -111,7 +104,7 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
   // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (submittingRating || isAnimating) return;
+      if (submittingRating) return;
 
       switch (e.key) {
         case ' ':
@@ -139,7 +132,7 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showAnswer, submittingRating, isAnimating]);
+  }, [showAnswer, submittingRating]);
 
   const handlePlayAudio = useCallback(
     async (audioUrl?: string, text?: string) => {
@@ -160,54 +153,6 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
     },
     [isPlaying]
   );
-
-  // Touch handlers for swipe
-  const onTouchStart = (e: React.TouchEvent) => {
-    if (isAnimating) return;
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (isAnimating || touchStart === null) return;
-    const currentX = e.targetTouches[0].clientX;
-    setTouchEnd(currentX);
-    const distance = currentX - touchStart;
-    setDragOffset(Math.max(-150, Math.min(150, distance)));
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd || isAnimating) {
-      setDragOffset(0);
-      setTouchStart(null);
-      setTouchEnd(null);
-      return;
-    }
-
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = showAnswer ? distance < -minSwipeDistance : distance > minSwipeDistance;
-    const isRightSwipe = showAnswer ? distance > minSwipeDistance : distance < -minSwipeDistance;
-
-    if (isLeftSwipe || isRightSwipe) {
-      setIsAnimating(true);
-      const flyDirection = isLeftSwipe ? -400 : 400;
-      setDragOffset(flyDirection);
-      const ratingValue = isLeftSwipe ? 'belum_hafal' : 'hafal';
-
-      setTimeout(() => {
-        handleRating(ratingValue);
-        setTimeout(() => {
-          setIsAnimating(false);
-          setDragOffset(0);
-        }, 100);
-      }, 300);
-    } else {
-      setDragOffset(0);
-    }
-
-    setTouchStart(null);
-    setTouchEnd(null);
-  };
 
   if (!currentCard) {
     return (
@@ -236,7 +181,6 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
   }
 
   const handleFlipCard = () => {
-    if (isAnimating) return;
     setShowAnswer(!showAnswer);
   };
 
@@ -316,12 +260,7 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
             e.stopPropagation();
             handlePlayAudio(currentCard.audioUrl, primaryText);
           }}
-          className="absolute top-4 right-4 p-2 transition-transform hover:scale-110"
-          style={{
-            backgroundColor: 'white',
-            border: '2px solid #000',
-            boxShadow: '2px 2px 0px 0px #000',
-          }}
+          className="absolute top-4 right-4 p-2 bg-background border-2 border-border shadow-shadow transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
         >
           {isPlaying ? <VolumeX size={20} /> : <Volume2 size={20} />}
         </button>
@@ -369,18 +308,13 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
             <p className="text-black">Jenis kartu tidak dikenal</p>
           )}
         </div>
-
-        {/* Tap hint */}
-        <div className="absolute bottom-4 text-sm text-black/50 font-medium">
-          Tap untuk balik kartu
-        </div>
       </div>
     );
   };
 
   const renderCardBack = () => {
     return (
-      <div className="h-full flex flex-col p-6 overflow-y-auto">
+      <div className="h-full flex flex-col p-4 overflow-hidden">
         {/* Card type badge */}
         <div
           className="absolute top-4 left-4 px-3 py-1 text-xs font-bold uppercase tracking-wider"
@@ -394,17 +328,17 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
           {currentCard.cardType}
         </div>
 
-        <div className="mt-8 space-y-4">
+        <div className="mt-10 space-y-3">
           {/* Meaning Section */}
           <div
-            className="p-4 bg-white"
+            className="p-3 bg-white"
             style={{
               border: '2px solid #000',
-              boxShadow: '3px 3px 0px 0px #000',
+              boxShadow: '2px 2px 0px 0px #000',
             }}
           >
-            <h3 className="text-sm font-bold uppercase tracking-wider text-black/60 mb-2">Arti</h3>
-            <p className="text-xl font-bold text-black">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-black/60 mb-1">Arti</h3>
+            <p className="text-base font-bold text-black">
               {currentCard.cardType === 'hiragana' || currentCard.cardType === 'katakana'
                 ? currentCard.romaji
                 : currentCard.cardType === 'kanji'
@@ -417,29 +351,33 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
 
           {/* Additional info based on card type */}
           {currentCard.cardType === 'kanji' && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {currentCard.onyomi && (
                 <div
-                  className="p-3 bg-white"
+                  className="p-2 bg-white"
                   style={{
                     border: '2px solid #000',
                     boxShadow: '2px 2px 0px 0px #000',
                   }}
                 >
-                  <h4 className="text-xs font-bold uppercase text-black/60 mb-1">On&apos;yomi</h4>
-                  <p className="text-lg font-bold text-black">{currentCard.onyomi}</p>
+                  <h4 className="text-[10px] font-bold uppercase text-black/60 mb-0.5">
+                    On&apos;yomi
+                  </h4>
+                  <p className="text-sm font-bold text-black">{currentCard.onyomi}</p>
                 </div>
               )}
               {currentCard.kunyomi && (
                 <div
-                  className="p-3 bg-white"
+                  className="p-2 bg-white"
                   style={{
                     border: '2px solid #000',
                     boxShadow: '2px 2px 0px 0px #000',
                   }}
                 >
-                  <h4 className="text-xs font-bold uppercase text-black/60 mb-1">Kun&apos;yomi</h4>
-                  <p className="text-lg font-bold text-black">{currentCard.kunyomi}</p>
+                  <h4 className="text-[10px] font-bold uppercase text-black/60 mb-0.5">
+                    Kun&apos;yomi
+                  </h4>
+                  <p className="text-sm font-bold text-black">{currentCard.kunyomi}</p>
                 </div>
               )}
             </div>
@@ -447,7 +385,7 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
 
           {currentCard.cardType === 'vocabulary' && currentCard.partOfSpeech && (
             <div
-              className="inline-block px-3 py-1 bg-white text-sm font-bold"
+              className="inline-block px-2 py-0.5 bg-white text-xs font-bold"
               style={{
                 border: '2px solid #000',
                 boxShadow: '2px 2px 0px 0px #000',
@@ -459,34 +397,36 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
 
           {currentCard.cardType === 'grammar' && currentCard.usageNote && (
             <div
-              className="p-3 bg-white"
+              className="p-2 bg-white"
               style={{
                 border: '2px solid #000',
                 boxShadow: '2px 2px 0px 0px #000',
               }}
             >
-              <h4 className="text-xs font-bold uppercase text-black/60 mb-1">Catatan Penggunaan</h4>
-              <p className="text-sm text-black whitespace-pre-wrap">{currentCard.usageNote}</p>
+              <h4 className="text-[10px] font-bold uppercase text-black/60 mb-0.5">
+                Catatan Penggunaan
+              </h4>
+              <p className="text-xs text-black whitespace-pre-wrap">{currentCard.usageNote}</p>
             </div>
           )}
 
           {/* Example Sentence */}
           {currentCard.exampleSentence && (
             <div
-              className="p-4 bg-white relative"
+              className="p-2 bg-white relative"
               style={{
                 border: '2px solid #000',
-                boxShadow: '3px 3px 0px 0px #000',
+                boxShadow: '2px 2px 0px 0px #000',
               }}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h4 className="text-xs font-bold uppercase text-black/60 mb-2">Contoh</h4>
-                  <p className="text-lg font-medium text-black mb-1 furigana-text">
+                  <h4 className="text-[10px] font-bold uppercase text-black/60 mb-1">Contoh</h4>
+                  <p className="text-sm font-medium text-black mb-0.5 furigana-text">
                     {currentCard.exampleSentence}
                   </p>
                   {currentCard.exampleTranslation && (
-                    <p className="text-sm text-black/70">{currentCard.exampleTranslation}</p>
+                    <p className="text-xs text-black/70">{currentCard.exampleTranslation}</p>
                   )}
                 </div>
                 {(currentCard.exampleAudioUrl || currentCard.exampleSentence) && (
@@ -495,15 +435,9 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
                       e.stopPropagation();
                       handlePlayAudio(currentCard.exampleAudioUrl, currentCard.exampleSentence);
                     }}
-                    className="ml-2 p-2 transition-transform hover:scale-110"
-                    style={{
-                      backgroundColor: cardColors.accent,
-                      color: 'white',
-                      border: '2px solid #000',
-                      boxShadow: '2px 2px 0px 0px #000',
-                    }}
+                    className="ml-2 p-1.5 bg-main text-main-foreground border-2 border-border shadow-shadow transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
                   >
-                    <Volume2 size={16} />
+                    <Volume2 size={14} />
                   </button>
                 )}
               </div>
@@ -513,15 +447,15 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
           {/* Notes */}
           {currentCard.notes && (
             <div
-              className="p-3"
+              className="p-2"
               style={{
                 backgroundColor: cardColors.accent + '20',
                 border: '2px solid #000',
                 borderLeft: `4px solid ${cardColors.accent}`,
               }}
             >
-              <h4 className="text-xs font-bold uppercase text-black/60 mb-1">Catatan</h4>
-              <p className="text-sm text-black whitespace-pre-wrap">{currentCard.notes}</p>
+              <h4 className="text-[10px] font-bold uppercase text-black/60 mb-0.5">Catatan</h4>
+              <p className="text-xs text-black whitespace-pre-wrap">{currentCard.notes}</p>
             </div>
           )}
         </div>
@@ -535,11 +469,7 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
       <div className="p-4 flex items-center justify-between border-b-2 border-black bg-white">
         <button
           onClick={onExit}
-          className="flex items-center gap-2 px-3 py-2 font-bold text-sm transition-transform hover:translate-x-[-2px]"
-          style={{
-            border: '2px solid #000',
-            boxShadow: '2px 2px 0px 0px #000',
-          }}
+          className="flex items-center gap-2 px-3 py-2 font-bold text-sm bg-background border-2 border-border shadow-shadow transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
         >
           <ArrowLeft size={16} />
           Keluar
@@ -566,16 +496,6 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center p-4">
-        {/* Swipe Instructions - Mobile */}
-        <div className="md:hidden w-full max-w-sm flex justify-between items-center mb-3 px-2 text-sm font-medium">
-          <span className="flex items-center gap-1 text-destructive">
-            <X size={16} /> Belum hafal
-          </span>
-          <span className="flex items-center gap-1 text-green-600">
-            Hafal <Check size={16} />
-          </span>
-        </div>
-
         {/* Card Container */}
         <div className="w-full max-w-sm perspective-1000 relative">
           <div
@@ -583,16 +503,10 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
               showAnswer ? 'rotate-y-180' : ''
             }`}
             onClick={handleFlipCard}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
             style={{
               transformStyle: 'preserve-3d',
-              transition: isAnimating
-                ? 'all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)'
-                : 'transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)',
-              transform: `${showAnswer ? 'rotateY(180deg)' : ''} translateX(${dragOffset}px) rotate(${dragOffset * 0.05}deg)`,
-              opacity: Math.max(0, 1 - Math.abs(dragOffset) / 400),
+              transition: 'transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)',
+              transform: showAnswer ? 'rotateY(180deg)' : '',
             }}
           >
             {/* Front */}
@@ -622,72 +536,51 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
               {renderCardBack()}
             </div>
           </div>
-
-          {/* Desktop Rating Buttons */}
-          <button
-            onClick={e => {
-              e.stopPropagation();
-              handleRating('belum_hafal');
-            }}
-            disabled={submittingRating}
-            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-20 w-14 h-14 items-center justify-center transition-all disabled:opacity-50 hover:translate-x-[-22px]"
-            style={{
-              backgroundColor: 'var(--destructive)',
-              color: 'white',
-              border: 'var(--neo-border)',
-              boxShadow: 'var(--neo-shadow)',
-            }}
-          >
-            <X size={28} strokeWidth={3} />
-          </button>
-
-          <button
-            onClick={e => {
-              e.stopPropagation();
-              handleRating('hafal');
-            }}
-            disabled={submittingRating}
-            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-20 w-14 h-14 items-center justify-center transition-all disabled:opacity-50 hover:translate-x-[22px]"
-            style={{
-              backgroundColor: 'var(--tertiary-green)',
-              color: 'white',
-              border: 'var(--neo-border)',
-              boxShadow: 'var(--neo-shadow)',
-            }}
-          >
-            <Check size={28} strokeWidth={3} />
-          </button>
         </div>
 
-        {/* Flip Button */}
-        <button
-          onClick={handleFlipCard}
-          disabled={submittingRating}
-          className="mt-6 w-full max-w-sm py-4 flex items-center justify-center gap-2 font-bold text-lg transition-all disabled:opacity-50 hover:translate-y-[-2px]"
-          style={{
-            backgroundColor: 'white',
-            border: 'var(--neo-border)',
-            boxShadow: 'var(--neo-shadow)',
-          }}
-        >
-          <RotateCcw size={20} />
-          Balik Kartu
-        </button>
+        {/* Bottom Action Buttons - Belum Hafal (left), Flip (center), Hafal (right) */}
+        <div className="mt-6 w-full max-w-sm flex gap-3">
+          {/* Belum Hafal Button */}
+          <div className="flex-1 flex flex-col items-center gap-2">
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                handleRating('belum_hafal');
+              }}
+              disabled={submittingRating}
+              className="w-full py-4 flex items-center justify-center bg-primary text-white border-2 border-border shadow-shadow transition-all disabled:opacity-50 hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+            >
+              <X size={24} strokeWidth={2.5} />
+            </button>
+            <span className="text-xs text-muted-foreground">Belum hafal</span>
+          </div>
 
-        {/* Keyboard Hints - Desktop */}
-        <div className="hidden md:flex mt-4 gap-4 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <kbd className="px-2 py-1 bg-muted border border-black text-xs font-mono">←</kbd>
-            Belum hafal
-          </span>
-          <span className="flex items-center gap-1">
-            <kbd className="px-2 py-1 bg-muted border border-black text-xs font-mono">Space</kbd>
-            Balik
-          </span>
-          <span className="flex items-center gap-1">
-            <kbd className="px-2 py-1 bg-muted border border-black text-xs font-mono">→</kbd>
-            Hafal
-          </span>
+          {/* Flip Button */}
+          <div className="flex-1 flex flex-col items-center gap-2">
+            <button
+              onClick={handleFlipCard}
+              disabled={submittingRating}
+              className="w-full py-4 flex items-center justify-center bg-background border-2 border-border shadow-shadow transition-all disabled:opacity-50 hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+            >
+              <Repeat size={24} strokeWidth={2.5} />
+            </button>
+            <span className="text-xs text-muted-foreground">Balik</span>
+          </div>
+
+          {/* Hafal Button */}
+          <div className="flex-1 flex flex-col items-center gap-2">
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                handleRating('hafal');
+              }}
+              disabled={submittingRating}
+              className="w-full py-4 flex items-center justify-center bg-tertiary-green text-white border-2 border-border shadow-shadow transition-all disabled:opacity-50 hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+            >
+              <Check size={24} strokeWidth={2.5} />
+            </button>
+            <span className="text-xs text-muted-foreground">Hafal</span>
+          </div>
         </div>
       </div>
 

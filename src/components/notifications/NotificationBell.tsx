@@ -10,6 +10,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
+import { id } from 'date-fns/locale';
+import { UI_TEXT } from '@/lib/constants/ui-text';
 
 interface Notification {
   id: string;
@@ -209,10 +211,10 @@ export function NotificationBell() {
         <div className="absolute right-0 mt-2 w-80 bg-background rounded-base shadow-shadow border-2 border-border z-50 overflow-hidden">
           {/* Header */}
           <div className="px-4 py-3 border-b-2 border-border flex items-center justify-between">
-            <h3 className="font-semibold text-foreground">Notifications</h3>
+            <h3 className="font-semibold text-foreground">Notifikasi</h3>
             {unreadCount > 0 && (
               <button onClick={markAllAsRead} className="text-sm text-primary hover:underline">
-                Mark all read
+                Tandai semua dibaca
               </button>
             )}
           </div>
@@ -220,11 +222,11 @@ export function NotificationBell() {
           {/* Notifications List */}
           <div className="max-h-96 overflow-y-auto">
             {isLoading ? (
-              <div className="p-4 text-center text-muted-foreground">Loading...</div>
+              <div className="p-4 text-center text-muted-foreground">{UI_TEXT.common.loading}</div>
             ) : notifications.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground">
                 <BellIcon className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p>No notifications</p>
+                <p>Tidak ada notifikasi</p>
               </div>
             ) : (
               notifications.map(notification => {
@@ -255,6 +257,7 @@ export function NotificationBell() {
                         <p className="text-xs text-muted-foreground/70 mt-1">
                           {formatDistanceToNow(new Date(notification.createdAt), {
                             addSuffix: true,
+                            locale: id,
                           })}
                         </p>
                       </div>

@@ -44,7 +44,7 @@ interface AdminSidebarProps extends React.ComponentProps<typeof Sidebar> {
 }
 
 export function AdminSidebar({ admin, ...props }: AdminSidebarProps) {
-  const pathname = usePathname();
+  const pathname = usePathname() || '';
   const router = useRouter();
 
   const adminInitial =

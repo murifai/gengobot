@@ -93,11 +93,11 @@ export function CheckoutSummary({
         throw new Error(data.error || 'Failed to create checkout');
       }
 
-      setInvoiceUrl(data.invoice.url);
+      setInvoiceUrl(data.transaction.redirectUrl);
       onCheckout?.();
 
       // Redirect to payment page
-      window.open(data.invoice.url, '_blank');
+      window.open(data.transaction.redirectUrl, '_blank');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
     } finally {

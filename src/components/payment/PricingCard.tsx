@@ -1,30 +1,45 @@
 'use client';
 
-import { Check, Zap, Star } from 'lucide-react';
+import { Check, Zap, Star, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
 import { SubscriptionTier } from '@prisma/client';
-import { TIER_PRICING, TIER_CONFIG, getDiscountedPrice } from '@/lib/subscription/credit-config';
+import { TIER_CONFIG, getDiscountedPrice } from '@/lib/subscription/credit-config';
 
 interface PricingCardProps {
   tier: SubscriptionTier;
   durationMonths?: 1 | 3 | 6 | 12;
   isCurrentPlan?: boolean;
+  currentTier?: SubscriptionTier;
+  currentPeriodEnd?: Date | null;
   onSelect?: (tier: SubscriptionTier) => void;
   disabled?: boolean;
   className?: string;
 }
 
+const TIER_HIERARCHY: Record<SubscriptionTier, number> = {
+  FREE: 0,
+  BASIC: 1,
+  PRO: 2,
+};
+
 export function PricingCard({
   tier,
   durationMonths = 1,
   isCurrentPlan = false,
+  currentTier,
+  currentPeriodEnd,
   onSelect,
   disabled = false,
   className,
 }: PricingCardProps) {
+  // Determine if this is a downgrade
+  const isDowngrade =
+    currentTier &&
+    currentTier !== SubscriptionTier.FREE &&
+    TIER_HIERARCHY[tier] < TIER_HIERARCHY[currentTier];
   const config = TIER_CONFIG[tier];
   const pricing = getDiscountedPrice(tier, durationMonths);
 
@@ -146,6 +161,26 @@ export function PricingCard({
           ))}
         </ul>
 
+        {/* Downgrade Warning */}
+        {isDowngrade && currentPeriodEnd && (
+          <div className="p-3 bg-warning/10 border border-warning/30 rounded-base text-sm">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+              <p className="text-warning-foreground">
+                Downgrade akan aktif setelah periode{' '}
+                {currentTier === SubscriptionTier.PRO ? 'Pro' : 'Basic'} Anda berakhir pada{' '}
+                <strong>
+                  {currentPeriodEnd.toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
+                </strong>
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* CTA Button */}
         {!isFree && onSelect && (
           <Button
@@ -154,7 +189,11 @@ export function PricingCard({
             variant={isPro ? 'default' : 'outline'}
             className="w-full"
           >
-            {isCurrentPlan ? 'Paket Saat Ini' : `Pilih ${getTierName()}`}
+            {isCurrentPlan
+              ? 'Paket Saat Ini'
+              : isDowngrade
+                ? `Jadwalkan Downgrade ke ${getTierName()}`
+                : `Pilih ${getTierName()}`}
           </Button>
         )}
       </CardContent>

@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { UI_TEXT } from '@/lib/constants/ui-text';
 
 interface Character {
   id: string;
@@ -64,13 +65,15 @@ export default function ChatClient({ user }: ChatClientProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Chat Mode</h1>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                {UI_TEXT.kaiwa.chatMode}
+              </h1>
               <span className="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
-                Text & Voice enabled
+                {UI_TEXT.kaiwa.textVoiceEnabled}
               </span>
             </div>
             <Button onClick={() => router.push('/dashboard')} variant="secondary">
-              Back to Dashboard
+              {UI_TEXT.common.backToDashboard}
             </Button>
           </div>
         </div>
@@ -80,31 +83,30 @@ export default function ChatClient({ user }: ChatClientProps) {
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading characters...</p>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">
+              {UI_TEXT.kaiwa.loadingCharacters}
+            </p>
           </div>
         ) : error ? (
           <div className="text-center py-12">
             <p className="text-primary">{error}</p>
             <Button onClick={fetchCharacters} className="mt-4">
-              Try Again
+              {UI_TEXT.common.tryAgain}
             </Button>
           </div>
         ) : characters.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-600 dark:text-gray-400">
-              No characters available. Create one to start chatting!
+              {UI_TEXT.kaiwa.noCharactersAvailable}
             </p>
             <Button onClick={() => router.push('/app/profile/characters')} className="mt-4">
-              Create Character
+              {UI_TEXT.kaiwa.createCharacter}
             </Button>
           </div>
         ) : (
           <>
             <div className="mb-6">
-              <p className="text-gray-600 dark:text-gray-400">
-                Select a character to start chatting. You can use both text and voice input in the
-                conversation.
-              </p>
+              <p className="text-gray-600 dark:text-gray-400">{UI_TEXT.kaiwa.selectCharacter}</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {characters.map(character => (
@@ -129,10 +131,10 @@ export default function ChatClient({ user }: ChatClientProps) {
                     </div>
                   </div>
                   <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
-                    {character.description || 'No description available'}
+                    {character.description || UI_TEXT.kaiwa.noDescription}
                   </p>
                   <Button onClick={() => startChat(character.id)} className="w-full">
-                    Start Conversation
+                    {UI_TEXT.kaiwa.startConversation}
                   </Button>
                 </Card>
               ))}
