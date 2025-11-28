@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Space_Grotesk, Shippori_Mincho, Zen_Kaku_Gothic_New } from 'next/font/google';
 import { Providers } from '@/components/providers';
-import { ReactEditLoader } from '@/components/dev/react-edit-loader';
 import './globals.css';
 
 const spaceGrotesk = Space_Grotesk({
@@ -41,7 +40,6 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.className} ${shipporiMincho.variable} ${zenKakuGothic.variable} antialiased`}
       >
-        <ReactEditLoader />
         <Providers>{children}</Providers>
       </body>
     </html>
