@@ -28,3 +28,4 @@ export { CreditUsageChart } from './CreditUsageChart';
 export { VoucherInput } from './VoucherInput';
 export { VoucherApplied } from './VoucherApplied';
 export { VoucherHistory } from './VoucherHistory';
+export { RedeemCodeInput } from './RedeemCodeInput';
