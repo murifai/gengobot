@@ -535,6 +535,16 @@ export class MidtransService {
         existingSubscription.trialEndDate > now &&
         existingSubscription.trialCreditsUsed < TIER_CONFIG[SubscriptionTier.FREE].trialCredits;
 
+      // Check if this is an upgrade from a paid tier (BASIC → PRO)
+      // In this case, preserve remaining credits from the previous subscription
+      const isUpgradeFromPaidTier =
+        existingSubscription.tier !== SubscriptionTier.FREE &&
+        existingSubscription.creditsRemaining > 0;
+
+      // Calculate total credits: new credits + remaining credits from previous subscription (if upgrading)
+      const carryOverCredits = isUpgradeFromPaidTier ? existingSubscription.creditsRemaining : 0;
+      const finalTotalCredits = totalCredits + carryOverCredits;
+
       // Immediate activation for upgrades and new subscriptions
       await prisma.subscription.update({
         where: { userId },
@@ -543,9 +553,9 @@ export class MidtransService {
           status: SubscriptionStatus.ACTIVE,
           currentPeriodStart: now,
           currentPeriodEnd: periodEnd,
-          creditsTotal: totalCredits,
+          creditsTotal: finalTotalCredits,
           creditsUsed: 0,
-          creditsRemaining: totalCredits,
+          creditsRemaining: finalTotalCredits,
           // Preserve trial fields if user still has trial credits remaining
           // This allows them to use trial credits first before subscription credits
           ...(hasTrialRemaining
@@ -575,20 +585,30 @@ export class MidtransService {
         );
       }
 
+      if (isUpgradeFromPaidTier) {
+        console.log(
+          `[MidtransService] Upgrade from ${existingSubscription.tier} to ${tier}: carrying over ${carryOverCredits} credits for user ${userId}`
+        );
+      }
+
       // Record credit grant for immediate activation
       await prisma.creditTransaction.create({
         data: {
           userId,
           type: CreditTransactionType.GRANT,
           amount: totalCredits,
-          balance: totalCredits,
-          description: `${tier} subscription - ${durationMonths} month(s)`,
+          balance: finalTotalCredits,
+          description: isUpgradeFromPaidTier
+            ? `${tier} subscription - ${durationMonths} month(s) (+ ${carryOverCredits} carried over from ${existingSubscription.tier})`
+            : `${tier} subscription - ${durationMonths} month(s)`,
           metadata: {
             tier,
             durationMonths,
             amountPaid: amount,
             paymentType: notification.payment_type,
             transactionId: notification.transaction_id,
+            carryOverCredits: isUpgradeFromPaidTier ? carryOverCredits : undefined,
+            previousTier: isUpgradeFromPaidTier ? existingSubscription.tier : undefined,
           },
         },
       });

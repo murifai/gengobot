@@ -5,7 +5,8 @@ import { TIER_PRICING } from '@/lib/subscription/credit-config';
 
 /**
  * GET /api/payment/latest
- * Get user's latest successful payment for invoice generation
+ * Get user's latest payment for status checking and invoice generation
+ * Returns both PENDING and PAID payments so the success page can show appropriate status
  */
 export async function GET() {
   try {
@@ -15,13 +16,13 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get the latest paid payment
+    // Get the latest payment (PENDING or PAID) - ordered by createdAt to get the most recent
     const payment = await prisma.pendingPayment.findFirst({
       where: {
         userId: session.user.id,
-        status: 'PAID',
+        status: { in: ['PENDING', 'PAID'] },
       },
-      orderBy: { paidAt: 'desc' },
+      orderBy: { createdAt: 'desc' },
     });
 
     if (!payment) {
@@ -32,14 +33,19 @@ export async function GET() {
     const originalAmount = TIER_PRICING[payment.tier] * payment.durationMonths;
     const discountAmount = originalAmount - payment.amount;
 
-    // Generate invoice number from payment ID
-    const invoiceNumber = `INV-${payment.paidAt?.getFullYear() || new Date().getFullYear()}-${payment.id.substring(0, 8).toUpperCase()}`;
+    // Generate invoice number from payment ID (only for PAID payments)
+    const invoiceNumber =
+      payment.status === 'PAID'
+        ? `INV-${payment.paidAt?.getFullYear() || new Date().getFullYear()}-${payment.id.substring(0, 8).toUpperCase()}`
+        : null;
 
     return NextResponse.json({
       payment: {
+        id: payment.id,
         invoiceNumber,
         orderId: payment.externalId,
         date: payment.paidAt || payment.createdAt,
+        createdAt: payment.createdAt,
         customerName: session.user.name || 'User',
         customerEmail: session.user.email || '',
         tier: payment.tier,

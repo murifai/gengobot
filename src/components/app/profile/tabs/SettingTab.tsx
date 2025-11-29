@@ -1,24 +1,27 @@
 'use client';
 
 import { useState } from 'react';
+import { useTheme } from 'next-themes';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Dialog, DialogTitle, DialogDescription } from '@/components/ui/Dialog';
-import { Separator } from '@/components/ui/separator';
-import { CreditCard, AlertTriangle, Trash2, LogOut, Zap, ChevronRight } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { CreditCard, AlertTriangle, Trash2, LogOut, Zap, ChevronRight, Moon } from 'lucide-react';
 import { UserProfile } from '../ProfilePage';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { SubscriptionTier } from '@prisma/client';
 
-interface AccountSecurityTabProps {
+interface SettingTabProps {
   user: UserProfile;
 }
 
-export function AccountSecurityTab({ user }: AccountSecurityTabProps) {
+export function SettingTab({ user }: SettingTabProps) {
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -83,7 +86,7 @@ export function AccountSecurityTab({ user }: AccountSecurityTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Paket Langganan - Simplified Card */}
+      {/* Langganan */}
       {isSubscriptionLoading ? (
         <Card>
           <CardContent className="py-8">
@@ -101,7 +104,6 @@ export function AccountSecurityTab({ user }: AccountSecurityTabProps) {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Tier & Credits - Simple display */}
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Paket</span>
               <Badge variant={getTierBadgeVariant()}>{getTierLabel()}</Badge>
@@ -114,7 +116,6 @@ export function AccountSecurityTab({ user }: AccountSecurityTabProps) {
               </span>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex flex-col gap-2 pt-2">
               {tier !== SubscriptionTier.PRO && (
                 <Button className="w-full" onClick={handleUpgrade}>
@@ -136,7 +137,33 @@ export function AccountSecurityTab({ user }: AccountSecurityTabProps) {
         </Card>
       )}
 
-      <Separator />
+      {/* Tampilan */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Tampilan</CardTitle>
+          <CardDescription>Sesuaikan tampilan aplikasi</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Moon className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <Label htmlFor="dark-mode" className="text-base font-medium">
+                  Mode Gelap
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Gunakan tema gelap untuk tampilan yang lebih nyaman di mata
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="dark-mode"
+              checked={theme === 'dark'}
+              onCheckedChange={checked => setTheme(checked ? 'dark' : 'light')}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Logout */}
       <Card>
