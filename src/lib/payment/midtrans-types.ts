@@ -214,21 +214,3 @@ export interface CheckoutResult {
   discountAmount?: number;
   finalAmount?: number;
 }
-
-// Mock Invoice (for testing)
-export interface MockInvoiceData {
-  id: string;
-  order_id: string;
-  status: MidtransTransactionStatusType;
-  amount: number;
-  payer_email?: string;
-  description?: string;
-  expiry_time: string;
-  redirect_url: string;
-  created: string;
-  updated: string;
-  currency: string;
-  success_redirect_url?: string;
-  failure_redirect_url?: string;
-  items?: MidtransItemDetail[];
-}

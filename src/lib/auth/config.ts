@@ -5,6 +5,41 @@ import { prisma } from '@/lib/prisma';
 export const authConfig: NextAuthConfig = {
   trustHost: true,
   basePath: '/api/auth',
+
+  // Cookie configuration for production (Cloudflare + Nginx proxy)
+  cookies: {
+    pkceCodeVerifier: {
+      name: 'authjs.pkce.code_verifier',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 15, // 15 minutes
+      },
+    },
+    state: {
+      name: 'authjs.state',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 15, // 15 minutes
+      },
+    },
+    callbackUrl: {
+      name: 'authjs.callback-url',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 15, // 15 minutes
+      },
+    },
+  },
+
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -20,12 +55,30 @@ export const authConfig: NextAuthConfig = {
   ],
   callbacks: {
     async signIn({ account, profile }) {
+      // Debug logging for production
+      console.log('[AUTH] signIn callback triggered:', {
+        provider: account?.provider,
+        hasProfile: !!profile,
+        email: profile?.email,
+      });
+
       // Only allow Google OAuth
       if (account?.provider === 'google' && profile?.email) {
         try {
+          // Get image from Google profile (can be 'picture' or 'image')
+          const profileImage =
+            (profile as { picture?: string }).picture ||
+            (profile as { image?: string }).image ||
+            null;
+
           // Check if user exists
           const existingUser = await prisma.user.findUnique({
             where: { email: profile.email },
+          });
+
+          console.log('[AUTH] User lookup:', {
+            email: profile.email,
+            exists: !!existingUser,
           });
 
           if (!existingUser) {
@@ -34,22 +87,24 @@ export const authConfig: NextAuthConfig = {
               data: {
                 email: profile.email,
                 name: profile.name || null,
-                image: profile.picture || null,
+                image: profileImage,
                 emailVerified: new Date(),
                 isAdmin: false,
                 onboardingCompleted: false,
               },
             });
+            console.log('[AUTH] New user created:', profile.email);
           } else {
             // Update existing user info
             await prisma.user.update({
               where: { email: profile.email },
               data: {
                 name: profile.name || existingUser.name,
-                image: profile.picture || existingUser.image,
+                image: profileImage || existingUser.image,
                 emailVerified: new Date(),
               },
             });
+            console.log('[AUTH] User updated:', profile.email);
           }
 
           return true;
@@ -63,30 +118,36 @@ export const authConfig: NextAuthConfig = {
         }
       }
 
+      console.log('[AUTH] signIn rejected - not Google or no email');
       return false;
     },
     async jwt({ token, account, profile }) {
       // On first sign in (account exists), fetch user data from database
       if (account && profile?.email) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: profile.email },
-          select: {
-            id: true,
-            isAdmin: true,
-            email: true,
-            name: true,
-            image: true,
-            onboardingCompleted: true,
-          },
-        });
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: profile.email },
+            select: {
+              id: true,
+              isAdmin: true,
+              email: true,
+              name: true,
+              image: true,
+              onboardingCompleted: true,
+            },
+          });
 
-        if (dbUser) {
-          token.id = dbUser.id;
-          token.isAdmin = dbUser.isAdmin;
-          token.email = dbUser.email;
-          token.name = dbUser.name;
-          token.picture = dbUser.image;
-          token.onboardingCompleted = dbUser.onboardingCompleted;
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.isAdmin = dbUser.isAdmin;
+            token.email = dbUser.email;
+            token.name = dbUser.name;
+            token.picture = dbUser.image;
+            token.onboardingCompleted = dbUser.onboardingCompleted;
+          }
+          console.log('[AUTH] JWT token populated for:', profile.email);
+        } catch (error) {
+          console.error('[AUTH] Error in JWT callback:', error);
         }
       }
 

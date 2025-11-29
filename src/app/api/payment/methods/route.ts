@@ -28,7 +28,7 @@ export async function GET() {
     return NextResponse.json({
       methods: AVAILABLE_PAYMENT_METHODS,
       grouped,
-      mockMode: midtransService.isMockMode(),
+      isProduction: midtransService.isProduction(),
     });
   } catch (error) {
     console.error('Error fetching payment methods:', error);

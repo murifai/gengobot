@@ -166,6 +166,7 @@ model User {
   voucherRedemptions VoucherRedemption[]
   pendingPayments    PendingPayment[]
   notifications      Notification[]
+  trialHistory       TrialHistory?
   favoriteDecks      UserFavorite[]
   studyingDecks      UserStudyingDeck[]
 
@@ -861,6 +862,11 @@ enum NotificationType {
   PAYMENT_FAILED
   PAYMENT_EXPIRED
 
+  // Subscription renewal notifications
+  SUBSCRIPTION_EXPIRING_3_DAYS
+  SUBSCRIPTION_EXPIRING_1_DAY
+  SUBSCRIPTION_EXPIRED
+
   // System notifications
   SYSTEM_ANNOUNCEMENT
   FEATURE_UPDATE
@@ -895,4 +901,34 @@ model DictionaryEntry {
   @@index([readings])
   @@index([jlptLevel])
   @@index([priority])
+}
+
+// TrialHistory model - Track trial usage to prevent abuse
+// When a user registers, we record their email. If they delete account
+// and re-register with same email, we can deny trial.
+model TrialHistory {
+  id        String   @id @default(cuid())
+
+  // User relation (optional - user may have deleted account)
+  userId    String?  @unique
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Email is the primary identifier for anti-abuse
+  email     String   @unique
+
+  // Trial tracking
+  trialStartedAt    DateTime
+  trialEndedAt      DateTime?
+  trialCreditsUsed  Int       @default(0)
+
+  // Status
+  hasUsedTrial      Boolean   @default(true)
+  wasUpgraded       Boolean   @default(false) // User upgraded to paid at some point
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([userId])
 }

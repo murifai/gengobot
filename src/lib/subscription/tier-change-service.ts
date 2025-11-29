@@ -154,41 +154,88 @@ export async function processScheduledTierChanges(): Promise<number> {
   for (const subscription of subscriptionsToProcess) {
     if (!subscription.scheduledTier) continue;
 
-    const durationMonths = subscription.scheduledDurationMonths || 1;
     const newTier = subscription.scheduledTier;
-    const tierConfig = TIER_CONFIG[newTier];
-    const totalCredits = tierConfig.monthlyCredits * durationMonths;
 
-    const periodEnd = new Date(now);
-    periodEnd.setMonth(periodEnd.getMonth() + durationMonths);
+    // Handle cancellation (downgrade to FREE tier)
+    if (newTier === SubscriptionTier.FREE) {
+      // For FREE tier, set period end to trial end date or a far future date
+      const freeEndDate = new Date(now);
+      freeEndDate.setFullYear(freeEndDate.getFullYear() + 100); // Far future for "no expiry"
 
-    await prisma.$transaction([
-      // Update subscription
-      prisma.subscription.update({
-        where: { id: subscription.id },
-        data: {
-          tier: newTier,
-          currentPeriodStart: now,
-          currentPeriodEnd: periodEnd,
-          creditsTotal: totalCredits,
-          creditsUsed: 0,
-          creditsRemaining: totalCredits,
-          scheduledTier: null,
-          scheduledTierStartAt: null,
-          scheduledDurationMonths: null,
-        },
-      }),
-      // Create credit transaction
-      prisma.creditTransaction.create({
-        data: {
-          userId: subscription.userId,
-          type: 'GRANT',
-          amount: totalCredits,
-          balance: totalCredits,
-          description: `Scheduled tier change to ${newTier} - ${durationMonths} month(s)`,
-        },
-      }),
-    ]);
+      await prisma.$transaction([
+        // Update subscription to FREE tier
+        prisma.subscription.update({
+          where: { id: subscription.id },
+          data: {
+            tier: SubscriptionTier.FREE,
+            status: SubscriptionStatus.ACTIVE, // Keep as ACTIVE (FREE tier)
+            currentPeriodStart: now,
+            currentPeriodEnd: freeEndDate, // FREE tier uses far future date
+            creditsTotal: 0,
+            creditsUsed: 0,
+            creditsRemaining: 0,
+            scheduledTier: null,
+            scheduledTierStartAt: null,
+            scheduledDurationMonths: null,
+          },
+        }),
+        // Record the tier change
+        prisma.creditTransaction.create({
+          data: {
+            userId: subscription.userId,
+            type: 'ADJUSTMENT',
+            amount: -subscription.creditsRemaining, // Record credits lost
+            balance: 0,
+            description: `Langganan berakhir - downgrade ke paket Gratis`,
+          },
+        }),
+      ]);
+
+      console.log(
+        `[TierChange] Processed cancellation for user ${subscription.userId}: ${subscription.tier} → FREE`
+      );
+    } else {
+      // Handle downgrade to paid tier (e.g., PRO → BASIC)
+      const durationMonths = subscription.scheduledDurationMonths || 1;
+      const tierConfig = TIER_CONFIG[newTier];
+      const totalCredits = tierConfig.monthlyCredits * durationMonths;
+
+      const periodEnd = new Date(now);
+      periodEnd.setMonth(periodEnd.getMonth() + durationMonths);
+
+      await prisma.$transaction([
+        // Update subscription
+        prisma.subscription.update({
+          where: { id: subscription.id },
+          data: {
+            tier: newTier,
+            status: SubscriptionStatus.ACTIVE,
+            currentPeriodStart: now,
+            currentPeriodEnd: periodEnd,
+            creditsTotal: totalCredits,
+            creditsUsed: 0,
+            creditsRemaining: totalCredits,
+            scheduledTier: null,
+            scheduledTierStartAt: null,
+            scheduledDurationMonths: null,
+          },
+        }),
+        // Create credit transaction
+        prisma.creditTransaction.create({
+          data: {
+            userId: subscription.userId,
+            type: 'GRANT',
+            amount: totalCredits,
+            balance: totalCredits,
+            description: `Scheduled tier change to ${newTier} - ${durationMonths} month(s)`,
+          },
+        }),
+      ]);
+
+      console.log(
+        `[TierChange] Processed downgrade for user ${subscription.userId}: ${subscription.tier} → ${newTier}`
+      );
+    }
 
     processedCount++;
   }
@@ -256,13 +303,15 @@ export async function cancelSubscription(userId: string): Promise<{
   }
 
   // Schedule cancellation (downgrade to FREE) at period end
+  // IMPORTANT: Keep status as ACTIVE so user can still use credits until period end
   await prisma.subscription.update({
     where: { userId },
     data: {
       scheduledTier: SubscriptionTier.FREE,
       scheduledTierStartAt: subscription.currentPeriodEnd,
       scheduledDurationMonths: null, // FREE tier doesn't have duration
-      status: SubscriptionStatus.CANCELED, // Mark as canceled but still active until period end
+      // DO NOT change status to CANCELED here - keep ACTIVE until period ends
+      // The cron job will handle the actual transition to FREE tier
     },
   });
 

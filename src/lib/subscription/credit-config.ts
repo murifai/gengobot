@@ -216,6 +216,9 @@ export interface CreditCheck {
   creditsAvailable: number;
   isTrialUser: boolean;
   trialDaysRemaining?: number;
+  // For paid users who upgraded from FREE and still have trial credits
+  hasTrialCredits?: boolean;
+  trialCreditsRemaining?: number;
 }
 
 export interface CreditBalance {
@@ -228,6 +231,9 @@ export interface CreditBalance {
   trialDailyUsed?: number;
   trialDailyLimit?: number;
   periodEnd: Date;
+  // For paid users who upgraded from FREE and still have trial credits
+  hasTrialCredits?: boolean;
+  trialCreditsRemaining?: number;
 }
 
 export interface HistoryOptions {

@@ -13,7 +13,6 @@ export type {
   InvoiceOptions,
   PaymentMethod,
   PaymentMethodType,
-  MockInvoiceData,
 } from './midtrans-types';
 
 export { AVAILABLE_PAYMENT_METHODS, ENABLED_PAYMENTS } from './midtrans-types';

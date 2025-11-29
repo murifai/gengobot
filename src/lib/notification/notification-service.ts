@@ -100,6 +100,29 @@ const notificationTemplates: Record<
     actionLabel: 'View Plans',
   },
 
+  // Subscription renewal notifications
+  SUBSCRIPTION_EXPIRING_3_DAYS: {
+    title: 'Langganan Akan Berakhir',
+    message: (params?: Record<string, unknown>) =>
+      `Langganan ${params?.tier || ''} Anda akan berakhir dalam 3 hari (${params?.expiryDate || ''}). Perpanjang sekarang untuk tetap menikmati semua fitur.`,
+    actionUrl: `${appUrl}/pricing`,
+    actionLabel: 'Perpanjang Sekarang',
+  },
+  SUBSCRIPTION_EXPIRING_1_DAY: {
+    title: '⚠️ Langganan Berakhir Besok!',
+    message: (params?: Record<string, unknown>) =>
+      `PENTING: Langganan ${params?.tier || ''} Anda akan berakhir BESOK. Anda masih memiliki ${(params?.creditsRemaining as number)?.toLocaleString() || 0} kredit yang akan hangus jika tidak diperpanjang.`,
+    actionUrl: `${appUrl}/pricing`,
+    actionLabel: 'Perpanjang Sekarang',
+  },
+  SUBSCRIPTION_EXPIRED: {
+    title: 'Langganan Telah Berakhir',
+    message: (params?: Record<string, unknown>) =>
+      `Langganan ${params?.tier || ''} Anda telah berakhir. Perpanjang untuk melanjutkan belajar dengan fitur lengkap.`,
+    actionUrl: `${appUrl}/pricing`,
+    actionLabel: 'Pilih Paket',
+  },
+
   // System notifications
   SYSTEM_ANNOUNCEMENT: {
     title: 'Announcement',
@@ -388,5 +411,54 @@ export async function notifyCreditsRenewed(userId: string, creditsGranted: numbe
     userId,
     type: 'CREDITS_RENEWED',
     params: { creditsGranted },
+  });
+}
+
+/**
+ * Notify user about subscription expiring soon
+ * For Indonesia market with non-recurring payments, this is critical
+ */
+export async function notifySubscriptionExpiring(
+  userId: string,
+  tier: string,
+  expiryDate: Date,
+  creditsRemaining: number,
+  daysRemaining: 1 | 3
+) {
+  const formattedDate = expiryDate.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const tierDisplayName = tier === 'BASIC' ? 'Basic' : tier === 'PRO' ? 'Pro' : tier;
+
+  // Note: These notification types need to be added to Prisma schema and regenerated
+  const type: NotificationType =
+    daysRemaining === 1
+      ? ('SUBSCRIPTION_EXPIRING_1_DAY' as NotificationType)
+      : ('SUBSCRIPTION_EXPIRING_3_DAYS' as NotificationType);
+
+  return createNotification({
+    userId,
+    type,
+    params: {
+      tier: tierDisplayName,
+      expiryDate: formattedDate,
+      creditsRemaining,
+    },
+  });
+}
+
+/**
+ * Notify user that subscription has expired
+ */
+export async function notifySubscriptionExpired(userId: string, tier: string) {
+  const tierDisplayName = tier === 'BASIC' ? 'Basic' : tier === 'PRO' ? 'Pro' : tier;
+
+  return createNotification({
+    userId,
+    type: 'SUBSCRIPTION_EXPIRED' as NotificationType,
+    params: { tier: tierDisplayName },
   });
 }

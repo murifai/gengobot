@@ -21,6 +21,11 @@ import {
   getUsageTypeFromModel,
 } from './credit-calculator';
 import { notifyCreditUsage } from '@/lib/notification/notification-service';
+import {
+  checkTrialEligibility,
+  recordTrialStart,
+  updateTrialCreditsUsed,
+} from './trial-history-service';
 
 export class CreditService {
   /**
@@ -98,22 +103,30 @@ export class CreditService {
       };
     }
 
-    // Check regular credits
-    if (creditsRequired > subscription.creditsRemaining) {
+    // Check if user has remaining trial credits (upgraded from FREE)
+    const trialCreditsRemaining = this.getTrialCreditsRemaining(subscription);
+    const totalAvailable = trialCreditsRemaining + subscription.creditsRemaining;
+
+    // Check combined credits (trial + subscription)
+    if (creditsRequired > totalAvailable) {
       return {
         allowed: false,
-        reason: `Insufficient credits. Need ${creditsRequired}, have ${subscription.creditsRemaining}.`,
+        reason: `Insufficient credits. Need ${creditsRequired}, have ${totalAvailable}.`,
         creditsRequired,
-        creditsAvailable: subscription.creditsRemaining,
+        creditsAvailable: totalAvailable,
         isTrialUser: false,
+        hasTrialCredits: trialCreditsRemaining > 0,
+        trialCreditsRemaining,
       };
     }
 
     return {
       allowed: true,
       creditsRequired,
-      creditsAvailable: subscription.creditsRemaining,
+      creditsAvailable: totalAvailable,
       isTrialUser: false,
+      hasTrialCredits: trialCreditsRemaining > 0,
+      trialCreditsRemaining,
     };
   }
 
@@ -181,7 +194,58 @@ export class CreditService {
       });
     }
 
-    // For paid tiers
+    // For paid tiers - check if user has remaining trial credits first
+    const trialCreditsRemaining = this.getTrialCreditsRemaining(subscription);
+
+    if (trialCreditsRemaining > 0) {
+      // Use trial credits first, then subscription credits
+      const fromTrialCredits = Math.min(creditsToDeduct, trialCreditsRemaining);
+      const fromSubscriptionCredits = creditsToDeduct - fromTrialCredits;
+
+      const newTrialCreditsUsed = subscription.trialCreditsUsed + fromTrialCredits;
+      const newCreditsUsed = subscription.creditsUsed + fromSubscriptionCredits;
+      const newCreditsRemaining = subscription.creditsRemaining - fromSubscriptionCredits;
+      const newTrialRemaining = this.getTrialCreditsRemaining({
+        ...subscription,
+        trialCreditsUsed: newTrialCreditsUsed,
+      });
+      const totalBalance = newTrialRemaining + newCreditsRemaining;
+
+      await prisma.subscription.update({
+        where: { userId },
+        data: {
+          trialCreditsUsed: newTrialCreditsUsed,
+          creditsUsed: newCreditsUsed,
+          creditsRemaining: newCreditsRemaining,
+        },
+      });
+
+      const transaction = await prisma.creditTransaction.create({
+        data: {
+          userId,
+          type: CreditTransactionType.USAGE,
+          amount: -creditsToDeduct,
+          balance: totalBalance,
+          usageType: type,
+          durationSecs: type === UsageType.TEXT_CHAT ? undefined : actualUnits,
+          referenceId,
+          referenceType,
+          description:
+            fromTrialCredits > 0
+              ? `Usage: ${type} (${fromTrialCredits} from trial, ${fromSubscriptionCredits} from subscription)`
+              : `Usage: ${type}`,
+        },
+      });
+
+      // Check usage thresholds (only for subscription credits)
+      if (fromSubscriptionCredits > 0) {
+        await this.checkUsageThresholdsAndNotify(userId, subscription, newCreditsUsed);
+      }
+
+      return transaction;
+    }
+
+    // No trial credits remaining - use subscription credits only
     const newCreditsUsed = subscription.creditsUsed + creditsToDeduct;
     const newCreditsRemaining = subscription.creditsRemaining - creditsToDeduct;
 
@@ -339,7 +403,71 @@ export class CreditService {
       return { credits, usdCost, transaction };
     }
 
-    // For paid tiers
+    // For paid tiers - check if user has remaining trial credits first
+    const trialCreditsRemaining = this.getTrialCreditsRemaining(subscription);
+
+    if (trialCreditsRemaining > 0) {
+      // Use trial credits first, then subscription credits
+      const fromTrialCredits = Math.min(credits, trialCreditsRemaining);
+      const fromSubscriptionCredits = credits - fromTrialCredits;
+
+      const newTrialCreditsUsed = subscription.trialCreditsUsed + fromTrialCredits;
+      const newCreditsUsed = subscription.creditsUsed + fromSubscriptionCredits;
+      const newCreditsRemaining = subscription.creditsRemaining - fromSubscriptionCredits;
+      const newTrialRemaining = this.getTrialCreditsRemaining({
+        ...subscription,
+        trialCreditsUsed: newTrialCreditsUsed,
+      });
+      const totalBalance = newTrialRemaining + newCreditsRemaining;
+
+      await prisma.subscription.update({
+        where: { userId },
+        data: {
+          trialCreditsUsed: newTrialCreditsUsed,
+          creditsUsed: newCreditsUsed,
+          creditsRemaining: newCreditsRemaining,
+        },
+      });
+
+      const transaction = await prisma.creditTransaction.create({
+        data: {
+          userId,
+          type: CreditTransactionType.USAGE,
+          amount: -credits,
+          balance: totalBalance,
+          usageType,
+          referenceId,
+          referenceType,
+          description:
+            description ||
+            (fromTrialCredits > 0
+              ? `Usage: ${usageType} (${fromTrialCredits} from trial, ${fromSubscriptionCredits} from subscription)`
+              : `Usage: ${usageType}`),
+          metadata: {
+            model: usage.model,
+            inputTokens: usage.inputTokens,
+            outputTokens: usage.outputTokens,
+            audioDurationSeconds: usage.audioDurationSeconds,
+            audioInputTokens: usage.audioInputTokens,
+            audioOutputTokens: usage.audioOutputTokens,
+            characterCount: usage.characterCount,
+            usdCost,
+            breakdown,
+            fromTrialCredits,
+            fromSubscriptionCredits,
+          },
+        },
+      });
+
+      // Check usage thresholds (only for subscription credits)
+      if (fromSubscriptionCredits > 0) {
+        await this.checkUsageThresholdsAndNotify(userId, subscription, newCreditsUsed);
+      }
+
+      return { credits, usdCost, transaction };
+    }
+
+    // No trial credits remaining - use subscription credits only
     const newCreditsUsed = subscription.creditsUsed + credits;
     const newCreditsRemaining = subscription.creditsRemaining - credits;
 
@@ -483,6 +611,10 @@ export class CreditService {
       };
     }
 
+    // Check if paid user has remaining trial credits
+    const trialCreditsRemaining = this.getTrialCreditsRemaining(subscription);
+    const hasTrialCredits = trialCreditsRemaining > 0;
+
     return {
       total: subscription.creditsTotal,
       used: subscription.creditsUsed,
@@ -490,6 +622,10 @@ export class CreditService {
       tier: subscription.tier,
       isTrialActive: false,
       periodEnd: subscription.currentPeriodEnd,
+      // Include trial info for paid users who upgraded from FREE
+      hasTrialCredits,
+      trialCreditsRemaining: hasTrialCredits ? trialCreditsRemaining : undefined,
+      trialDaysRemaining: hasTrialCredits ? this.getTrialDaysRemaining(subscription) : undefined,
     };
   }
 
@@ -573,16 +709,52 @@ export class CreditService {
 
   /**
    * Get or create a subscription for a user
+   * @param userId - User ID
+   * @param options - Optional parameters for subscription creation
    */
-  async getOrCreateSubscription(userId: string): Promise<Subscription> {
+  async getOrCreateSubscription(
+    userId: string,
+    options?: { skipTrialCheck?: boolean }
+  ): Promise<Subscription> {
     let subscription = await prisma.subscription.findUnique({
       where: { userId },
     });
 
     if (!subscription) {
+      // Get user email for trial history check
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true },
+      });
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
       const now = new Date();
-      const trialEnd = new Date(now);
-      trialEnd.setDate(trialEnd.getDate() + TIER_CONFIG[SubscriptionTier.FREE].trialDays);
+      let trialEnd = new Date(now);
+      let grantTrial = true;
+
+      // Check trial eligibility unless skipped
+      if (!options?.skipTrialCheck) {
+        const eligibility = await checkTrialEligibility(user.email);
+
+        if (!eligibility.eligible) {
+          // User has already used trial - create subscription without trial
+          grantTrial = false;
+          // Set trial end to past to indicate no trial available
+          trialEnd = new Date(now);
+          trialEnd.setDate(trialEnd.getDate() - 1);
+
+          console.log(
+            `[CreditService] Trial not eligible for ${user.email}: ${eligibility.reason}`
+          );
+        }
+      }
+
+      if (grantTrial) {
+        trialEnd.setDate(trialEnd.getDate() + TIER_CONFIG[SubscriptionTier.FREE].trialDays);
+      }
 
       subscription = await prisma.subscription.create({
         data: {
@@ -591,22 +763,38 @@ export class CreditService {
           status: SubscriptionStatus.ACTIVE,
           currentPeriodStart: now,
           currentPeriodEnd: trialEnd,
-          trialStartDate: now,
-          trialEndDate: trialEnd,
-          trialDailyReset: this.getNextMidnight(),
+          trialStartDate: grantTrial ? now : null,
+          trialEndDate: grantTrial ? trialEnd : null,
+          trialDailyReset: grantTrial ? this.getNextMidnight() : null,
         },
       });
 
-      // Record trial grant
-      await prisma.creditTransaction.create({
-        data: {
-          userId,
-          type: CreditTransactionType.TRIAL_GRANT,
-          amount: TIER_CONFIG[SubscriptionTier.FREE].trialCredits,
-          balance: TIER_CONFIG[SubscriptionTier.FREE].trialCredits,
-          description: 'Trial credits granted',
-        },
-      });
+      if (grantTrial) {
+        // Record trial grant
+        await prisma.creditTransaction.create({
+          data: {
+            userId,
+            type: CreditTransactionType.TRIAL_GRANT,
+            amount: TIER_CONFIG[SubscriptionTier.FREE].trialCredits,
+            balance: TIER_CONFIG[SubscriptionTier.FREE].trialCredits,
+            description: 'Trial credits granted',
+          },
+        });
+
+        // Record in trial history for anti-abuse
+        await recordTrialStart(userId, user.email);
+      } else {
+        // Record that user tried to get trial but was denied
+        await prisma.creditTransaction.create({
+          data: {
+            userId,
+            type: CreditTransactionType.ADJUSTMENT,
+            amount: 0,
+            balance: 0,
+            description: 'Trial not available - email already used trial',
+          },
+        });
+      }
     }
 
     return subscription;
@@ -633,11 +821,37 @@ export class CreditService {
 
   /**
    * Check if trial is active
+   * For FREE tier: trial must not be expired
+   * For paid tiers: trial credits can still be used if they haven't expired
    */
   private isTrialActive(subscription: Subscription): boolean {
-    if (subscription.tier !== SubscriptionTier.FREE) return false;
     if (!subscription.trialEndDate) return false;
     return new Date() < subscription.trialEndDate;
+  }
+
+  /**
+   * Check if user has remaining trial credits that can be used
+   * This applies to both FREE tier users and paid users who upgraded from FREE
+   */
+  private hasRemainingTrialCredits(subscription: Subscription): boolean {
+    // Trial must still be active (not expired)
+    if (!this.isTrialActive(subscription)) return false;
+
+    // Check if there are remaining trial credits
+    const tierConfig = TIER_CONFIG[SubscriptionTier.FREE];
+    const trialRemaining = tierConfig.trialCredits - subscription.trialCreditsUsed;
+
+    return trialRemaining > 0;
+  }
+
+  /**
+   * Get remaining trial credits
+   */
+  private getTrialCreditsRemaining(subscription: Subscription): number {
+    if (!this.isTrialActive(subscription)) return 0;
+
+    const tierConfig = TIER_CONFIG[SubscriptionTier.FREE];
+    return Math.max(0, tierConfig.trialCredits - subscription.trialCreditsUsed);
   }
 
   /**

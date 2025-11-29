@@ -89,7 +89,6 @@ export async function POST(request: NextRequest) {
         currentPeriodEnd: tierValidation.currentPeriodEnd,
         message: tierValidation.message,
       },
-      mockMode: midtransService.isMockMode(),
       clientKey: midtransService.getClientKey(),
       isProduction: midtransService.isProduction(),
     });
