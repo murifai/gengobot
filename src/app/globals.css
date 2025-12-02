@@ -1,9 +1,13 @@
 @import "tailwindcss";
 
+/* Tailwind v4 content scanning - only include classes used in these paths */
+@source "../**/*.{ts,tsx,js,jsx}";
+@source "../../components/**/*.{ts,tsx}";
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #fcfcf9;
+  --background: #F8F8F8;
   --foreground: #171717;
   --card: #fafafa;
   --card-foreground: #171717;
@@ -11,12 +15,12 @@
   --popover-foreground: #171717;
   --primary: #ff5e75;
   --primary-foreground: #ffffff;
-  --secondary: #fefefe;
-  --secondary-foreground: #171717;
+  --secondary: #fffffe;
+  --secondary-foreground: #0d0d0d;
   --muted: #f5f5f5;
   --muted-foreground: #737373;
   --accent: #f8f8f8;
-  --accent-foreground: #121207;
+  --accent-foreground: #0d0d0d;
   --destructive: #ef4343;
   --border: #000000;
   --input: #e6e6e6;
@@ -151,7 +155,7 @@
 }
 
 .dark {
-  --background: #09090b;
+  --background: #292A2E;
   --foreground: #fafafa;
   --card: #18181b;
   --card-foreground: #fafafa;
@@ -159,14 +163,14 @@
   --popover-foreground: #fafafa;
   --primary: #ff5e75;
   --primary-foreground: #18181b;
-  --secondary: #252525;
+  --secondary: #191722;
   --secondary-foreground: #fafafa;
   --muted: #27272a;
   --muted-foreground: #9f9fa9;
   --accent: #27272a;
   --accent-foreground: #fafafa;
   --destructive: #ff6467;
-  --border: #fafafa;
+  --border: #010101;
   --input: #ffffff26;
   --ring: #71717b;
   --chart-1: #f2727d;
@@ -190,14 +194,14 @@
 
   /* Shadow System for Neo Brutalism - Dark Mode */
   --shadow-shadow: 4px 4px 0px 0px var(--border);
-  --shadow-2xs: 2px 2px 0px 0px #fafafa;
-  --shadow-xs: 2px 2px 0px 0px #fafafa;
-  --shadow-sm: 3px 3px 0px 0px #fafafa;
-  --shadow: 4px 4px 0px 0px #fafafa;
-  --shadow-md: 4px 4px 0px 0px #fafafa;
-  --shadow-lg: 5px 5px 0px 0px #fafafa;
-  --shadow-xl: 6px 6px 0px 0px #fafafa;
-  --shadow-2xl: 8px 8px 0px 0px #fafafa;
+  --shadow-2xs: 2px 2px 0px 0px #010101;
+  --shadow-xs: 2px 2px 0px 0px #010101;
+  --shadow-sm: 3px 3px 0px 0px #010101;
+  --shadow: 4px 4px 0px 0px #010101;
+  --shadow-md: 4px 4px 0px 0px #010101;
+  --shadow-lg: 5px 5px 0px 0px #010101;
+  --shadow-xl: 6px 6px 0px 0px #010101;
+  --shadow-2xl: 8px 8px 0px 0px #010101;
 }
 
 body {
@@ -425,15 +429,6 @@ html {
 
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
   }
 }
 

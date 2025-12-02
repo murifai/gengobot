@@ -126,9 +126,9 @@ export class TaskBasedAIService {
    * Recommend next tasks based on completed task
    */
   async recommendNextTasks(
-    userId: string,
-    completedTask: Task,
-    assessment: TaskAssessment
+    _userId: string,
+    _completedTask: Task,
+    _assessment: TaskAssessment
   ): Promise<Task[]> {
     // This will be implemented with database queries
     // For now, return empty array
@@ -166,7 +166,7 @@ export class TaskBasedAIService {
   /**
    * Evaluate vocabulary and grammar accuracy
    */
-  async evaluateVocabularyGrammar(context: TaskConversationContext): Promise<number> {
+  async evaluateVocabularyGrammar(_context: TaskConversationContext): Promise<number> {
     // This would require more sophisticated NLP analysis
     // For now, return a placeholder
     // In production, this would use GPT-4 to analyze grammar and vocabulary
@@ -276,7 +276,7 @@ export class TaskBasedAIService {
     const objectives = context.task.conversationExample as unknown as string[];
     const completion: { [objective: string]: boolean } = {};
 
-    objectives.forEach((obj, index) => {
+    objectives.forEach(obj => {
       completion[obj] = context.completedObjectives.includes(obj);
     });
 

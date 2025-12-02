@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     // Always return success to prevent email enumeration
     // In production, you would send an email here
     if (token) {
-      const admin = await getAdminByEmail(email);
+      const _admin = await getAdminByEmail(email);
 
       // TODO: Send email with reset link
       // For development, log the token

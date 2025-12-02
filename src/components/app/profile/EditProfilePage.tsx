@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, Camera, Upload, Check } from 'lucide-react';
+import { ArrowLeft, Upload, Check } from 'lucide-react';
 import {
   ImageCrop,
   ImageCropContent,

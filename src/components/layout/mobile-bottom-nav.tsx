@@ -31,13 +31,17 @@ export function MobileBottomNav() {
     return pathname?.startsWith(href);
   };
 
+  // Hide navigation in onboarding and subscription flow (prevent bypass)
+  const isOnboardingRoute = pathname?.startsWith('/app/onboarding');
+  const isChoosePlanRoute = pathname?.startsWith('/app/choose-plan');
+
   // Hide navigation in chat routes (only when actually in chat interface)
   const isChatRoute =
     pathname?.includes('/chat') ||
     (pathname?.includes('/kaiwa/roleplay/') && pathname?.includes('/attempt/')) ||
     (pathname?.includes('/tasks/') && pathname?.includes('/attempt/'));
 
-  if (isChatRoute) {
+  if (isOnboardingRoute || isChoosePlanRoute || isChatRoute) {
     return null;
   }
 

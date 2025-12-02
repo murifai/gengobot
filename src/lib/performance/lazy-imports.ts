@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Centralized lazy imports for code splitting
  * Phase 4: Performance Optimization
@@ -71,10 +73,97 @@ export const prefetchComponent = (componentName: keyof typeof lazyComponents) =>
   }
 };
 
+// Admin Chart Components (recharts heavy - 295KB)
+export const LazyUserAnalyticsTab = dynamic(
+  () => import('@/components/admin/statistik/UserAnalyticsTab').then(mod => mod.UserAnalyticsTab),
+  {
+    loading: () =>
+      React.createElement('div', {
+        className: 'animate-pulse bg-gray-200 dark:bg-gray-800 h-96 rounded-lg',
+      }),
+    ssr: false,
+  }
+);
+
+export const LazyEarningReportsTab = dynamic(
+  () => import('@/components/admin/statistik/EarningReportsTab').then(mod => mod.EarningReportsTab),
+  {
+    loading: () =>
+      React.createElement('div', {
+        className: 'animate-pulse bg-gray-200 dark:bg-gray-800 h-96 rounded-lg',
+      }),
+    ssr: false,
+  }
+);
+
+export const LazySubscriberChart = dynamic(
+  () => import('@/components/admin/dashboard/SubscriberChart').then(mod => mod.SubscriberChart),
+  {
+    loading: () =>
+      React.createElement('div', {
+        className: 'animate-pulse bg-gray-200 dark:bg-gray-800 h-64 rounded-lg',
+      }),
+    ssr: false,
+  }
+);
+
+export const LazyUserByLevelChart = dynamic(
+  () => import('@/components/admin/dashboard/UserByLevelChart').then(mod => mod.UserByLevelChart),
+  {
+    loading: () =>
+      React.createElement('div', {
+        className: 'animate-pulse bg-gray-200 dark:bg-gray-800 h-64 rounded-lg',
+      }),
+    ssr: false,
+  }
+);
+
+export const LazyUserByDomicileChart = dynamic(
+  () =>
+    import('@/components/admin/dashboard/UserByDomicileChart').then(mod => mod.UserByDomicileChart),
+  {
+    loading: () =>
+      React.createElement('div', {
+        className: 'animate-pulse bg-gray-200 dark:bg-gray-800 h-64 rounded-lg',
+      }),
+    ssr: false,
+  }
+);
+
+// Heavy dashboard components (dnd-kit 35KB + tanstack-table 23KB + recharts)
+export const LazyDataTable = dynamic(
+  () => import('@/components/data-table').then(mod => mod.DataTable),
+  {
+    loading: () =>
+      React.createElement('div', {
+        className: 'animate-pulse bg-gray-200 dark:bg-gray-800 h-96 rounded-lg',
+      }),
+    ssr: false,
+  }
+);
+
+export const LazyChartAreaInteractive = dynamic(
+  () => import('@/components/chart-area-interactive').then(mod => mod.ChartAreaInteractive),
+  {
+    loading: () =>
+      React.createElement('div', {
+        className: 'animate-pulse bg-gray-200 dark:bg-gray-800 h-64 rounded-lg',
+      }),
+    ssr: false,
+  }
+);
+
 const lazyComponents = {
   FreeConversationClient: LazyFreeConversationClient,
   DeckLearningWithStats: LazyDeckLearningWithStats,
   StatsCard: LazyStatsCard,
   ActivityChart: LazyActivityChart,
   RecentActivity: LazyRecentActivity,
+  UserAnalyticsTab: LazyUserAnalyticsTab,
+  EarningReportsTab: LazyEarningReportsTab,
+  SubscriberChart: LazySubscriberChart,
+  UserByLevelChart: LazyUserByLevelChart,
+  UserByDomicileChart: LazyUserByDomicileChart,
+  DataTable: LazyDataTable,
+  ChartAreaInteractive: LazyChartAreaInteractive,
 };

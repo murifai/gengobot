@@ -144,6 +144,7 @@ export default function AdminListPage() {
 
   useEffect(() => {
     fetchAdmins();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, roleFilter]);
 
   useEffect(() => {
@@ -152,6 +153,7 @@ export default function AdminListPage() {
       fetchAdmins();
     }, 300);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   const handleCreate = async (e: React.FormEvent) => {

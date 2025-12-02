@@ -13,13 +13,17 @@ const spaceGrotesk = Space_Grotesk({
 const shipporiMincho = Shippori_Mincho({
   variable: '--font-shippori',
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '700'], // Reduced from 4 weights to 2 for performance
+  display: 'swap',
+  preload: true,
 });
 
 const zenKakuGothic = Zen_Kaku_Gothic_New({
   variable: '--font-zen-kaku',
   subsets: ['latin'],
-  weight: ['400', '500', '700'],
+  weight: ['400', '700'], // Reduced from 3 weights to 2 for performance
+  display: 'swap',
+  preload: true,
 });
 
 export const metadata: Metadata = {

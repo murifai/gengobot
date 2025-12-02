@@ -29,7 +29,6 @@ export async function POST(request: NextRequest) {
       appOpinion,
       hasLivedInJapan,
       japanStayDuration,
-      subscriptionPlan,
     } = body;
 
     // Combine goals with "other" text if provided
@@ -78,7 +77,7 @@ export async function POST(request: NextRequest) {
         appOpinion,
         hasLivedInJapan,
         japanStayDuration,
-        subscriptionPlan: subscriptionPlan || 'free',
+        // Note: subscriptionPlan is NOT updated here to preserve user's subscription choice
         onboardingCompleted: true,
       },
     });

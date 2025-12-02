@@ -145,6 +145,7 @@ export default function MessageBubble({
         )}
       >
         {avatar ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img src={avatar} alt="Avatar" className="h-full w-full rounded-full object-cover" />
         ) : (
           <span className="text-sm font-medium">{isUser ? 'You' : 'AI'}</span>

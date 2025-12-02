@@ -98,6 +98,7 @@ export default function PenggunaPage() {
 
   useEffect(() => {
     fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, levelFilter, tierFilter]);
 
   useEffect(() => {
@@ -106,6 +107,7 @@ export default function PenggunaPage() {
       fetchUsers();
     }, 300);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   return (

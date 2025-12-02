@@ -436,7 +436,7 @@ async function getTaskTrendData(
           data.totalScore += completionRate;
           data.scoreCount++;
         }
-      } catch (e) {
+      } catch {
         // Ignore parse errors
       }
     }
@@ -549,7 +549,7 @@ async function getDifficultyDistribution() {
           const assessment = JSON.parse(a.feedback);
           return sum + (assessment?.statistics?.completionRate || 0);
         }
-      } catch (e) {
+      } catch {
         // Ignore parse errors
       }
       return sum;

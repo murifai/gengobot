@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
           objectivesAchieved = simplified.objectivesAchieved || 0;
           totalObjectives = simplified.totalObjectives || 1;
         }
-      } catch (e) {
+      } catch {
         // Ignore parse errors, use defaults
       }
 

@@ -84,7 +84,7 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
   const {
     progress: taskProgress,
     updateObjectives,
-    incrementMessageCount,
+    incrementMessageCount: _incrementMessageCount,
     dismissCompletionSuggestion,
   } = useTaskFeedbackProgress(
     attemptId,
@@ -154,7 +154,7 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
           const parsedAssessment = JSON.parse(data.attempt.feedback);
           setAssessment(parsedAssessment);
           setShowPostTaskReview(true); // Show feedback page on refresh
-        } catch (parseError) {
+        } catch {
           console.log('[TaskAttemptClientStreaming] Could not parse assessment from feedback');
         }
       }

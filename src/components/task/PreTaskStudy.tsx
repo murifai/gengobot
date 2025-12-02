@@ -65,7 +65,7 @@ export default function PreTaskStudy({
   learningObjectives = [],
   conversationExample = '',
   decks = [],
-  onSkip,
+  onSkip: _onSkip,
   onCancel,
   onComplete,
 }: PreTaskStudyProps) {

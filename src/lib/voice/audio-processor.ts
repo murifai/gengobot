@@ -119,7 +119,7 @@ export class AudioRecorder {
       }
     };
 
-    this.mediaRecorder.onerror = (event: Event) => {
+    this.mediaRecorder.onerror = (_event: Event) => {
       callbacks.onError?.(new Error('Recording error'));
     };
 

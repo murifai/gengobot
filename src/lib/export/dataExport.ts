@@ -175,7 +175,7 @@ async function fetchTaskAttemptData(options: ExportOptions) {
           totalObjectives: assessment?.totalObjectives || 0,
         };
       }
-    } catch (e) {
+    } catch {
       // Ignore parse errors
     }
 
@@ -254,7 +254,7 @@ async function fetchUserProgressData(userId: string) {
             const assessment = JSON.parse(a.feedback);
             return assessment?.statistics?.completionRate || 0;
           }
-        } catch (e) {
+        } catch {
           // Ignore parse errors
         }
         return 0;
@@ -312,7 +312,7 @@ async function fetchTaskAnalyticsData(taskId: string) {
             const assessment = JSON.parse(a.feedback);
             return assessment?.statistics?.completionRate || 0;
           }
-        } catch (e) {
+        } catch {
           // Ignore parse errors
         }
         return 0;
@@ -486,7 +486,7 @@ function calculateAverageScores(attempts: Record<string, unknown>[]) {
         const assessment = JSON.parse(a.feedback);
         return assessment?.statistics?.completionRate || 0;
       }
-    } catch (e) {
+    } catch {
       // Ignore parse errors
     }
     return 0;
@@ -498,7 +498,7 @@ function calculateAverageScores(attempts: Record<string, unknown>[]) {
         const assessment = JSON.parse(a.feedback);
         return assessment?.objectivesAchieved || 0;
       }
-    } catch (e) {
+    } catch {
       // Ignore parse errors
     }
     return 0;

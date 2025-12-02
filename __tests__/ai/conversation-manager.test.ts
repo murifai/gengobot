@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { ConversationManager } from '@/lib/ai/conversation-manager';
 import { Task, Character } from '@prisma/client';
-import { TaskConversationContext } from '@/types/ai';
+import type {} from '@/types/ai'; // TaskConversationContext available if needed
 
 describe('ConversationManager', () => {
   let manager: ConversationManager;

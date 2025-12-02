@@ -43,6 +43,7 @@ export default function ViewTaskPage({ params }: { params: Promise<{ taskId: str
 
   useEffect(() => {
     fetchTask();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchTask = async () => {

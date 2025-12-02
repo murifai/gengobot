@@ -87,6 +87,7 @@ export default function VouchersPage() {
 
   useEffect(() => {
     fetchVouchers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, typeFilter, statusFilter]);
 
   useEffect(() => {
@@ -95,6 +96,7 @@ export default function VouchersPage() {
       fetchVouchers();
     }, 300);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   const handleToggleActive = async (id: string, currentStatus: boolean) => {

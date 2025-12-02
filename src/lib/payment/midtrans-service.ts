@@ -39,7 +39,7 @@ const getMidtransConfig = () => {
 };
 
 // Get base URL for callbacks (supports ngrok for sandbox testing)
-const getBaseUrl = (): string => {
+const _getBaseUrl = (): string => {
   // In sandbox mode, prefer NGROK_URL if available for webhook accessibility
   if (!MIDTRANS_IS_PRODUCTION && process.env.NGROK_URL) {
     return process.env.NGROK_URL;

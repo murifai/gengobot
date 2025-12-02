@@ -138,7 +138,7 @@ export function CharacterCreator({ onCharacterCreated, onCancel }: CharacterCrea
             value={formData.description}
             onChange={e => setFormData({ ...formData, description: e.target.value })}
             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-dark dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder="Deskripsi singkat tentang karakter..."
+            placeholder="Mahasiswa semester 5 yang suka anime dan gaming. Tinggal di Tokyo dan bekerja part-time di konbini."
             rows={3}
           />
         </div>

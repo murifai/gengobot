@@ -50,10 +50,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Note: Onboarding check should be done at the page level (not middleware)
-  // since we need to query the database for onboardingCompleted status.
-  // See: src/app/app/page.tsx - check onboardingCompleted and redirect to /app/onboarding if needed
-
   // Admin routes - require authentication
   if (pathname.startsWith('/admin') && !session) {
     const url = request.nextUrl.clone();
@@ -63,7 +59,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  // Add pathname to headers for layout to use
+  const response = NextResponse.next();
+  response.headers.set('x-pathname', pathname);
+  return response;
 }
 
 export const config = {

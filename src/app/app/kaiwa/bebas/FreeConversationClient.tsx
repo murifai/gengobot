@@ -293,8 +293,8 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
 
   const loadCharacters = useCallback(async () => {
     try {
-      // Fetch user's characters
-      const response = await fetch(`/api/characters?userId=${user.id}`);
+      // Fetch user's characters (API returns user characters + preset characters)
+      const response = await fetch('/api/characters');
 
       if (!response.ok) {
         throw new Error('Failed to load characters');
@@ -308,7 +308,7 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
     } finally {
       setLoading(false);
     }
-  }, [user.id]);
+  }, []);
 
   // Load chat sessions (history)
   const loadChatSessions = useCallback(async () => {
@@ -592,7 +592,7 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-xl font-bold text-foreground">Daftar Karakter</h2>
                 <div className="flex items-center gap-2">
-                  <Link href="/app/profile/characters/new">
+                  <Link href="/app/profile/characters/new?from=free-chat">
                     <Button size="sm" className="gap-2">
                       <Plus className="h-4 w-4" />
                       Buat Karakter

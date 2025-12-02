@@ -66,7 +66,7 @@ export async function GET(
             objectivesAchieved: assessment?.objectivesAchieved || 0,
             totalObjectives: assessment?.totalObjectives || 0,
           };
-        } catch (e) {
+        } catch {
           return { completionRate: 0, objectivesAchieved: 0, totalObjectives: 0 };
         }
       });
@@ -114,7 +114,7 @@ export async function GET(
           const assessment = JSON.parse(attempt.feedback);
           completionRate = assessment?.statistics?.completionRate || 0;
         }
-      } catch (e) {
+      } catch {
         // Ignore parse errors
       }
 
@@ -180,7 +180,7 @@ function calculatePerformanceTrend(attempts: { startTime: Date; feedback: string
         const assessment = JSON.parse(attempt.feedback);
         completionRate = assessment?.statistics?.completionRate || 0;
       }
-    } catch (e) {
+    } catch {
       return;
     }
 

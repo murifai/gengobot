@@ -35,7 +35,6 @@ interface OnboardingData {
   appOpinion: string;
   hasLivedInJapan: boolean | null;
   japanStayDuration: string;
-  subscriptionPlan: string;
 }
 
 interface OnboardingFlowProps {
@@ -65,7 +64,6 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
     appOpinion: '',
     hasLivedInJapan: null,
     japanStayDuration: '',
-    subscriptionPlan: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -78,7 +76,7 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
       .catch(err => console.error('Failed to load cities:', err));
   }, []);
 
-  const totalSteps = 9;
+  const totalSteps = 8;
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
   const validateStep = (step: number): boolean => {
@@ -125,9 +123,6 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
         if (data.hasLivedInJapan && !data.japanStayDuration) {
           newErrors.japanStayDuration = 'Lama tinggal wajib dipilih';
         }
-        break;
-      case 8:
-        if (!data.subscriptionPlan) newErrors.subscriptionPlan = 'Pilih paket berlangganan';
         break;
     }
 
@@ -622,57 +617,6 @@ export function OnboardingFlow({ userId }: OnboardingFlowProps) {
                   )}
                 </div>
               )}
-            </CardContent>
-          </>
-        );
-
-      case 8:
-        return (
-          <>
-            <CardHeader>
-              <CardTitle>Pilih Paket</CardTitle>
-              <CardDescription>
-                Pilih paket berlangganan yang sesuai dengan kebutuhan Anda
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <RadioGroup
-                  value={data.subscriptionPlan}
-                  onValueChange={v => setData({ ...data, subscriptionPlan: v })}
-                >
-                  {[
-                    { value: 'free', label: 'Gratis', description: 'Fitur dasar untuk memulai' },
-                    {
-                      value: 'basic',
-                      label: 'Basic - Rp 49.000/bulan',
-                      description: 'Akses ke semua materi pembelajaran',
-                    },
-                    {
-                      value: 'premium',
-                      label: 'Premium - Rp 99.000/bulan',
-                      description: 'Semua fitur + latihan percakapan AI tanpa batas',
-                    },
-                  ].map(plan => (
-                    <div
-                      key={plan.value}
-                      className="flex items-start space-x-3 p-3 border border-border rounded-lg hover:bg-accent cursor-pointer"
-                      onClick={() => setData({ ...data, subscriptionPlan: plan.value })}
-                    >
-                      <RadioGroupItem value={plan.value} id={plan.value} className="mt-1" />
-                      <div className="flex-1">
-                        <Label htmlFor={plan.value} className="cursor-pointer font-medium">
-                          {plan.label}
-                        </Label>
-                        <p className="text-sm text-muted-foreground">{plan.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </RadioGroup>
-                {errors.subscriptionPlan && (
-                  <p className="text-sm text-red-500">{errors.subscriptionPlan}</p>
-                )}
-              </div>
             </CardContent>
           </>
         );

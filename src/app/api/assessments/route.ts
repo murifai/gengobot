@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
           objectivesAchieved = simplifiedAssessment.objectivesAchieved || 0;
           totalObjectives = simplifiedAssessment.totalObjectives || 1;
         }
-      } catch (e) {
+      } catch {
         // Ignore parse errors
       }
 

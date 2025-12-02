@@ -17,7 +17,7 @@ export function EmptyCharacterState() {
         Untuk memulai percakapan, buat karakter AI pertama Anda terlebih dahulu.
       </p>
 
-      <Link href="/app/profile/characters/new">
+      <Link href="/app/profile/characters/new?from=free-chat">
         <Button size="lg" className="gap-2">
           <Plus className="h-5 w-5" />
           Buat Karakter

@@ -67,7 +67,7 @@ export async function GET(
             const assessment = JSON.parse(attempt.feedback);
             return assessment?.statistics?.completionRate || 0;
           }
-        } catch (e) {
+        } catch {
           // Ignore parse errors
         }
         return 0;
@@ -217,8 +217,8 @@ export async function GET(
   }
 }
 
-// Helper: Identify strength areas
-function getStrengthAreas(scores: {
+// Helper: Identify strength areas (kept for future use with detailed assessments)
+function _getStrengthAreas(scores: {
   taskAchievement: number;
   fluency: number;
   vocabularyGrammarAccuracy: number;
@@ -232,8 +232,8 @@ function getStrengthAreas(scores: {
   return areas;
 }
 
-// Helper: Identify improvement areas
-function getImprovementAreas(scores: {
+// Helper: Identify improvement areas (kept for future use with detailed assessments)
+function _getImprovementAreas(scores: {
   taskAchievement: number;
   fluency: number;
   vocabularyGrammarAccuracy: number;

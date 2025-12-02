@@ -4,35 +4,52 @@ import { prisma } from '@/lib/prisma';
 import { CharacterService } from '@/lib/character/character-service';
 import { CharacterCreationData } from '@/types/character';
 
-// GET /api/characters - Get all characters for user
+// GET /api/characters - Get characters for user
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const userIdParam = searchParams.get('userId');
     const relationshipType = searchParams.get('relationshipType');
     const preset = searchParams.get('preset');
 
+    // Return only preset characters
     if (preset === 'true') {
       const characters = await CharacterService.getPresetCharacters();
       return NextResponse.json(characters);
     }
 
+    // If userId is explicitly provided, use it; otherwise get from session
+    let userId = userIdParam;
+    if (!userId) {
+      const sessionUser = await getCurrentSessionUser();
+      if (sessionUser?.email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: sessionUser.email },
+          select: { id: true },
+        });
+        userId = dbUser?.id || null;
+      }
+    }
+
+    // If we have a userId, return user's characters + preset characters
     if (userId) {
-      let characters;
+      let userCharacters;
       if (relationshipType) {
-        characters = await CharacterService.getCharactersByRelationship(
+        userCharacters = await CharacterService.getCharactersByRelationship(
           userId,
           relationshipType as 'teman' | 'guru' | 'atasan' | 'pacar' | 'keluarga' | 'lainnya'
         );
       } else {
-        characters = await CharacterService.getUserCharacters(userId);
+        userCharacters = await CharacterService.getUserCharacters(userId);
       }
-      return NextResponse.json(characters);
+      // Also include preset characters
+      const presetCharacters = await CharacterService.getPresetCharacters();
+      return NextResponse.json([...userCharacters, ...presetCharacters]);
     }
 
-    // Return all characters if no userId is provided
-    const allCharacters = await CharacterService.getAllCharacters();
-    return NextResponse.json(allCharacters);
+    // Fallback: return only preset characters if no user context
+    const presetCharacters = await CharacterService.getPresetCharacters();
+    return NextResponse.json(presetCharacters);
   } catch (error) {
     console.error('Error fetching characters:', error);
     return NextResponse.json({ error: 'Failed to fetch characters' }, { status: 500 });

@@ -108,6 +108,8 @@ export async function POST(request: NextRequest) {
         modalities: ['audio', 'text'],
         instructions,
         tool_choice: 'auto',
+        // Force Japanese transcription for user audio input
+        input_audio_transcription: { model: 'whisper-1', language: 'ja' },
         // turn_detection disabled for Push-to-Talk mode (saves ~50-75% on audio tokens)
         // User will manually control when to record audio
       }),

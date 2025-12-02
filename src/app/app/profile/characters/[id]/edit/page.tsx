@@ -250,7 +250,7 @@ export default function EditCharacterPage({ params }: { params: Promise<{ id: st
                   id="description"
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Deskripsi singkat tentang karakter..."
+                  placeholder="Mahasiswa semester 5 yang suka anime dan gaming. Tinggal di Tokyo dan bekerja part-time di konbini."
                   rows={3}
                 />
               </div>

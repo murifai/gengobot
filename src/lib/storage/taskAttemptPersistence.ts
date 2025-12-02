@@ -195,7 +195,7 @@ export async function getUserAttemptStats(userId: string) {
           const assessment = JSON.parse(a.feedback);
           return assessment?.statistics?.completionRate || 0;
         }
-      } catch (e) {
+      } catch {
         // Ignore parse errors
       }
       return 0;
@@ -244,7 +244,7 @@ export async function getTaskAttemptStats(taskId: string) {
           const assessment = JSON.parse(a.feedback);
           return assessment?.statistics?.completionRate || 0;
         }
-      } catch (e) {
+      } catch {
         // Ignore parse errors
       }
       return 0;
@@ -289,7 +289,7 @@ export async function getRecentAttempts(limit: number = 20) {
 /**
  * Helper function to update task statistics
  */
-async function updateTaskStats(taskId: string, newScore: number) {
+async function _updateTaskStats(taskId: string, newScore: number) {
   const task = await prisma.task.findUnique({
     where: { id: taskId },
   });

@@ -140,10 +140,11 @@ export function useTrackKaiwaSession(type: 'bebas' | 'roleplay', characterId?: s
   const messageCount = useRef<number>(0);
 
   useEffect(() => {
+    const startTime = sessionStart.current;
     analytics.trackKaiwaSession('start', { type, characterId });
 
     return () => {
-      const duration = Date.now() - sessionStart.current;
+      const duration = Date.now() - startTime;
       analytics.trackKaiwaSession('complete', {
         type,
         characterId,
@@ -169,10 +170,11 @@ export function useTrackDrillSession(deckId: string) {
   const masteredCards = useRef<number>(0);
 
   useEffect(() => {
+    const startTime = sessionStart.current;
     analytics.trackDrillSession('start', { deckId });
 
     return () => {
-      const duration = Date.now() - sessionStart.current;
+      const duration = Date.now() - startTime;
       analytics.trackDrillSession('complete', {
         deckId,
         cardsCount: cardsReviewed.current,

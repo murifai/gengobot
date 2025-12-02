@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
@@ -39,6 +39,8 @@ const RELATIONSHIP_TYPES: { value: RelationshipType; label: string }[] = [
 
 export default function NewCharacterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromPage = searchParams?.get('from');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
@@ -100,7 +102,12 @@ export default function NewCharacterPage() {
         throw new Error(data.error || 'Gagal membuat karakter');
       }
 
-      router.push('/app/profile/characters');
+      // Redirect based on where the user came from
+      if (fromPage === 'free-chat') {
+        router.push('/app/kaiwa/bebas');
+      } else {
+        router.push('/app/profile/characters');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
     } finally {
@@ -177,7 +184,7 @@ export default function NewCharacterPage() {
                   id="description"
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Deskripsi singkat tentang karakter..."
+                  placeholder="Mahasiswa semester 5 yang suka anime dan gaming. Tinggal di Tokyo dan bekerja part-time di konbini."
                   rows={3}
                 />
               </div>

@@ -65,7 +65,7 @@ export function PricingTable({
         const isCurrentTier = currentTier === tier;
 
         // Calculate estimated minutes
-        const voiceMinutes = Math.floor(
+        const _voiceMinutes = Math.floor(
           config.monthlyCredits / CREDIT_COSTS.VOICE_STANDARD_PER_MINUTE
         );
 

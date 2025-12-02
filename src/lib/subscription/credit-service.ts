@@ -14,18 +14,9 @@ import {
   CreditBalance,
   HistoryOptions,
 } from './credit-config';
-import {
-  TokenUsage,
-  CreditCalculationResult,
-  calculateCreditsFromUsage,
-  getUsageTypeFromModel,
-} from './credit-calculator';
+import { TokenUsage, calculateCreditsFromUsage, getUsageTypeFromModel } from './credit-calculator';
 import { notifyCreditUsage } from '@/lib/notification/notification-service';
-import {
-  checkTrialEligibility,
-  recordTrialStart,
-  updateTrialCreditsUsed,
-} from './trial-history-service';
+import { checkTrialEligibility, recordTrialStart } from './trial-history-service';
 
 export class CreditService {
   /**

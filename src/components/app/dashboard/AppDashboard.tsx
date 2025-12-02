@@ -1,7 +1,6 @@
 'use client';
 
-import { ActivityChart } from '@/components/dashboard/activity-chart';
-import { RecentActivity } from '@/components/dashboard/recent-activity';
+import { LazyActivityChart, LazyRecentActivity } from '@/lib/performance/lazy-imports';
 import { useEffect, useState } from 'react';
 import { UI_TEXT } from '@/lib/constants/ui-text';
 
@@ -91,7 +90,7 @@ export default function AppDashboard() {
 
       {/* Weekly Activity Charts */}
       <div className="mb-8">
-        <ActivityChart
+        <LazyActivityChart
           dates={weeklyStats?.dates || []}
           roleplayMinutes={getWeeklyRoleplayMinutes()}
           freeChatMinutes={getWeeklyFreeChatMinutes()}
@@ -102,7 +101,7 @@ export default function AppDashboard() {
 
       {/* Recent Activity */}
       <div className="mb-8">
-        <RecentActivity activities={recentActivity} isLoading={isLoading} />
+        <LazyRecentActivity activities={recentActivity} isLoading={isLoading} />
       </div>
     </div>
   );

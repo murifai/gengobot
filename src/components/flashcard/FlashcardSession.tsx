@@ -56,7 +56,7 @@ export default function FlashcardSession({
     },
     startTime: new Date(),
   });
-  const [cardStartTime, setCardStartTime] = useState<Date>(new Date());
+  const [_cardStartTime, setCardStartTime] = useState<Date>(new Date());
   const [showSummary, setShowSummary] = useState(false);
 
   const currentCard = cards[currentCardIndex];

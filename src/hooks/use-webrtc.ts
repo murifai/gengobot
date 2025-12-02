@@ -216,7 +216,7 @@ export default function useWebRTCAudioSession(
       session: {
         modalities: string[];
         tools?: Tool[];
-        input_audio_transcription?: { model: string };
+        input_audio_transcription?: { model: string; language?: string };
         turn_detection?: null;
       };
     } = {
@@ -224,8 +224,8 @@ export default function useWebRTCAudioSession(
       session: {
         // Enable both text and audio modalities
         modalities: ['text', 'audio'],
-        // Use Whisper for transcribing user audio
-        input_audio_transcription: { model: 'whisper-1' },
+        // Use Whisper for transcribing user audio - force Japanese language
+        input_audio_transcription: { model: 'whisper-1', language: 'ja' },
         // Disable automatic turn detection (we use push-to-talk)
         turn_detection: null,
       },
@@ -635,7 +635,12 @@ export default function useWebRTCAudioSession(
       dataChannel.onmessage = handleDataChannelMessage;
 
       // Add microphone track to peer connection
-      pc.addTrack(stream.getTracks()[0]);
+      const audioTrack = stream.getTracks()[0];
+      pc.addTrack(audioTrack);
+
+      // IMPORTANT: Disable audio track by default for push-to-talk mode
+      // Audio will only be sent when user holds the PTT button
+      audioTrack.enabled = false;
 
       // Create and set local offer
       const offer = await pc.createOffer();
@@ -793,9 +798,18 @@ export default function useWebRTCAudioSession(
   /**
    * Start push-to-talk mode
    * Called when user presses and holds the talk button
+   * Enables microphone audio transmission
    */
   function startPushToTalk() {
     if (!isSessionActive || !dataChannelRef.current) return;
+
+    // Enable audio track to start sending audio to OpenAI
+    if (audioStreamRef.current) {
+      const audioTrack = audioStreamRef.current.getTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = true;
+      }
+    }
 
     setIsPushToTalkActive(true);
     getOrCreateEphemeralUserId();
@@ -804,10 +818,18 @@ export default function useWebRTCAudioSession(
   /**
    * Stop push-to-talk mode
    * Called when user releases the talk button
-   * Commits audio buffer and triggers AI response
+   * Disables microphone, commits audio buffer, and triggers AI response
    */
   function stopPushToTalk() {
     if (!isSessionActive || !dataChannelRef.current) return;
+
+    // Disable audio track to stop sending audio to OpenAI
+    if (audioStreamRef.current) {
+      const audioTrack = audioStreamRef.current.getTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = false;
+      }
+    }
 
     setIsPushToTalkActive(false);
     commitAudioBuffer();
@@ -834,6 +856,7 @@ export default function useWebRTCAudioSession(
    */
   useEffect(() => {
     return () => stopSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ============================================

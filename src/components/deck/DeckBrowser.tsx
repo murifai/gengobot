@@ -44,6 +44,7 @@ export default function DeckBrowser() {
 
   useEffect(() => {
     fetchDecks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchDecks = async () => {

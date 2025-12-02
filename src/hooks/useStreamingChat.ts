@@ -281,6 +281,7 @@ export function useStreamingChat(
         abortControllerRef.current = null;
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [attemptId, isStreaming, detectObjectives, onObjectivesDetected]
   );
 

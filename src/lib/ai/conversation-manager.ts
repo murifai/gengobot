@@ -204,7 +204,7 @@ export class ConversationManager {
     confidence: number;
   } {
     // This is a simple heuristic. In production, use GPT-4 to analyze
-    const objective = (context.task.conversationExample as unknown as string[])[objectiveIndex];
+    const _objective = (context.task.conversationExample as unknown as string[])[objectiveIndex];
     const recentMessages = context.conversationHistory.slice(-6);
 
     // Check for completion keywords in recent messages

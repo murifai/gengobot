@@ -1,6 +1,6 @@
 // Type definitions for AI services
 
-import { Task, Character, TaskAttempt } from '@prisma/client';
+import { Task, Character } from '@prisma/client';
 
 export interface Message {
   role: 'system' | 'user' | 'assistant';

@@ -86,6 +86,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
     } else {
       completeTour();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTour, currentStep]);
 
   const previousStep = useCallback(() => {

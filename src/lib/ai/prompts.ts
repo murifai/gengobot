@@ -102,7 +102,7 @@ export function generateAssessmentPrompt(
   conversationHistory: Array<{ role: string; content: string }>,
   userProficiency: string
 ): string {
-  const studentMessages = conversationHistory.filter(m => m.role === 'user');
+  const _studentMessages = conversationHistory.filter(m => m.role === 'user');
 
   return `Evaluate this Japanese language learning conversation based on the four key criteria.
 

@@ -1,12 +1,9 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -19,7 +16,7 @@ import {
   LineChart,
   Line,
 } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, CreditCard, Users, Download } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, CreditCard, Download } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface EarningReportsTabProps {

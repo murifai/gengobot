@@ -27,6 +27,7 @@ export function SimpleAudioVisualizer({
     startVisualization();
 
     return cleanup;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stream, isRecording]);
 
   const cleanup = () => {

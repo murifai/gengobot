@@ -53,7 +53,7 @@ export default function DeckLearningWithSRS({
 }: DeckLearningWithSRSProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [ratedCards, setRatedCards] = useState<Set<number>>(new Set());
+  const [_ratedCards, setRatedCards] = useState<Set<number>>(new Set());
   const [reviewStartTime, setReviewStartTime] = useState<number>(Date.now());
   const [submittingRating, setSubmittingRating] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);

@@ -65,7 +65,7 @@ export async function POST(
 
     // Calculate active minutes from conversation history (excludes AFK time)
     const conversationHistory = attempt.conversationHistory as ConversationHistory;
-    const activeMinutes = calculateActiveMinutes(conversationHistory);
+    const _activeMinutes = calculateActiveMinutes(conversationHistory);
 
     // Complete the task attempt
     // Note: Since Phase 6, we store SimplifiedAssessment in feedback field as JSON
@@ -110,7 +110,7 @@ export async function POST(
             totalScore += feedbackData.overallScore;
             validAttempts++;
           }
-        } catch (e) {
+        } catch {
           // Ignore parse errors
         }
       }

@@ -221,7 +221,7 @@ export function detectObjectiveCompletion(
   objective: string,
   userMessage: string,
   assistantResponse: string,
-  context: TaskConversationContext
+  _context: TaskConversationContext
 ): boolean {
   // This is a simplified version - in production, use AI to evaluate
   const objectiveLower = objective.toLowerCase();
@@ -259,8 +259,8 @@ export function detectObjectiveCompletion(
  */
 export function generateObjectiveHint(
   objective: string,
-  difficulty: string,
-  category: string
+  _difficulty: string,
+  _category: string
 ): string {
   const hints: Record<string, string> = {
     order: `Try using "〜をください" or "〜をお願いします" to order something`,

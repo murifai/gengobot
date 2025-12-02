@@ -60,7 +60,7 @@ export async function GET(
           const assessment = JSON.parse(attempt.feedback);
           return assessment?.statistics?.completionRate || 0;
         }
-      } catch (e) {
+      } catch {
         // Ignore parse errors
       }
       return 0;
@@ -79,7 +79,7 @@ export async function GET(
           const assessment = JSON.parse(attempt.feedback);
           completionRate = assessment?.statistics?.completionRate || 0;
         }
-      } catch (e) {
+      } catch {
         // Ignore parse errors
       }
 

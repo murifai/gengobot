@@ -6,7 +6,7 @@ import { midtransService } from '@/lib/payment';
  * GET /api/debug/midtrans-config
  * Debug endpoint to check Midtrans configuration (admin only)
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await auth();
 

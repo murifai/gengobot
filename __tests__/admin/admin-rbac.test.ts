@@ -8,7 +8,7 @@ import {
   ROLE_DESCRIPTIONS,
   type Permission,
 } from '@/lib/auth/admin-rbac';
-import type { AdminRole } from '@prisma/client';
+import type {} from '@prisma/client'; // AdminRole type used indirectly via hasPermission
 
 describe('Admin RBAC', () => {
   describe('hasPermission', () => {

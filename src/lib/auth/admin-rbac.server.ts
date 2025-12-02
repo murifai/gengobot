@@ -33,7 +33,7 @@ export async function checkPermissions(
 }
 
 // Check if current admin can manage target admin
-export async function canManageAdmin(targetRole: AdminRole): Promise<boolean> {
+export async function canManageAdmin(_targetRole: AdminRole): Promise<boolean> {
   const session = await getAdminSession();
 
   if (!session) {

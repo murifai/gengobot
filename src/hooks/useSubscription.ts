@@ -7,7 +7,7 @@ import {
   CreditTransactionType,
   UsageType,
 } from '@prisma/client';
-import { CreditBalance, TIER_CONFIG, TIER_PRICING } from '@/lib/subscription/credit-config';
+import { CreditBalance } from '@/lib/subscription/credit-config';
 
 interface Subscription {
   id: string;

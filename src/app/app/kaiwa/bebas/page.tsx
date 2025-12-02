@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/auth';
-import FreeConversationClient from './FreeConversationClient';
+import { LazyFreeConversationClient } from '@/lib/performance/lazy-imports';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +13,7 @@ export default async function KaiwaBebasPage() {
   }
 
   return (
-    <FreeConversationClient
+    <LazyFreeConversationClient
       user={
         user as {
           id: string;

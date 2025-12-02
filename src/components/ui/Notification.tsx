@@ -62,6 +62,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
 
     return id;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const hideNotification = useCallback((id: string) => {
