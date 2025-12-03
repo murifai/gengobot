@@ -133,18 +133,19 @@ export default function NewCharacterPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4 h-16">
-            <Button onClick={() => router.back()} variant="ghost" size="icon">
-              <ChevronLeft size={24} />
-            </Button>
-            <h1 className="text-xl font-bold text-foreground">Buat Karakter</h1>
-          </div>
-        </div>
-      </nav>
+      {/* Header */}
+      <div className="bg-card border-b-2 border-border px-4 py-4 flex items-center gap-4">
+        <button
+          onClick={() => router.back()}
+          className="p-2 hover:bg-accent rounded-base transition-colors"
+          aria-label="Go back"
+        >
+          <ChevronLeft className="w-7 h-7 text-foreground" />
+        </button>
+        <h1 className="text-2xl font-bold">Buat Karakter</h1>
+      </div>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Card className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Avatar & Name */}
@@ -309,7 +310,7 @@ export default function NewCharacterPage() {
             </div>
           </form>
         </Card>
-      </main>
+      </div>
     </div>
   );
 }

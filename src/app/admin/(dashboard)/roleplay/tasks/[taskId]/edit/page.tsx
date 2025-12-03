@@ -74,7 +74,6 @@ export default function EditTaskPage({ params }: { params: Promise<{ taskId: str
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Edit Task</h1>
-        <p className="text-muted-foreground">Perbarui detail dan pengaturan task</p>
       </div>
 
       <Card>

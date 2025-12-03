@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, Upload, Check } from 'lucide-react';
+import { ChevronLeft, Upload, Check } from 'lucide-react';
 import {
   ImageCrop,
   ImageCropContent,
@@ -193,178 +193,183 @@ export function EditProfilePage({ user }: EditProfilePageProps) {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <div className="mb-6">
-        <Button variant="ghost" onClick={() => router.back()} className="gap-2 mb-4">
-          <ArrowLeft className="h-4 w-4" />
-          Kembali
-        </Button>
-        <h1 className="text-3xl font-bold">Edit Profile</h1>
-        <p className="text-muted-foreground">Perbarui informasi profil Anda</p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="bg-card border-b-2 border-border px-4 py-4 flex items-center gap-4">
+        <button
+          onClick={() => router.back()}
+          className="p-2 hover:bg-accent rounded-base transition-colors"
+          aria-label="Go back"
+        >
+          <ChevronLeft className="w-7 h-7 text-foreground" />
+        </button>
+        <h1 className="text-2xl font-bold">Edit Profile</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {error && (
-          <div className="p-4 bg-destructive/10 border-2 border-destructive rounded-base">
-            <p className="text-sm text-destructive">{error}</p>
-          </div>
-        )}
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="p-4 bg-destructive/10 border-2 border-destructive rounded-base">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
 
-        {/* Avatar Upload */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Foto Profil</CardTitle>
-            <CardDescription>
-              {isCropping ? 'Sesuaikan area foto' : 'Klik foto untuk mengubah'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isCropping && fileToCrop ? (
-              <div className="space-y-4">
-                <ImageCrop file={fileToCrop} onCrop={handleCroppedImage} aspect={1} circularCrop>
-                  <div className="flex flex-col items-center gap-4">
-                    <ImageCropContent className="max-h-[300px] rounded-base overflow-hidden" />
-                    <div className="flex items-center gap-2">
-                      <ImageCropReset type="button" />
-                      <ImageCropApply type="button">
-                        <Check className="h-4 w-4" />
-                      </ImageCropApply>
+          {/* Avatar Upload */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Foto Profil</CardTitle>
+              <CardDescription>
+                {isCropping ? 'Sesuaikan area foto' : 'Klik foto untuk mengubah'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isCropping && fileToCrop ? (
+                <div className="space-y-4">
+                  <ImageCrop file={fileToCrop} onCrop={handleCroppedImage} aspect={1} circularCrop>
+                    <div className="flex flex-col items-center gap-4">
+                      <ImageCropContent className="max-h-[300px] rounded-base overflow-hidden" />
+                      <div className="flex items-center gap-2">
+                        <ImageCropReset type="button" />
+                        <ImageCropApply type="button">
+                          <Check className="h-4 w-4" />
+                        </ImageCropApply>
+                      </div>
                     </div>
+                  </ImageCrop>
+                  <div className="flex justify-center">
+                    <Button type="button" variant="ghost" size="sm" onClick={handleCancelCrop}>
+                      Batal
+                    </Button>
                   </div>
-                </ImageCrop>
-                <div className="flex justify-center">
-                  <Button type="button" variant="ghost" size="sm" onClick={handleCancelCrop}>
-                    Batal
-                  </Button>
                 </div>
+              ) : (
+                <div className="flex items-center gap-6">
+                  <div className="relative">
+                    <Avatar
+                      className="h-24 w-24 cursor-pointer"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <AvatarImage src={imagePreview || undefined} alt={displayName} />
+                      <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
+                    </Avatar>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="gap-2"
+                    >
+                      <Upload className="h-4 w-4" />
+                      Upload Foto
+                    </Button>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      JPG, PNG atau GIF. Maksimal 5MB.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Personal Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Informasi Personal</CardTitle>
+              <CardDescription>Data diri dan informasi belajar</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Nama Lengkap</Label>
+                <Input
+                  id="fullName"
+                  value={formData.fullName}
+                  onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                  placeholder="Masukkan nama lengkap"
+                />
               </div>
-            ) : (
-              <div className="flex items-center gap-6">
-                <div className="relative">
-                  <Avatar
-                    className="h-24 w-24 cursor-pointer"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <AvatarImage src={imagePreview || undefined} alt={displayName} />
-                    <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
-                  </Avatar>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                  />
-                </div>
-                <div className="flex-1">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="gap-2"
-                  >
-                    <Upload className="h-4 w-4" />
-                    Upload Foto
-                  </Button>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    JPG, PNG atau GIF. Maksimal 5MB.
-                  </p>
-                </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="nickname">Nama Panggilan</Label>
+                <Input
+                  id="nickname"
+                  value={formData.nickname}
+                  onChange={e => setFormData({ ...formData, nickname: e.target.value })}
+                  placeholder="Masukkan nama panggilan"
+                />
               </div>
-            )}
-          </CardContent>
-        </Card>
 
-        {/* Personal Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Informasi Personal</CardTitle>
-            <CardDescription>Data diri dan informasi belajar</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Nama Lengkap</Label>
-              <Input
-                id="fullName"
-                value={formData.fullName}
-                onChange={e => setFormData({ ...formData, fullName: e.target.value })}
-                placeholder="Masukkan nama lengkap"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" value={user.email} disabled className="bg-muted" />
+                <p className="text-sm text-muted-foreground">Email tidak dapat diubah</p>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="nickname">Nama Panggilan</Label>
-              <Input
-                id="nickname"
-                value={formData.nickname}
-                onChange={e => setFormData({ ...formData, nickname: e.target.value })}
-                placeholder="Masukkan nama panggilan"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="domicile">Domisili</Label>
+                <Input
+                  id="domicile"
+                  value={formData.domicile}
+                  onChange={e => setFormData({ ...formData, domicile: e.target.value })}
+                  placeholder="Masukkan kota domisili"
+                  list="cities-list"
+                />
+                <datalist id="cities-list">
+                  {cities.map(city => (
+                    <option key={city.name} value={city.name} />
+                  ))}
+                </datalist>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={user.email} disabled className="bg-muted" />
-              <p className="text-sm text-muted-foreground">Email tidak dapat diubah</p>
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="institution">Institusi</Label>
+                <Input
+                  id="institution"
+                  value={formData.institution}
+                  onChange={e => setFormData({ ...formData, institution: e.target.value })}
+                  placeholder="Sekolah/Universitas/Tempat Kerja"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="domicile">Domisili</Label>
-              <Input
-                id="domicile"
-                value={formData.domicile}
-                onChange={e => setFormData({ ...formData, domicile: e.target.value })}
-                placeholder="Masukkan kota domisili"
-                list="cities-list"
-              />
-              <datalist id="cities-list">
-                {cities.map(city => (
-                  <option key={city.name} value={city.name} />
-                ))}
-              </datalist>
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="proficiency">Level Bahasa Jepang</Label>
+                <Select
+                  value={formData.proficiency}
+                  onValueChange={value => setFormData({ ...formData, proficiency: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="N5">N5 - Pemula</SelectItem>
+                    <SelectItem value="N4">N4 - Dasar</SelectItem>
+                    <SelectItem value="N3">N3 - Menengah</SelectItem>
+                    <SelectItem value="N2">N2 - Mahir</SelectItem>
+                    <SelectItem value="N1">N1 - Expert</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
 
-            <div className="space-y-2">
-              <Label htmlFor="institution">Institusi</Label>
-              <Input
-                id="institution"
-                value={formData.institution}
-                onChange={e => setFormData({ ...formData, institution: e.target.value })}
-                placeholder="Sekolah/Universitas/Tempat Kerja"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="proficiency">Level Bahasa Jepang</Label>
-              <Select
-                value={formData.proficiency}
-                onValueChange={value => setFormData({ ...formData, proficiency: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="N5">N5 - Pemula</SelectItem>
-                  <SelectItem value="N4">N4 - Dasar</SelectItem>
-                  <SelectItem value="N3">N3 - Menengah</SelectItem>
-                  <SelectItem value="N2">N2 - Mahir</SelectItem>
-                  <SelectItem value="N1">N1 - Expert</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Actions */}
-        <div className="flex gap-3 justify-end">
-          <Button type="button" variant="outline" onClick={() => router.back()}>
-            Batal
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
-          </Button>
-        </div>
-      </form>
+          {/* Actions */}
+          <div className="flex gap-3 justify-end">
+            <Button type="button" variant="outline" onClick={() => router.back()}>
+              Batal
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

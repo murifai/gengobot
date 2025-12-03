@@ -27,9 +27,9 @@ const zenKakuGothic = Zen_Kaku_Gothic_New({
 });
 
 export const metadata: Metadata = {
-  title: 'Gengotalk - AI-Powered Japanese Learning',
+  title: 'Gengobot-Ngobrol bahasa Jepang',
   description:
-    'Enhance your Japanese speaking skills through task-based interactive roleplay conversations powered by AI',
+    'Tingkatkan kemampuan bahasa Jepang kamu lewat ngobrol sama AI kaya kamu ngobrol sama native',
 };
 
 export const dynamic = 'force-dynamic';

@@ -110,7 +110,6 @@ export default function AdminDashboardPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Overview of GengoBot analytics and metrics</p>
       </div>
 
       {/* Top row: Key metrics */}

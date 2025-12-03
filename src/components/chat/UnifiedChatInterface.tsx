@@ -55,7 +55,7 @@ export default function UnifiedChatInterface({
   emptyStateMessage,
   className,
 }: UnifiedChatInterfaceProps) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(sidebarDefaultOpen);
+  const [isSidebarOpen, _setIsSidebarOpen] = useState(sidebarDefaultOpen);
 
   return (
     <div className={cn('fixed inset-0 flex flex-col bg-secondary-background', className)}>
@@ -88,19 +88,6 @@ export default function UnifiedChatInterface({
         </div>
         {/* Custom Header Actions */}
         {headerActions && <div className="flex items-center gap-2">{headerActions}</div>}
-        {/* Sidebar Toggle Button */}
-        {sidebar && (
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 hover:bg-main/20 rounded-base transition-colors"
-            aria-label={isSidebarOpen ? 'Hide hints' : 'Show hints'}
-            title={isSidebarOpen ? 'Hide hints' : 'Show hints'}
-          >
-            <span className="text-sm font-medium text-foreground sm:inline">
-              💡 <span className="hidden sm:inline">{isSidebarOpen ? 'Hide' : 'Hints'}</span>
-            </span>
-          </button>
-        )}
       </div>
 
       {/* Main Content */}

@@ -283,15 +283,70 @@ export function katakanaToRomaji(katakana: string): string {
 }
 
 /**
- * Merge verb stems with auxiliary verbs for learner-friendly display
+ * Check if a token is a non-independent verb (非自立動詞)
+ * These are auxiliary-like verbs that should be merged with the main verb
+ * Examples: てる/でる (casual ている), いる, ある, おく, しまう, etc.
+ */
+function isNonIndependentVerb(token: VocabularyInfo): boolean {
+  return token.partOfSpeech === '動詞' && token.posDetail.includes('非自立');
+}
+
+/**
+ * Check if a token should be merged with the preceding verb/adjective
+ * Handles: auxiliaries (with chaining), particles (て/で), and non-independent verbs (てる/でる)
+ */
+function shouldMergeWithPredicate(
+  token: VocabularyInfo,
+  nextToken: VocabularyInfo | undefined
+): { shouldMerge: boolean; continueAfterMerge: boolean } {
+  // 1. 助動詞 (auxiliary verbs): ます, た, だ, ない, たい, etc.
+  // Continue merging if next token is also 助動詞 (e.g., たく+ない, なかっ+た)
+  if (token.partOfSpeech === '助動詞') {
+    const shouldContinue = nextToken?.partOfSpeech === '助動詞';
+    return { shouldMerge: true, continueAfterMerge: shouldContinue };
+  }
+
+  // 2. 非自立動詞 (non-independent verbs): てる, でる, いる, ある, etc.
+  // These are casual contractions like てる (ている) or auxiliary verbs
+  if (isNonIndependentVerb(token)) {
+    return { shouldMerge: true, continueAfterMerge: true };
+  }
+
+  // 3. 助詞 て/で when followed by verb or auxiliary
+  if (
+    token.partOfSpeech === '助詞' &&
+    token.word.match(/^[てで]$/) &&
+    nextToken &&
+    (nextToken.partOfSpeech === '助動詞' ||
+      nextToken.partOfSpeech === '動詞' ||
+      isNonIndependentVerb(nextToken))
+  ) {
+    return { shouldMerge: true, continueAfterMerge: true };
+  }
+
+  return { shouldMerge: false, continueAfterMerge: false };
+}
+
+/**
+ * Merge verb/adjective stems with auxiliaries for learner-friendly display
  * Also merges noun+verb compounds (e.g., 勉強 + します → 勉強します)
- * Examples:
+ *
+ * Verb Examples:
  * - し + ます → します (to do)
  * - 食べ + ます → 食べます (to eat)
  * - 見 + て + い + ます → 見ています (is looking)
+ * - 見 + てる → 見てる (casual: is looking)
+ * - 楽しん + でる → 楽しんでる (casual: is enjoying)
  * - 行っ + た → 行った (went)
  * - 飲ま + ない → 飲まない (don't drink)
  * - 勉強 + し + ます → 勉強します (study)
+ * - 行き + たく + なかっ + た → 行きたくなかった (didn't want to go)
+ *
+ * Adjective Examples:
+ * - 寒かっ + た → 寒かった (was cold)
+ * - 良かっ + た → 良かった (was good)
+ * - 寒く + ない → 寒くない (not cold)
+ * - 寒く + なかっ + た → 寒くなかった (wasn't cold)
  */
 export function mergeVerbPhrases(tokens: VocabularyInfo[]): VocabularyInfo[] {
   const merged: VocabularyInfo[] = [];
@@ -322,12 +377,8 @@ export function mergeVerbPhrases(tokens: VocabularyInfo[]): VocabularyInfo[] {
       // Continue merging auxiliaries after the verb
       while (j < tokens.length) {
         const next = tokens[j];
-        const shouldMerge =
-          next.partOfSpeech === '助動詞' ||
-          (next.partOfSpeech === '助詞' &&
-            next.word.match(/^[てで]$/) &&
-            j + 1 < tokens.length &&
-            (tokens[j + 1].partOfSpeech === '助動詞' || tokens[j + 1].partOfSpeech === '動詞'));
+        const nextNext = tokens[j + 1];
+        const { shouldMerge, continueAfterMerge } = shouldMergeWithPredicate(next, nextNext);
 
         if (shouldMerge) {
           mergedWord += next.word;
@@ -335,7 +386,7 @@ export function mergeVerbPhrases(tokens: VocabularyInfo[]): VocabularyInfo[] {
           originalTokens.push(next.word);
           j++;
 
-          if (next.word.match(/^[てで]$/)) {
+          if (continueAfterMerge) {
             continue;
           } else {
             break;
@@ -367,19 +418,11 @@ export function mergeVerbPhrases(tokens: VocabularyInfo[]): VocabularyInfo[] {
       let j = i + 1;
       let foundAuxiliary = false;
 
-      // Look ahead for auxiliary verbs and verb-related particles
+      // Look ahead for auxiliary verbs, non-independent verbs, and verb-related particles
       while (j < tokens.length) {
         const next = tokens[j];
-
-        // Patterns to merge:
-        // 1. 助動詞 (auxiliary verbs): ます, た, だ, ない, etc.
-        // 2. 助詞 (particles) when followed by auxiliary: て, で
-        const shouldMerge =
-          next.partOfSpeech === '助動詞' || // auxiliary verb
-          (next.partOfSpeech === '助詞' && // particle
-            next.word.match(/^[てで]$/) && // て or で
-            j + 1 < tokens.length &&
-            (tokens[j + 1].partOfSpeech === '助動詞' || tokens[j + 1].partOfSpeech === '動詞'));
+        const nextNext = tokens[j + 1];
+        const { shouldMerge, continueAfterMerge } = shouldMergeWithPredicate(next, nextNext);
 
         if (shouldMerge) {
           mergedWord += next.word;
@@ -388,11 +431,9 @@ export function mergeVerbPhrases(tokens: VocabularyInfo[]): VocabularyInfo[] {
           foundAuxiliary = true;
           j++;
 
-          // If we merged て/で, continue to check for following verb/auxiliary
-          if (next.word.match(/^[てで]$/)) {
+          if (continueAfterMerge) {
             continue;
           } else {
-            // For other auxiliaries, stop after merging
             break;
           }
         } else {
@@ -417,10 +458,64 @@ export function mergeVerbPhrases(tokens: VocabularyInfo[]): VocabularyInfo[] {
         merged.push(current);
         i++;
       }
-    } else {
-      merged.push(current);
-      i++;
+      continue;
     }
+
+    // Check if current token is an adjective (形容詞)
+    // Merge with following auxiliaries: 寒かった, 良くない, 寒くなかった
+    if (current.partOfSpeech === '形容詞') {
+      let mergedWord = current.word;
+      let mergedReading = current.reading;
+      const originalTokens = [current.word];
+      let j = i + 1;
+      let foundAuxiliary = false;
+
+      // Look ahead for auxiliary verbs (た, ない, etc.)
+      while (j < tokens.length) {
+        const next = tokens[j];
+        const nextNext = tokens[j + 1];
+
+        // Only merge 助動詞 with adjectives
+        if (next.partOfSpeech === '助動詞') {
+          mergedWord += next.word;
+          mergedReading += next.reading;
+          originalTokens.push(next.word);
+          foundAuxiliary = true;
+          j++;
+
+          // Continue if next is also 助動詞 (e.g., なかっ + た)
+          if (nextNext?.partOfSpeech === '助動詞') {
+            continue;
+          } else {
+            break;
+          }
+        } else {
+          break;
+        }
+      }
+
+      // If we merged anything, create a grouped token
+      if (foundAuxiliary) {
+        merged.push({
+          word: mergedWord,
+          reading: mergedReading,
+          baseForm: current.baseForm,
+          partOfSpeech: current.partOfSpeech,
+          posDetail: current.posDetail,
+          conjugation: current.conjugation,
+          isGrouped: true,
+          originalTokens,
+        });
+        i = j; // Skip the merged tokens
+      } else {
+        merged.push(current);
+        i++;
+      }
+      continue;
+    }
+
+    merged.push(current);
+    i++;
   }
 
   return merged;

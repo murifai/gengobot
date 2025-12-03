@@ -213,7 +213,7 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
       }
     } catch (error) {
       console.error('Error submitting rating:', error);
-      alert('Gagal menyimpan rating. Silakan coba lagi.');
+      alert('Terjadi kesahalan. Silakan coba lagi.');
     } finally {
       setSubmittingRating(false);
     }
@@ -575,7 +575,7 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
                 handleRating('hafal');
               }}
               disabled={submittingRating}
-              className="w-full py-4 flex items-center justify-center bg-tertiary-green text-white border-2 border-border shadow-shadow transition-all disabled:opacity-50 hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+              className="w-full py-4 flex items-center justify-center bg-chart-3 text-white border-2 border-border shadow-shadow transition-all disabled:opacity-50 hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
             >
               <Check size={24} strokeWidth={2.5} />
             </button>

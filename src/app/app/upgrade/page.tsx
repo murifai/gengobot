@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Check } from 'lucide-react';
+import { ChevronLeft, Check } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { PricingCard } from '@/components/payment/PricingCard';
 import { CheckoutSummary } from '@/components/payment/CheckoutSummary';
@@ -50,7 +50,7 @@ export default function UpgradePage() {
 
   if (isLoading) {
     return (
-      <div className="container max-w-6xl mx-auto py-8 px-4">
+      <div className="min-h-screen bg-background">
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -59,120 +59,125 @@ export default function UpgradePage() {
   }
 
   return (
-    <div className="container max-w-6xl mx-auto py-8 px-4">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="mb-8">
-        <Button variant="ghost" size="sm" onClick={handleBack} className="mb-4">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Kembali
-        </Button>
+      <div className="bg-card border-b-2 border-border px-4 py-4 flex items-center gap-4">
+        <button
+          onClick={handleBack}
+          className="p-2 hover:bg-accent rounded-base transition-colors"
+          aria-label="Go back"
+        >
+          <ChevronLeft className="w-7 h-7 text-foreground" />
+        </button>
         <h1 className="text-2xl font-bold">Upgrade Paket</h1>
-        <p className="text-muted-foreground mt-1">
-          Pilih paket yang sesuai dengan kebutuhan belajar Anda
-        </p>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Left side - Plan selection */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Duration selector */}
-          <div>
-            <h2 className="font-medium mb-3">Pilih Durasi</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {DURATION_OPTIONS.map(option => (
-                <button
-                  key={option.value}
-                  onClick={() => setSelectedDuration(option.value)}
-                  className={`p-3 rounded-lg border text-sm transition-colors ${
-                    selectedDuration === option.value
-                      ? 'border-primary bg-primary/5 text-primary'
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  <div className="font-medium">{option.label}</div>
-                  {option.discount && (
-                    <div className="text-xs text-tertiary-green">Hemat {option.discount}</div>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Plan cards */}
-          <div>
-            <h2 className="font-medium mb-3">Pilih Paket</h2>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <PricingCard
-                tier={SubscriptionTier.BASIC}
-                durationMonths={selectedDuration}
-                isCurrentPlan={currentTier === SubscriptionTier.BASIC}
-                currentTier={currentTier}
-                currentPeriodEnd={
-                  subscription?.currentPeriodEnd ? new Date(subscription.currentPeriodEnd) : null
-                }
-                onSelect={handleTierSelect}
-                className={
-                  selectedTier === SubscriptionTier.BASIC && currentTier !== SubscriptionTier.BASIC
-                    ? 'ring-2 ring-primary'
-                    : ''
-                }
-              />
-              <PricingCard
-                tier={SubscriptionTier.PRO}
-                durationMonths={selectedDuration}
-                isCurrentPlan={currentTier === SubscriptionTier.PRO}
-                currentTier={currentTier}
-                currentPeriodEnd={
-                  subscription?.currentPeriodEnd ? new Date(subscription.currentPeriodEnd) : null
-                }
-                onSelect={handleTierSelect}
-                className={
-                  selectedTier === SubscriptionTier.PRO && currentTier !== SubscriptionTier.PRO
-                    ? 'ring-2 ring-primary'
-                    : ''
-                }
-              />
-            </div>
-          </div>
-
-          {/* Selected plan indicator */}
-          {selectedTier && currentTier !== selectedTier && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Check className="h-4 w-4 text-primary" />
-              <span>Paket {selectedTier === SubscriptionTier.BASIC ? 'Basic' : 'Pro'} dipilih</span>
-            </div>
-          )}
-        </div>
-
-        {/* Right side - Checkout summary */}
-        <div className="lg:col-span-1">
-          <div className="sticky top-4">
-            {currentTier === selectedTier ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>Anda sudah menggunakan paket ini</p>
-                <Button
-                  variant="outline"
-                  className="mt-4"
-                  onClick={() =>
-                    setSelectedTier(
-                      selectedTier === SubscriptionTier.BASIC
-                        ? SubscriptionTier.PRO
-                        : SubscriptionTier.BASIC
-                    )
-                  }
-                >
-                  Pilih Paket Lain
-                </Button>
+      <div className="container max-w-6xl mx-auto py-8 px-4">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Left side - Plan selection */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Duration selector */}
+            <div>
+              <h2 className="font-medium mb-3">Pilih Durasi</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {DURATION_OPTIONS.map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => setSelectedDuration(option.value)}
+                    className={`p-3 rounded-lg border text-sm transition-colors ${
+                      selectedDuration === option.value
+                        ? 'border-primary bg-primary/5 text-primary'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <div className="font-medium">{option.label}</div>
+                    {option.discount && (
+                      <div className="text-xs text-tertiary-green">Hemat {option.discount}</div>
+                    )}
+                  </button>
+                ))}
               </div>
-            ) : (
-              <CheckoutSummary
-                tier={selectedTier}
-                durationMonths={selectedDuration}
-                onCheckout={() => {
-                  // Optional: track checkout event
-                }}
-              />
+            </div>
+
+            {/* Plan cards */}
+            <div>
+              <h2 className="font-medium mb-3">Pilih Paket</h2>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <PricingCard
+                  tier={SubscriptionTier.BASIC}
+                  durationMonths={selectedDuration}
+                  isCurrentPlan={currentTier === SubscriptionTier.BASIC}
+                  currentTier={currentTier}
+                  currentPeriodEnd={
+                    subscription?.currentPeriodEnd ? new Date(subscription.currentPeriodEnd) : null
+                  }
+                  onSelect={handleTierSelect}
+                  className={
+                    selectedTier === SubscriptionTier.BASIC &&
+                    currentTier !== SubscriptionTier.BASIC
+                      ? 'ring-2 ring-primary'
+                      : ''
+                  }
+                />
+                <PricingCard
+                  tier={SubscriptionTier.PRO}
+                  durationMonths={selectedDuration}
+                  isCurrentPlan={currentTier === SubscriptionTier.PRO}
+                  currentTier={currentTier}
+                  currentPeriodEnd={
+                    subscription?.currentPeriodEnd ? new Date(subscription.currentPeriodEnd) : null
+                  }
+                  onSelect={handleTierSelect}
+                  className={
+                    selectedTier === SubscriptionTier.PRO && currentTier !== SubscriptionTier.PRO
+                      ? 'ring-2 ring-primary'
+                      : ''
+                  }
+                />
+              </div>
+            </div>
+
+            {/* Selected plan indicator */}
+            {selectedTier && currentTier !== selectedTier && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Check className="h-4 w-4 text-primary" />
+                <span>
+                  Paket {selectedTier === SubscriptionTier.BASIC ? 'Basic' : 'Pro'} dipilih
+                </span>
+              </div>
             )}
+          </div>
+
+          {/* Right side - Checkout summary */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-4">
+              {currentTier === selectedTier ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Anda sudah menggunakan paket ini</p>
+                  <Button
+                    variant="outline"
+                    className="mt-4"
+                    onClick={() =>
+                      setSelectedTier(
+                        selectedTier === SubscriptionTier.BASIC
+                          ? SubscriptionTier.PRO
+                          : SubscriptionTier.BASIC
+                      )
+                    }
+                  >
+                    Pilih Paket Lain
+                  </Button>
+                </div>
+              ) : (
+                <CheckoutSummary
+                  tier={selectedTier}
+                  durationMonths={selectedDuration}
+                  onCheckout={() => {
+                    // Optional: track checkout event
+                  }}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>

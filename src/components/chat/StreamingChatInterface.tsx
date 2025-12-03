@@ -21,7 +21,6 @@ export interface StreamingChatMessage {
 export interface StreamingChatInterfaceProps {
   // Header
   title: string;
-  subtitle?: string;
   onBack?: () => void;
   headerActions?: React.ReactNode;
 
@@ -91,14 +90,13 @@ export interface StreamingChatInterfaceProps {
 
 export default function StreamingChatInterface({
   title,
-  subtitle,
   onBack,
   headerActions,
   messages,
   isStreaming = false,
   onSendMessage,
   onVoiceRecording,
-  placeholder = 'Type your message...',
+  placeholder = 'Tulis pesan kamu...',
   disabled = false,
   enableVoice = false,
   sidebar,
@@ -150,7 +148,6 @@ export default function StreamingChatInterface({
           )}
           <div className="flex-1">
             <h2 className="text-xl font-bold text-foreground">{title}</h2>
-            {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
           </div>
           {/* Streaming Indicator */}
           {isStreaming && (
@@ -299,7 +296,10 @@ export default function StreamingChatInterface({
 
                     <div className="flex items-center justify-between mt-2 gap-2">
                       <p className="text-xs opacity-70">
-                        {new Date(message.timestamp).toLocaleTimeString()}
+                        {new Date(message.timestamp).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
                       </p>
 
                       {/* Parser Toggle Button - Only for AI messages */}
@@ -325,19 +325,15 @@ export default function StreamingChatInterface({
 
         {/* Floating Hint Button */}
         {hintConfig && messages.length > 0 && (
-          <div className="px-4 pb-2">
-            <div className="relative w-full">
-              <HintButton
-                type={hintConfig.type}
-                attemptId={hintConfig.attemptId}
-                sessionId={hintConfig.sessionId}
-                lastMessage={
-                  messages.filter(m => m.role === 'assistant').slice(-1)[0]?.content || ''
-                }
-                currentObjective={hintConfig.currentObjective}
-                disabled={isStreaming || disabled}
-              />
-            </div>
+          <div className="absolute bottom-28 left-4 z-10">
+            <HintButton
+              type={hintConfig.type}
+              attemptId={hintConfig.attemptId}
+              sessionId={hintConfig.sessionId}
+              lastMessage={messages.filter(m => m.role === 'assistant').slice(-1)[0]?.content || ''}
+              currentObjective={hintConfig.currentObjective}
+              disabled={isStreaming || disabled}
+            />
           </div>
         )}
 
@@ -357,13 +353,6 @@ export default function StreamingChatInterface({
           />
         </div>
       </div>
-
-      {/* Sidebar */}
-      {sidebar && isSidebarOpen && (
-        <div className="w-64 sm:w-80 md:w-96 bg-card border-l-2 border-border overflow-y-auto">
-          {sidebar}
-        </div>
-      )}
     </div>
   );
 }

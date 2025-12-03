@@ -181,7 +181,6 @@ export default function VouchersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Voucher Management</h1>
-          <p className="text-muted-foreground">Kelola voucher dan kode promo untuk subscription</p>
         </div>
         <Link href="/admin/subskripsi/voucher/new">
           <Button>

@@ -3,14 +3,7 @@
 import * as React from 'react';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardAction,
-} from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle, CardAction } from '@/components/ui/Card';
 import {
   ChartConfig,
   ChartContainer,
@@ -27,25 +20,32 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { UI_TEXT } from '@/lib/constants/ui-text';
 
 // Kaiwa chart config (roleplay + free chat)
 const kaiwaChartConfig = {
   roleplay: {
     label: 'Roleplay',
-    color: 'var(--chart-1)', // #f2727d pink/salmon
+    color: '#f2727d', // pink/salmon
   },
   freeChat: {
     label: 'Kaiwa Bebas',
-    color: 'var(--chart-2)', // #73cfd9 cyan
+    color: '#73cfd9', // cyan
   },
 } satisfies ChartConfig;
 
-// Drill chart config
+// Drill chart config with different card types
 const drillChartConfig = {
-  cards: {
-    label: 'Kartu Dipelajari',
-    color: 'var(--chart-3)', // #7fbf50 green
+  kanji: {
+    label: 'Kanji',
+    color: '#f2eda0', // yellow
+  },
+  vocabulary: {
+    label: 'Kosakata',
+    color: '#98D8AA', // green
+  },
+  grammar: {
+    label: 'Bunpo',
+    color: '#73cfd9', // cyan
   },
 } satisfies ChartConfig;
 
@@ -57,7 +57,9 @@ interface KaiwaChartData {
 
 interface DrillChartData {
   date: string;
-  cards: number;
+  kanji: number;
+  vocabulary: number;
+  grammar: number;
 }
 
 interface ActivityChartProps {
@@ -67,6 +69,10 @@ interface ActivityChartProps {
   cardsLearned: number[];
   isLoading?: boolean;
   kaiwaMinutes?: number[];
+  // Card type breakdown
+  kanjiCards?: number[];
+  vocabularyCards?: number[];
+  grammarCards?: number[];
 }
 
 function ChartSkeleton() {
@@ -119,8 +125,7 @@ function KaiwaChart({ data }: { data: KaiwaChartData[] }) {
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <CardTitle className="text-xl">{UI_TEXT.dashboard.kaiwaSection}</CardTitle>
-            <CardDescription>Menit latihan percakapan</CardDescription>
+            <CardTitle className="text-xl">Latihan Percakapan</CardTitle>
           </div>
           <CardAction>
             <Select value={timeRange} onValueChange={setTimeRange}>
@@ -212,8 +217,7 @@ function DrillChart({ data }: { data: DrillChartData[] }) {
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <CardTitle className="text-xl">{UI_TEXT.dashboard.drillSection}</CardTitle>
-            <CardDescription>Kartu yang dipelajari</CardDescription>
+            <CardTitle className="text-xl">Drill flashcard</CardTitle>
           </div>
           <CardAction>
             <Select value={timeRange} onValueChange={setTimeRange}>
@@ -268,11 +272,28 @@ function DrillChart({ data }: { data: DrillChartData[] }) {
               }
             />
             <Area
-              dataKey="cards"
+              dataKey="kanji"
               type="natural"
-              fill="var(--color-cards)"
+              fill="var(--color-kanji)"
               stroke="var(--border)"
               strokeWidth={2}
+              stackId="cards"
+            />
+            <Area
+              dataKey="vocabulary"
+              type="natural"
+              fill="var(--color-vocabulary)"
+              stroke="var(--border)"
+              strokeWidth={2}
+              stackId="cards"
+            />
+            <Area
+              dataKey="grammar"
+              type="natural"
+              fill="var(--color-grammar)"
+              stroke="var(--border)"
+              strokeWidth={2}
+              stackId="cards"
             />
             <ChartLegend content={<ChartLegendContent />} />
           </AreaChart>
@@ -289,6 +310,9 @@ export function ActivityChart({
   cardsLearned,
   isLoading,
   kaiwaMinutes,
+  kanjiCards,
+  vocabularyCards,
+  grammarCards,
 }: ActivityChartProps) {
   // Prepare kaiwa data
   const kaiwaData: KaiwaChartData[] = React.useMemo(() => {
@@ -302,13 +326,18 @@ export function ActivityChart({
     }));
   }, [dates, roleplayMinutes, freeChatMinutes, kaiwaMinutes]);
 
-  // Prepare drill data
+  // Prepare drill data with card type breakdown
   const drillData: DrillChartData[] = React.useMemo(() => {
+    // If we have card type breakdown, use it; otherwise fallback to total
+    const hasBreakdown = kanjiCards && vocabularyCards && grammarCards;
+
     return dates.map((date, index) => ({
       date,
-      cards: cardsLearned[index] || 0,
+      kanji: hasBreakdown ? kanjiCards[index] || 0 : 0,
+      vocabulary: hasBreakdown ? vocabularyCards[index] || 0 : cardsLearned[index] || 0,
+      grammar: hasBreakdown ? grammarCards[index] || 0 : 0,
     }));
-  }, [dates, cardsLearned]);
+  }, [dates, cardsLearned, kanjiCards, vocabularyCards, grammarCards]);
 
   if (isLoading) {
     return (

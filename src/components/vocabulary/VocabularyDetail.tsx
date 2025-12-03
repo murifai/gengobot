@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Plus, Loader2, Check, ChevronLeft } from 'lucide-react';
-import { katakanaToHiragana, katakanaToRomaji } from '@/lib/utils/kuromoji-parser';
+import { katakanaToHiragana } from '@/lib/utils/kuromoji-parser';
 import { Badge } from '@/components/ui/Badge';
 
 interface VocabularyDetailProps {
@@ -10,10 +10,46 @@ interface VocabularyDetailProps {
     word: string;
     reading: string;
     baseForm?: string; // Dictionary form (for verbs/adjectives)
+    partOfSpeech?: string; // Part of speech (動詞, 形容詞, etc.)
+    conjugation?: string; // Conjugation type info
     meaning?: string; // Indonesian translation (legacy, kept for compatibility)
   };
   onClose: () => void;
   position?: { x: number; y: number };
+}
+
+/**
+ * Extract verb group from conjugation type string
+ * Returns Indonesian label for verb/adjective group
+ */
+function getVerbGroup(
+  conjugationType: string | undefined,
+  partOfSpeech: string | undefined
+): string | null {
+  // Adjectives - い adjective
+  if (partOfSpeech === '形容詞' || conjugationType?.includes('形容詞')) {
+    return 'Kata Sifat-い';
+  }
+
+  // な adjective (形容動詞)
+  if (partOfSpeech === '形容動詞' || conjugationType?.includes('形容動詞')) {
+    return 'Kata Sifat-な';
+  }
+
+  if (!conjugationType) return null;
+
+  // Verb groups
+  if (conjugationType.includes('五段')) {
+    return 'Kelompok 1 (Godan)';
+  }
+  if (conjugationType.includes('一段')) {
+    return 'Kelompok 2 (Ichidan)';
+  }
+  if (conjugationType.includes('サ変') || conjugationType.includes('カ変')) {
+    return 'Kelompok 3 (Irregular)';
+  }
+
+  return null;
 }
 
 interface DictionaryData {
@@ -62,7 +98,7 @@ export default function VocabularyDetail({ vocab, onClose, position }: Vocabular
   const [addedToDeck, setAddedToDeck] = useState<string | null>(null);
 
   const hiraganaReading = katakanaToHiragana(vocab.reading);
-  const romajiReading = katakanaToRomaji(vocab.reading);
+  const verbGroup = getVerbGroup(vocab.conjugation, vocab.partOfSpeech);
 
   // Fetch dictionary data
   useEffect(() => {
@@ -73,16 +109,39 @@ export default function VocabularyDetail({ vocab, onClose, position }: Vocabular
         const res = await fetch(`/api/vocabulary/lookup?word=${encodeURIComponent(lookupWord)}`);
         const data = await res.json();
 
+        if (data.found) {
+          setDictData(data);
+          return;
+        }
+
         // If baseForm lookup failed, try the surface form
-        if (!data.found && vocab.baseForm && vocab.baseForm !== vocab.word) {
+        if (vocab.baseForm && vocab.baseForm !== vocab.word) {
           const fallbackRes = await fetch(
             `/api/vocabulary/lookup?word=${encodeURIComponent(vocab.word)}`
           );
           const fallbackData = await fallbackRes.json();
-          setDictData(fallbackData);
-        } else {
-          setDictData(data);
+          if (fallbackData.found) {
+            setDictData(fallbackData);
+            return;
+          }
         }
+
+        // For noun+する compounds (e.g., 勉強する), try looking up just the noun part
+        if (vocab.baseForm?.endsWith('する')) {
+          const nounPart = vocab.baseForm.slice(0, -2); // Remove する
+          if (nounPart) {
+            const nounRes = await fetch(
+              `/api/vocabulary/lookup?word=${encodeURIComponent(nounPart)}`
+            );
+            const nounData = await nounRes.json();
+            if (nounData.found) {
+              setDictData(nounData);
+              return;
+            }
+          }
+        }
+
+        setDictData({ found: false });
       } catch {
         setDictData({ found: false });
       } finally {
@@ -271,9 +330,6 @@ export default function VocabularyDetail({ vocab, onClose, position }: Vocabular
               {hiraganaReading !== vocab.word && (
                 <div className="text-sm text-muted-foreground font-japanese">{hiraganaReading}</div>
               )}
-              {romajiReading && (
-                <div className="text-xs text-muted-foreground">({romajiReading})</div>
-              )}
             </div>
             <div className="flex items-center gap-1 shrink-0">
               <button
@@ -293,6 +349,13 @@ export default function VocabularyDetail({ vocab, onClose, position }: Vocabular
               )}
             </div>
           </div>
+
+          {/* Verb/Adjective Group */}
+          {verbGroup && (
+            <Badge variant="outline" size="sm" className="text-xs">
+              {verbGroup}
+            </Badge>
+          )}
 
           {/* Kata Dasar (Base Form) - for conjugated verbs/adjectives */}
           {vocab.baseForm && vocab.baseForm !== vocab.word && (

@@ -128,7 +128,6 @@ export default function NewVoucherPage() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Buat Voucher Baru</h1>
-          <p className="text-muted-foreground">Buat kode voucher untuk diskon atau promo</p>
         </div>
       </div>
 

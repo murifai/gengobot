@@ -155,9 +155,6 @@ export default function SubscriptionSettingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Pengaturan Subskripsi</h1>
-          <p className="text-muted-foreground">
-            Kelola harga dan fitur untuk setiap tier subskripsi
-          </p>
         </div>
         <Button onClick={handleSave} disabled={isSaving}>
           {isSaving ? (

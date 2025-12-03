@@ -237,9 +237,6 @@ export default function AdminDecksPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dek</h1>
-        <p className="text-muted-foreground">
-          Manage flashcard decks for vocabulary, kanji, and grammar study
-        </p>
       </div>
 
       {/* Stats */}

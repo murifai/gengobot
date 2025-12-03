@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { HelpCircle, Loader2, X } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 interface HintButtonProps {
@@ -27,9 +27,17 @@ export function HintButton({
   const [hint, setHint] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  // Cache hint for the same message
+  const cachedMessageRef = useRef<string | null>(null);
 
   const fetchHint = async () => {
     if (loading) return;
+
+    // If we already have a hint for this message, just show it
+    if (hint && cachedMessageRef.current === lastMessage) {
+      setShowTooltip(true);
+      return;
+    }
 
     setLoading(true);
     try {
@@ -52,6 +60,7 @@ export function HintButton({
 
       const data = await response.json();
       setHint(data.hint);
+      cachedMessageRef.current = lastMessage;
       setShowTooltip(true);
     } catch (error) {
       console.error('Error fetching hint:', error);
@@ -68,20 +77,19 @@ export function HintButton({
         onClick={fetchHint}
         disabled={disabled || loading || !lastMessage}
         variant="ghost"
-        size="icon"
-        className="h-12 w-12 rounded-full hover:animate-wiggle"
+        className="h-7 w-7 p-0 rounded-full bg-card border-2 border-border shadow-shadow hover:bg-accent transition-colors"
         title="Get hint"
         aria-label="Get hint"
       >
         {loading ? (
-          <Loader2 className="h-10 w-10 animate-spin" />
+          <Loader2 className="h-6! w-6! animate-spin" />
         ) : (
-          <HelpCircle className="h-10 w-10" />
+          <span className="text-lg font-bold">?</span>
         )}
       </Button>
 
       {showTooltip && hint && (
-        <div className="absolute bottom-full left-0 right-0 mb-2 p-4 bg-background rounded-base border-2 border-border shadow-shadow z-50">
+        <div className="fixed bottom-36 left-4 right-4 p-4 bg-background rounded-base border-2 border-border shadow-shadow z-50">
           <p className="text-sm text-foreground whitespace-pre-wrap pr-6">{hint}</p>
           <button
             onClick={() => setShowTooltip(false)}

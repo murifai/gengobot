@@ -104,21 +104,19 @@ export default function CharactersClient({}: CharactersClientProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ChevronLeft className="h-6 w-6" />
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Kelola Karakter</h1>
-              <p className="text-sm text-muted-foreground">
-                Kelola karakter AI untuk latihan percakapan
-              </p>
-            </div>
-          </div>
-        </div>
+      {/* Header */}
+      <div className="bg-card border-b-2 border-border px-4 py-4 flex items-center gap-4">
+        <button
+          onClick={() => router.back()}
+          className="p-2 hover:bg-accent rounded-base transition-colors"
+          aria-label="Go back"
+        >
+          <ChevronLeft className="w-7 h-7 text-foreground" />
+        </button>
+        <h1 className="text-2xl font-bold">Kelola Karakter</h1>
+      </div>
 
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">

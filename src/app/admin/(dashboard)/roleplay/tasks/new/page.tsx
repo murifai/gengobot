@@ -11,7 +11,6 @@ export default function NewTaskPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Buat Task Baru</h1>
-        <p className="text-muted-foreground">Tambah task percakapan baru untuk latihan siswa</p>
       </div>
 
       <Card>

@@ -349,7 +349,6 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
   return (
     <StreamingChatInterface
       title={attempt.task?.title || 'Task Attempt'}
-      subtitle={attempt.task ? `${attempt.task.category} • ${attempt.task.difficulty}` : undefined}
       onBack={() => router.push('/dashboard/tasks')}
       headerActions={
         !attempt.isCompleted ? (

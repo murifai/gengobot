@@ -197,7 +197,6 @@ export default function AdminTasksPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
-        <p className="text-muted-foreground">Manage conversation tasks for task-based chat mode</p>
       </div>
 
       {/* Stats */}

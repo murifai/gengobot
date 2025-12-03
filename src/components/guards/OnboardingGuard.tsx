@@ -45,13 +45,27 @@ export function OnboardingGuard({
       router.replace('/app');
       return;
     }
-  }, [hasSubscription, onboardingCompleted, isSetupFlowPage, isChoosePlanPage, router]);
+
+    // If completed everything but still on onboarding page, redirect to app
+    if (hasSubscription && onboardingCompleted && isOnboardingPage) {
+      router.replace('/app');
+      return;
+    }
+  }, [
+    hasSubscription,
+    onboardingCompleted,
+    isSetupFlowPage,
+    isChoosePlanPage,
+    isOnboardingPage,
+    router,
+  ]);
 
   // Show loading while redirecting
   const shouldRedirectToChoosePlan = !hasSubscription && !isSetupFlowPage;
   const shouldRedirectToOnboarding = hasSubscription && !onboardingCompleted && !isSetupFlowPage;
+  const shouldRedirectFromOnboarding = hasSubscription && onboardingCompleted && isOnboardingPage;
 
-  if (shouldRedirectToChoosePlan || shouldRedirectToOnboarding) {
+  if (shouldRedirectToChoosePlan || shouldRedirectToOnboarding || shouldRedirectFromOnboarding) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent" />

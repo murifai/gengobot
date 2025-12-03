@@ -114,7 +114,6 @@ export default function PenggunaPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Pengguna</h1>
-        <p className="text-muted-foreground">Lihat data pengguna aplikasi (read-only)</p>
       </div>
 
       {/* Stats Cards */}

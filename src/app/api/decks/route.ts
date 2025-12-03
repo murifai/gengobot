@@ -90,32 +90,58 @@ export async function GET(request: NextRequest) {
       prisma.deck.count({ where }),
     ]);
 
-    // Calculate statistics for each deck
-    const now = new Date();
-    const decksWithStats = decks.map(deck => {
-      const dueCards = deck.flashcards.filter(
-        card => card.nextReviewDate && card.nextReviewDate <= now
-      ).length;
-      const newCards = deck.flashcards.filter(
-        card => !card.nextReviewDate && card.repetitions === 0
-      ).length;
-      const totalCards = deck.flashcards.length;
+    // Calculate statistics for each deck including hafal/belum_hafal
+    const decksWithStats = await Promise.all(
+      decks.map(async deck => {
+        const totalCards = deck.flashcards.length;
 
-      return {
-        id: deck.id,
-        name: deck.name,
-        description: deck.description,
-        category: deck.category,
-        difficulty: deck.difficulty,
-        isPublic: deck.isPublic,
-        studyCount: deck.studyCount,
-        totalCards,
-        dueCards,
-        newCards,
-        createdAt: deck.createdAt,
-        updatedAt: deck.updatedAt,
-      };
-    });
+        // Get unique mastered cards (based on latest review rating)
+        const masteredCards = await prisma.$queryRaw<Array<{ count: bigint }>>`
+          SELECT COUNT(*) as count
+          FROM (
+            SELECT DISTINCT ON (fr."flashcardId") fr."flashcardId", fr."rating"
+            FROM "FlashcardReview" fr
+            INNER JOIN "StudySession" ss ON fr."sessionId" = ss."id"
+            INNER JOIN "Flashcard" f ON fr."flashcardId" = f."id"
+            WHERE ss."userId" = ${dbUser.id} AND f."deckId" = ${deck.id}
+            ORDER BY fr."flashcardId", fr."reviewedAt" DESC
+          ) latest_reviews
+          WHERE latest_reviews."rating" = 'hafal'
+        `;
+
+        // Get unique not mastered cards (based on latest review rating)
+        const notMasteredCards = await prisma.$queryRaw<Array<{ count: bigint }>>`
+          SELECT COUNT(*) as count
+          FROM (
+            SELECT DISTINCT ON (fr."flashcardId") fr."flashcardId", fr."rating"
+            FROM "FlashcardReview" fr
+            INNER JOIN "StudySession" ss ON fr."sessionId" = ss."id"
+            INNER JOIN "Flashcard" f ON fr."flashcardId" = f."id"
+            WHERE ss."userId" = ${dbUser.id} AND f."deckId" = ${deck.id}
+            ORDER BY fr."flashcardId", fr."reviewedAt" DESC
+          ) latest_reviews
+          WHERE latest_reviews."rating" = 'belum_hafal'
+        `;
+
+        const uniqueHafal = Number(masteredCards[0]?.count || 0);
+        const uniqueBelumHafal = Number(notMasteredCards[0]?.count || 0);
+
+        return {
+          id: deck.id,
+          name: deck.name,
+          description: deck.description,
+          category: deck.category,
+          difficulty: deck.difficulty,
+          isPublic: deck.isPublic,
+          studyCount: deck.studyCount,
+          totalCards,
+          uniqueHafal,
+          uniqueBelumHafal,
+          createdAt: deck.createdAt,
+          updatedAt: deck.updatedAt,
+        };
+      })
+    );
 
     return NextResponse.json({
       decks: decksWithStats,

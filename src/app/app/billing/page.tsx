@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  ArrowLeft,
+  ChevronLeft,
   CreditCard,
   BarChart3,
   ArrowUpCircle,
@@ -194,7 +194,7 @@ export default function BillingPage() {
 
   if (isLoading) {
     return (
-      <div className="container max-w-4xl mx-auto py-8 px-4">
+      <div className="min-h-screen bg-background">
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -203,200 +203,204 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4 space-y-8">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div>
-        <Button variant="ghost" size="sm" onClick={() => router.back()} className="mb-4">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Kembali
-        </Button>
+      <div className="bg-card border-b-2 border-border px-4 py-4 flex items-center gap-4">
+        <button
+          onClick={() => router.back()}
+          className="p-2 hover:bg-accent rounded-base transition-colors"
+          aria-label="Go back"
+        >
+          <ChevronLeft className="w-7 h-7 text-foreground" />
+        </button>
         <h1 className="text-2xl font-bold">Billing & Langganan</h1>
-        <p className="text-muted-foreground mt-1">Kelola langganan dan riwayat pembayaran kamu</p>
       </div>
 
-      {/* Current Subscription Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <CreditCard className="h-5 w-5" />
-            Langganan Saat Ini
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Paket</p>
-              <p className="text-2xl font-bold">{getTierLabel()}</p>
-            </div>
-            <div className="flex gap-2">
-              <Badge variant={getTierBadgeVariant()}>{getTierLabel()}</Badge>
-              {subscription?.status && (
-                <Badge variant={getStatusBadgeVariant()}>{getStatusLabel()}</Badge>
-              )}
-            </div>
-          </div>
-
-          {tier !== SubscriptionTier.FREE && (
-            <>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Harga</p>
-                  <p className="font-semibold">{formatPrice(TIER_PRICING[tier])}/bulan</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Berlaku Sampai</p>
-                  <p className="font-semibold">{formatDate(subscription?.currentPeriodEnd)}</p>
-                </div>
+      <div className="container max-w-4xl mx-auto py-8 px-4 space-y-8">
+        {/* Current Subscription Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <CreditCard className="h-5 w-5" />
+              Langganan Saat Ini
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Paket</p>
+                <p className="text-2xl font-bold">{getTierLabel()}</p>
               </div>
-
-              <Separator />
-
-              {/* Cancellation warning */}
-              {cancellationStatus?.isCanceled && (
-                <div className="flex items-start gap-2 p-3 bg-warning/10 border border-warning/30 rounded-base">
-                  <XCircle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="text-sm text-warning-foreground font-medium">
-                      Langganan dijadwalkan untuk dibatalkan
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Langganan akan berakhir pada{' '}
-                      <strong>{formatDate(cancellationStatus.cancelDate)}</strong>. Anda masih dapat
-                      menggunakan kredit hingga tanggal tersebut.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Error message */}
-              {cancelError && (
-                <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-base">
-                  <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
-                  <p className="text-sm text-destructive">{cancelError}</p>
-                </div>
-              )}
-
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => handleUpgrade()}>
-                  Ubah Paket
-                </Button>
-
-                {cancellationStatus?.isCanceled ? (
-                  <Button
-                    variant="outline"
-                    onClick={handleReactivateSubscription}
-                    disabled={isReactivating}
-                  >
-                    {isReactivating ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Memproses...
-                      </>
-                    ) : (
-                      <>
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Batalkan Pembatalan
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={handleCancelSubscription}
-                    disabled={isCanceling}
-                  >
-                    {isCanceling ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Memproses...
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Batalkan Langganan
-                      </>
-                    )}
-                  </Button>
+                <Badge variant={getTierBadgeVariant()}>{getTierLabel()}</Badge>
+                {subscription?.status && (
+                  <Badge variant={getStatusBadgeVariant()}>{getStatusLabel()}</Badge>
                 )}
               </div>
-            </>
-          )}
+            </div>
 
-          {tier === SubscriptionTier.FREE && (
-            <div className="space-y-4">
-              {isTrialActive && trialDaysRemaining !== undefined && (
-                <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <AlertCircle className="h-4 w-4 text-yellow-600" />
-                  <p className="text-sm text-yellow-800">
-                    Trial berakhir dalam <strong>{trialDaysRemaining} hari</strong>
-                  </p>
+            {tier !== SubscriptionTier.FREE && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Harga</p>
+                    <p className="font-semibold">{formatPrice(TIER_PRICING[tier])}/bulan</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Berlaku Sampai</p>
+                    <p className="font-semibold">{formatDate(subscription?.currentPeriodEnd)}</p>
+                  </div>
                 </div>
-              )}
-              <Button onClick={() => handleUpgrade()} className="w-full">
-                <ArrowUpCircle className="h-4 w-4 mr-2" />
-                Upgrade Sekarang
+
+                <Separator />
+
+                {/* Cancellation warning */}
+                {cancellationStatus?.isCanceled && (
+                  <div className="flex items-start gap-2 p-3 bg-warning/10 border border-warning/30 rounded-base">
+                    <XCircle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="text-sm text-warning-foreground font-medium">
+                        Langganan dijadwalkan untuk dibatalkan
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Langganan akan berakhir pada{' '}
+                        <strong>{formatDate(cancellationStatus.cancelDate)}</strong>. Anda masih
+                        dapat menggunakan kredit hingga tanggal tersebut.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Error message */}
+                {cancelError && (
+                  <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-base">
+                    <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
+                    <p className="text-sm text-destructive">{cancelError}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => handleUpgrade()}>
+                    Ubah Paket
+                  </Button>
+
+                  {cancellationStatus?.isCanceled ? (
+                    <Button
+                      variant="outline"
+                      onClick={handleReactivateSubscription}
+                      disabled={isReactivating}
+                    >
+                      {isReactivating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Memproses...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Batalkan Pembatalan
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={handleCancelSubscription}
+                      disabled={isCanceling}
+                    >
+                      {isCanceling ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Memproses...
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="h-4 w-4 mr-2" />
+                          Batalkan Langganan
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
+
+            {tier === SubscriptionTier.FREE && (
+              <div className="space-y-4">
+                {isTrialActive && trialDaysRemaining !== undefined && (
+                  <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <AlertCircle className="h-4 w-4 text-yellow-600" />
+                    <p className="text-sm text-yellow-800">
+                      Trial berakhir dalam <strong>{trialDaysRemaining} hari</strong>
+                    </p>
+                  </div>
+                )}
+                <Button onClick={() => handleUpgrade()} className="w-full">
+                  <ArrowUpCircle className="h-4 w-4 mr-2" />
+                  Upgrade Sekarang
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Credit Balance */}
+        {balance && (
+          <CreditBalance
+            total={balance.total}
+            used={balance.used}
+            remaining={balance.remaining}
+            tier={tier}
+            isTrialActive={isTrialActive}
+            trialDaysRemaining={trialDaysRemaining}
+            trialDailyUsed={balance.trialDailyUsed}
+            trialDailyLimit={balance.trialDailyLimit}
+            periodEnd={balance.periodEnd}
+          />
+        )}
+
+        {/* Credit Usage Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <BarChart3 className="h-5 w-5" />
+              Penggunaan Kredit (30 Hari Terakhir)
+            </CardTitle>
+            <CardDescription>Lihat pola penggunaan kredit harian kamu</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CreditUsageChart />
+          </CardContent>
+        </Card>
+
+        {/* Payment History */}
+        <PaymentHistory />
+
+        {/* Subscription Plans Comparison */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Calendar className="h-5 w-5" />
+                Bandingkan Paket
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPricingComparison(!showPricingComparison)}
+              >
+                {showPricingComparison ? 'Sembunyikan' : 'Lihat'}
               </Button>
             </div>
+          </CardHeader>
+          {showPricingComparison && (
+            <CardContent>
+              <PricingComparison currentTier={tier} onSelectTier={handleUpgrade} />
+            </CardContent>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Credit Balance */}
-      {balance && (
-        <CreditBalance
-          total={balance.total}
-          used={balance.used}
-          remaining={balance.remaining}
-          tier={tier}
-          isTrialActive={isTrialActive}
-          trialDaysRemaining={trialDaysRemaining}
-          trialDailyUsed={balance.trialDailyUsed}
-          trialDailyLimit={balance.trialDailyLimit}
-          periodEnd={balance.periodEnd}
-        />
-      )}
-
-      {/* Credit Usage Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <BarChart3 className="h-5 w-5" />
-            Penggunaan Kredit (30 Hari Terakhir)
-          </CardTitle>
-          <CardDescription>Lihat pola penggunaan kredit harian kamu</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CreditUsageChart />
-        </CardContent>
-      </Card>
-
-      {/* Payment History */}
-      <PaymentHistory />
-
-      {/* Subscription Plans Comparison */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Calendar className="h-5 w-5" />
-              Bandingkan Paket
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowPricingComparison(!showPricingComparison)}
-            >
-              {showPricingComparison ? 'Sembunyikan' : 'Lihat'}
-            </Button>
-          </div>
-        </CardHeader>
-        {showPricingComparison && (
-          <CardContent>
-            <PricingComparison currentTier={tier} onSelectTier={handleUpgrade} />
-          </CardContent>
-        )}
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -231,7 +231,6 @@ export default function StatistikPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Statistik</h1>
-        <p className="text-muted-foreground">Detailed analytics and reporting for GengoBot</p>
       </div>
 
       {/* Tabs */}

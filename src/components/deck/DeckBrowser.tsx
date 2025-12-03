@@ -13,25 +13,25 @@ interface Deck {
   category: string | null;
   difficulty: string | null;
   totalCards: number;
-  dueCards: number;
-  newCards: number;
+  uniqueHafal: number;
+  uniqueBelumHafal: number;
   studyCount: number;
   isPublic: boolean;
 }
 
 const categoryColors: Record<string, string> = {
-  Kanji: 'bg-tertiary-purple/10 text-tertiary-purple',
-  Vocabulary: 'bg-tertiary-green/10 text-tertiary-green',
-  Grammar: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-  Mixed: 'bg-secondary/10 text-secondary',
+  Kanji: 'bg-[var(--card-kanji)] text-foreground',
+  Vocabulary: 'bg-[var(--card-vocabulary)] text-foreground',
+  Grammar: 'bg-[var(--card-grammar)] text-foreground',
+  Mixed: 'bg-chart-5 text-foreground',
 };
 
 const difficultyColors: Record<string, string> = {
-  N5: 'bg-tertiary-green/10 text-tertiary-green border-tertiary-green/30',
-  N4: 'bg-secondary/10 text-secondary border-secondary/30',
-  N3: 'bg-tertiary-yellow/10 text-foreground border-tertiary-yellow/30',
-  N2: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800',
-  N1: 'bg-primary/10 text-primary border-primary/30',
+  N5: 'bg-background text-foreground',
+  N4: 'bg-background text-foreground',
+  N3: 'bg-background text-foreground',
+  N2: 'bg-background text-foreground',
+  N1: 'bg-background text-foreground',
 };
 
 export default function DeckBrowser() {
@@ -99,39 +99,39 @@ export default function DeckBrowser() {
         <form onSubmit={handleSearch} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Search</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Cari</label>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search decks..."
+                placeholder="Cari dek..."
                 className="w-full px-4 py-2 border-2 border-border rounded-base bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Category</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Kategori</label>
               <select
                 value={categoryFilter}
                 onChange={e => setCategoryFilter(e.target.value)}
                 className="w-full px-4 py-2 border-2 border-border rounded-base bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary"
               >
-                <option value="">All Categories</option>
+                <option value="">Semua</option>
                 <option value="Kanji">Kanji</option>
-                <option value="Vocabulary">Vocabulary</option>
-                <option value="Grammar">Grammar</option>
-                <option value="Mixed">Mixed</option>
+                <option value="Vocabulary">Kosakata</option>
+                <option value="Grammar">Bunpo</option>
+                <option value="Mixed">Campur</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Difficulty</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Level</label>
               <select
                 value={difficultyFilter}
                 onChange={e => setDifficultyFilter(e.target.value)}
                 className="w-full px-4 py-2 border-2 border-border rounded-base bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary"
               >
-                <option value="">All Levels</option>
+                <option value="">Semua</option>
                 <option value="N5">N5</option>
                 <option value="N4">N4</option>
                 <option value="N3">N3</option>
@@ -143,7 +143,7 @@ export default function DeckBrowser() {
 
           <div className="flex gap-2">
             <Button type="submit" variant="default">
-              Apply Filters
+              Filter
             </Button>
             <Button
               type="button"
@@ -155,7 +155,7 @@ export default function DeckBrowser() {
                 fetchDecks();
               }}
             >
-              Clear
+              Reset
             </Button>
           </div>
         </form>
@@ -164,7 +164,7 @@ export default function DeckBrowser() {
       {/* Deck Grid */}
       {decks.length === 0 ? (
         <Card className="p-12 text-center">
-          <p className="text-muted-foreground">No decks found</p>
+          <p className="text-muted-foreground">Tidak ada dek ditemukan</p>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -173,16 +173,16 @@ export default function DeckBrowser() {
               key={deck.id}
               className="p-6 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
             >
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-foreground mb-2">{deck.name}</h3>
+                  <h3 className="text-xl font-semibold text-foreground">{deck.name}</h3>
                   {deck.description && (
                     <p className="text-sm text-muted-foreground line-clamp-2">{deck.description}</p>
                   )}
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-wrap gap-2">
                 {deck.category && (
                   <span
                     className={`px-3 py-1 rounded-base text-xs font-medium border-2 border-border ${
@@ -204,30 +204,26 @@ export default function DeckBrowser() {
               </div>
 
               {/* Statistics Grid */}
-              <div className="grid grid-cols-4 gap-2 mb-4">
-                <div className="text-center p-2 bg-secondary/10 rounded-base border-2 border-border">
-                  <div className="text-xs text-secondary mb-1">Due</div>
-                  <div className="text-lg font-semibold text-secondary">{deck.dueCards}</div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="text-center p-2 rounded-base border-2 border-border">
+                  <div className="text-xs text-chart-3 mb-1">Hafal</div>
+                  <div className="text-lg font-semibold text-chart-3">{deck.uniqueHafal}</div>
                 </div>
-                <div className="text-center p-2 bg-tertiary-green/10 rounded-base border-2 border-border">
-                  <div className="text-xs text-tertiary-green mb-1">New</div>
-                  <div className="text-lg font-semibold text-tertiary-green">{deck.newCards}</div>
+                <div className="text-center p-2 rounded-base border-2 border-border">
+                  <div className="text-xs text-primary mb-1">Belum</div>
+                  <div className="text-lg font-semibold text-primary">{deck.uniqueBelumHafal}</div>
                 </div>
-                <div className="text-center p-2 bg-tertiary-purple/10 rounded-base border-2 border-border">
+                <div className="text-center p-2 rounded-base border-2 border-border">
                   <div className="text-xs text-tertiary-purple mb-1">Total</div>
                   <div className="text-lg font-semibold text-tertiary-purple">
                     {deck.totalCards}
                   </div>
                 </div>
-                <div className="text-center p-2 bg-secondary-background rounded-base border-2 border-border">
-                  <div className="text-xs text-muted-foreground mb-1">Studies</div>
-                  <div className="text-lg font-semibold text-foreground">{deck.studyCount}</div>
-                </div>
               </div>
 
               <Link href={`/app/drill/${deck.id}`}>
                 <Button variant="default" className="w-full">
-                  Study Deck
+                  Pelajari
                 </Button>
               </Link>
             </Card>

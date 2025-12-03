@@ -9,7 +9,7 @@ import {
   Trash2,
   BookOpen,
   Download,
-  ArrowLeft,
+  ChevronLeft,
   Search,
   Eye,
   Heart,
@@ -36,6 +36,8 @@ interface Deck {
   dueCards: number;
   newCards: number;
   studyCount: number;
+  uniqueHafal?: number;
+  uniqueBelumHafal?: number;
   createdAt: string;
   updatedAt: string;
   shareToken?: string | null;
@@ -230,7 +232,12 @@ export function MyDecksClient() {
           )}
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span>{deck.totalCards} kartu</span>
-            {deck.dueCards > 0 && <span className="text-orange-500">{deck.dueCards} due</span>}
+            {deck.uniqueHafal !== undefined && (
+              <span className="text-tertiary-green">{deck.uniqueHafal} hafal</span>
+            )}
+            {deck.uniqueBelumHafal !== undefined && deck.uniqueBelumHafal > 0 && (
+              <span className="text-primary">{deck.uniqueBelumHafal} belum</span>
+            )}
             {deck.lastStudied && (
               <span className="flex items-center gap-1">
                 <Clock size={14} />
@@ -356,27 +363,27 @@ export function MyDecksClient() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
-        <div className="mb-8">
-          <Button variant="ghost" className="mb-4 gap-2" onClick={() => router.push('/app/drill')}>
-            <ArrowLeft size={20} />
-            Kembali
-          </Button>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">Dek Saya</h1>
-              <p className="text-muted-foreground">Kelola koleksi flashcard Anda</p>
-            </div>
-            <Link href="/app/drill/decks/new">
-              <Button variant="default" className="gap-2">
-                <Plus size={20} />
-                Buat Deck Baru
-              </Button>
-            </Link>
-          </div>
+      {/* Header */}
+      <div className="bg-card border-b-2 border-border px-4 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push('/app/drill')}
+            className="p-2 hover:bg-accent rounded-base transition-colors"
+            aria-label="Go back"
+          >
+            <ChevronLeft className="w-7 h-7 text-foreground" />
+          </button>
+          <h1 className="text-2xl font-bold">Dek Saya</h1>
         </div>
+        <Link href="/app/drill/decks/new">
+          <Button variant="default" className="gap-2">
+            <Plus size={20} />
+            Buat Deck Baru
+          </Button>
+        </Link>
+      </div>
 
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Search */}
         <div className="mb-6">
           <div className="relative">

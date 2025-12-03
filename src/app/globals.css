@@ -15,7 +15,7 @@
   --popover-foreground: #171717;
   --primary: #ff5e75;
   --primary-foreground: #ffffff;
-  --secondary: #fffffe;
+  --secondary: #eeeeee;
   --secondary-foreground: #0d0d0d;
   --muted: #f5f5f5;
   --muted-foreground: #737373;
@@ -24,7 +24,7 @@
   --destructive: #ef4343;
   --border: #000000;
   --input: #e6e6e6;
-  --ring: #ff6176;
+  --ring: #ff99a7;
   --chart-1: #f2727d;
   --chart-2: #73cfd9;
   --chart-3: #7fbf50;
@@ -52,12 +52,12 @@
   --card-hiragana-back: #FFF0F3;
   --card-katakana: #87CEEB;
   --card-katakana-back: #E8F4F8;
-  --card-kanji: #FFD700;
+  --card-kanji: #f2eda0;
   --card-kanji-back: #FFFAE0;
   --card-vocabulary: #98D8AA;
   --card-vocabulary-back: #E8F5E9;
-  --card-grammar: #FFB347;
-  --card-grammar-back: #FFF3E0;
+  --card-grammar: #73cfd9;
+  --card-grammar-back: #aaf0f8;
 
   /* Neobrutalism Core */
   --main: var(--primary);

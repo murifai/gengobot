@@ -52,10 +52,28 @@ export async function GET() {
       },
     });
 
+    // Get recent free conversation sessions
+    const recentFreeChats = await prisma.freeConversation.findMany({
+      where: {
+        userId,
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+      take: 5,
+      include: {
+        character: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
     // Combine and sort activities
     const activities = [
       ...recentTasks.map(attempt => ({
-        type: 'task_complete' as const,
+        type: 'roleplay' as const,
         data: {
           title: attempt.task.title,
           jlptLevel: attempt.task.difficulty,
@@ -64,13 +82,19 @@ export async function GET() {
         timestamp: attempt.endTime || attempt.startTime,
       })),
       ...recentSessions.map(session => ({
-        type: 'cards_learned' as const,
+        type: 'drill' as const,
         data: {
-          word: 'Study session',
           deckName: session.deck.name,
-          quality: session.cardsReviewed || 0,
+          cardsReviewed: session.cardsReviewed || 0,
         },
         timestamp: session.startTime,
+      })),
+      ...recentFreeChats.map(chat => ({
+        type: 'kaiwa_bebas' as const,
+        data: {
+          characterName: chat.character?.name || 'Karakter',
+        },
+        timestamp: chat.updatedAt,
       })),
     ]
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())

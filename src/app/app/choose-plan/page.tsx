@@ -105,10 +105,7 @@ export default function ChoosePlanPage() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Pilih Paket Anda</h1>
-          <p className="text-muted-foreground">
-            Pilih paket yang sesuai dengan kebutuhan belajar Anda
-          </p>
+          <h1 className="text-3xl font-bold">Pilih Paket Anda</h1>
         </div>
 
         <div className="grid md:grid-cols-3 gap-4 mb-8">

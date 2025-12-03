@@ -237,7 +237,7 @@ export function TaskChatInputV2({
                 )}
               >
                 <Mic className="w-5 h-5" />
-                <span className="text-sm">Hold to Record (or press Space)</span>
+                <span className="text-sm">Tap untuk bicara (atau tekan spasi)</span>
               </button>
               {/* Text Input Button for non-recording state */}
               <Button

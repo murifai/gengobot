@@ -17,6 +17,8 @@ interface Activity {
     word?: string;
     deckName?: string;
     quality?: number;
+    characterName?: string;
+    cardsReviewed?: number;
   };
   timestamp: Date | string;
 }
@@ -50,14 +52,42 @@ function ActivityIcon({ type }: { type: ActivityType }) {
   );
 }
 
-function getActivityTitle(activity: Activity): string {
+// Get activity label in Indonesian
+function getActivityLabel(type: ActivityType): string {
+  const normalizedType = normalizeActivityType(type);
+  switch (normalizedType) {
+    case 'roleplay':
+      return 'Roleplay';
+    case 'kaiwa_bebas':
+      return 'Kaiwa Bebas';
+    case 'drill':
+      return 'Drill Flashcard';
+    default:
+      return 'Aktivitas';
+  }
+}
+
+// Get activity detail (deck name, task title, character name)
+function getActivityDetail(activity: Activity): string | null {
   const type = normalizeActivityType(activity.type);
 
   if (type === 'drill') {
-    return activity.data.word || activity.data.deckName || 'Flashcard';
+    if (activity.data.deckName) {
+      const cards = activity.data.cardsReviewed || activity.data.quality || 0;
+      return cards > 0 ? `${activity.data.deckName} (${cards} kartu)` : activity.data.deckName;
+    }
+    return null;
   }
 
-  return activity.data.title || (type === 'roleplay' ? 'Roleplay' : 'Kaiwa Bebas');
+  if (type === 'roleplay') {
+    return activity.data.title || null;
+  }
+
+  if (type === 'kaiwa_bebas') {
+    return activity.data.characterName || null;
+  }
+
+  return null;
 }
 
 export function RecentActivity({ activities, isLoading }: RecentActivityProps) {
@@ -122,6 +152,9 @@ export function RecentActivity({ activities, isLoading }: RecentActivityProps) {
 
             const isValidDate = timestamp instanceof Date && !isNaN(timestamp.getTime());
 
+            const label = getActivityLabel(activity.type);
+            const detail = getActivityDetail(activity);
+
             return (
               <div
                 key={index}
@@ -129,7 +162,12 @@ export function RecentActivity({ activities, isLoading }: RecentActivityProps) {
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <ActivityIcon type={activity.type} />
-                  <span className="text-sm font-medium truncate">{getActivityTitle(activity)}</span>
+                  <div className="min-w-0">
+                    <span className="text-sm font-medium block truncate">{label}</span>
+                    {detail && (
+                      <span className="text-xs text-muted-foreground block truncate">{detail}</span>
+                    )}
+                  </div>
                 </div>
                 <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
                   {isValidDate ? formatRelativeTimeID(timestamp) : UI_TEXT.common.recently}

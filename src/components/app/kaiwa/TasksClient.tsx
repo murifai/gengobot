@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { ChevronLeft } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -78,18 +79,19 @@ export default function TasksClient({}: TasksClientProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <h1 className="text-xl font-bold text-foreground">Task-Based Learning</h1>
-            <Button onClick={() => router.push('/app')} variant="secondary">
-              Back to Dashboard
-            </Button>
-          </div>
-        </div>
-      </nav>
+      {/* Header */}
+      <div className="bg-card border-b-2 border-border px-4 py-4 flex items-center gap-4">
+        <button
+          onClick={() => router.push('/app/kaiwa')}
+          className="p-2 hover:bg-accent rounded-base transition-colors"
+          aria-label="Go back"
+        >
+          <ChevronLeft className="w-7 h-7 text-foreground" />
+        </button>
+        <h1 className="text-2xl font-bold">Roleplay</h1>
+      </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Filter Section */}
         <div className="mb-6 bg-card rounded-lg p-4 shadow">
           <h2 className="text-lg font-semibold text-foreground mb-4">Filter Tasks</h2>
@@ -188,7 +190,7 @@ export default function TasksClient({}: TasksClientProps) {
             ))}
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }

@@ -20,7 +20,7 @@ export interface ChatInputProps {
 export default function ChatInput({
   onSend,
   onVoiceRecording,
-  placeholder = 'Type your message...',
+  placeholder = 'Tulis pesan kamu...',
   disabled = false,
   loading = false,
   enableVoice = false,

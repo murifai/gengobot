@@ -274,7 +274,6 @@ export default function AdminListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Daftar Admin</h1>
-          <p className="text-muted-foreground">Kelola akun admin dashboard</p>
         </div>
         {canCreate && (
           <Button onClick={() => setIsCreateOpen(true)}>

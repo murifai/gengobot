@@ -1,8 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import FlashcardNeo from './FlashcardNeo';
 import DeckStatistics from './DeckStatistics';
+
+interface CompletionMessage {
+  title: string;
+  subtitle: string;
+}
 
 interface Flashcard {
   id: string;
@@ -56,6 +62,30 @@ interface DeckLearningWithStatsProps {
 
 type ViewMode = 'learning' | 'completed';
 
+function getCompletionMessage(hafalPercentage: number): CompletionMessage {
+  if (hafalPercentage >= 80) {
+    return {
+      title: 'すごい！！！',
+      subtitle: 'Kamu udah hafal sebagian besar kartu di dek ini.',
+    };
+  } else if (hafalPercentage >= 40) {
+    return {
+      title: 'よくできた！！',
+      subtitle: 'Kamu udah setengah jalan, ayo coba lagi.',
+    };
+  } else if (hafalPercentage >= 10) {
+    return {
+      title: 'がんばれ！',
+      subtitle: 'Terus belajar buat nambah hafalan kamu ya.',
+    };
+  } else {
+    return {
+      title: 'Sesi Selesai!',
+      subtitle: 'Ayo mulai menghafal kartu-kartu di deck ini.',
+    };
+  }
+}
+
 export default function DeckLearningWithStats({
   deck,
   sessionId,
@@ -63,6 +93,29 @@ export default function DeckLearningWithStats({
   onExit,
 }: DeckLearningWithStatsProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('learning');
+  const [hafalPercentage, setHafalPercentage] = useState<number>(0);
+
+  useEffect(() => {
+    if (viewMode === 'completed') {
+      fetchHafalPercentage();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode]);
+
+  const fetchHafalPercentage = async () => {
+    try {
+      const response = await fetch(`/api/decks/${deck.id}/stats`);
+      if (response.ok) {
+        const data = await response.json();
+        const total = data.overall?.totalCardsInDeck || 0;
+        const hafal = data.overall?.uniqueHafal || 0;
+        const percentage = total > 0 ? Math.round((hafal / total) * 100) : 0;
+        setHafalPercentage(percentage);
+      }
+    } catch (err) {
+      console.error('Error fetching hafal percentage:', err);
+    }
+  };
 
   const handleCompleteLearning = async () => {
     // Mark session as completed in database BEFORE showing stats
@@ -97,32 +150,16 @@ export default function DeckLearningWithStats({
 
   // Completed View - Show stats after completion
   if (viewMode === 'completed') {
+    const message = getCompletionMessage(hafalPercentage);
+
     return (
       <div className="min-h-screen bg-background p-4">
         <div className="max-w-4xl mx-auto">
           {/* Completion Header */}
           <div className="p-8 text-center mb-6 bg-background rounded-base border-2 border-border shadow-shadow">
-            <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center bg-tertiary-green rounded-base border-2 border-border shadow-shadow">
-              <svg
-                className="w-12 h-12 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={3}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Sesi Belajar Selesai!</h1>
-            <p className="text-muted-foreground">
-              Hebat! Kamu telah menyelesaikan sesi belajar untuk deck{' '}
-              <strong className="text-foreground">{deck.name}</strong>
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">Lihat progresmu di bawah ini</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">{message.title}</h1>
+
+            <p className="text-m text-muted-foreground mt-2">{message.subtitle}</p>
           </div>
 
           {/* Statistics */}
@@ -130,17 +167,17 @@ export default function DeckLearningWithStats({
 
           {/* Action Buttons */}
           <div className="mt-8 flex gap-4 justify-center flex-wrap">
+            <Link
+              href={`/app/drill/decks/${deck.id}/study`}
+              className="px-8 py-4 font-bold text-lg bg-secondary text-white rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+            >
+              Coba Lagi
+            </Link>
             <button
               onClick={onComplete}
               className="px-8 py-4 font-bold text-lg bg-primary text-primary-foreground rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
             >
               Selesai
-            </button>
-            <button
-              onClick={onExit}
-              className="px-8 py-4 font-bold text-lg bg-background text-foreground rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
-            >
-              Kembali ke Daftar Deck
             </button>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Upload, FileSpreadsheet } from 'lucide-react';
+import { ChevronLeft, Upload, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
@@ -135,19 +135,19 @@ export default function NewDeckPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
-        {/* Header */}
-        <div className="mb-8">
-          <Button variant="ghost" className="mb-4 gap-2" onClick={() => router.push('/app/drill')}>
-            <ArrowLeft size={20} />
-            Back to Study Decks
-          </Button>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Create New Deck</h1>
-          <p className="text-muted-foreground">
-            Create your own flashcard deck for studying Japanese
-          </p>
-        </div>
+      {/* Header */}
+      <div className="bg-card border-b-2 border-border px-4 py-4 flex items-center gap-4">
+        <button
+          onClick={() => router.push('/app/drill')}
+          className="p-2 hover:bg-accent rounded-base transition-colors"
+          aria-label="Go back"
+        >
+          <ChevronLeft className="w-7 h-7 text-foreground" />
+        </button>
+        <h1 className="text-2xl font-bold">Create New Deck</h1>
+      </div>
 
+      <div className="container mx-auto px-4 py-8 max-w-3xl">
         {/* Mode Toggle */}
         <div className="mb-6 flex gap-2">
           <Button

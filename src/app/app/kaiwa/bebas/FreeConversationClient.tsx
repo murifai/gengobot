@@ -19,11 +19,11 @@ import {
   Trash2,
   Clock,
   History,
+  ChevronLeft,
 } from 'lucide-react';
 import useWebRTCAudioSession from '@/hooks/use-webrtc';
 import { Tool } from '@/types/conversation';
 import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
 
 // Chat session from history API
 interface ChatSession {
@@ -584,7 +584,19 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
   if (!session && !(chatMode === 'realtime' && selectedCharacter)) {
     return (
       <div className="min-h-screen bg-background">
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="bg-card border-b-2 border-border px-4 py-4 flex items-center gap-4">
+          <button
+            onClick={() => router.push('/app/kaiwa')}
+            className="p-2 hover:bg-accent rounded-base transition-colors"
+            aria-label="Go back"
+          >
+            <ChevronLeft className="w-7 h-7 text-foreground" />
+          </button>
+          <h1 className="text-2xl font-bold">Percakapan Bebas</h1>
+        </div>
+
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
           {characters.length === 0 ? (
             <EmptyCharacterState />
           ) : (
@@ -796,7 +808,7 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
               </div>
             </>
           )}
-        </main>
+        </div>
 
         {/* Character Chat History Dialog */}
         <CharacterChatHistoryDialog
@@ -822,13 +834,13 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
         <HideMobileNav />
         <div className="fixed inset-0 flex flex-col bg-background">
           {/* Header */}
-          <div className="bg-card border-b border-border px-4 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 shrink-0">
+          <div className="bg-card border-b-2 border-border px-4 py-4 flex items-center gap-4 shrink-0">
             <button
               onClick={handleBackToCharacterSelect}
-              className="p-2 hover:bg-muted rounded-lg transition-colors"
+              className="p-2 hover:bg-accent rounded-base transition-colors"
               aria-label="Go back"
             >
-              <ArrowLeft className="w-6 h-6 text-foreground" />
+              <ChevronLeft className="w-7 h-7 text-foreground" />
             </button>
             <div className="flex-1">
               <h2 className="text-xl font-bold text-foreground">{selectedCharacter.name}と会話</h2>
@@ -969,16 +981,15 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
       <>
         <HideMobileNav />
         <StreamingChatInterface
-          title={`${session.character.name}と会話 / Chat with ${session.character.name}`}
-          subtitle="日本語で自由に話しましょう / Let's talk freely in Japanese"
+          title={`Ngobrol sama ${session.character.name}`}
           onBack={handleBackToCharacterSelect}
           headerActions={
             <Button
               onClick={resetChat}
               variant="outline"
               size="icon"
-              title="リセット / Reset"
-              aria-label="リセット / Reset"
+              title="Reset"
+              aria-label="Reset"
             >
               <RotateCcw className="h-4 w-4" />
             </Button>
@@ -987,10 +998,10 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
           isStreaming={isStreaming}
           onSendMessage={sendMessage}
           onVoiceRecording={handleVoiceRecording}
-          placeholder="日本語でメッセージを入力... / Type your message in Japanese..."
+          placeholder="Tulis pesan kamu pake bahasa Jepang..."
           disabled={false}
           enableVoice={true}
-          emptyStateMessage="自由に会話を始めましょう！ / Start your free conversation!"
+          emptyStateMessage="Ayo mulai ngobrol!"
           error={streamingError}
           onClearError={clearStreamingError}
           attemptId={session.id}

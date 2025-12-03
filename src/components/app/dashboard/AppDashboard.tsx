@@ -8,23 +8,23 @@ import { UI_TEXT } from '@/lib/constants/ui-text';
 export const ACTIVITY_COLORS = {
   roleplay: {
     bg: 'bg-[#ff5e75]/10',
-    border: 'border-[#ff5e75]/30',
-    icon: 'text-[#ff5e75]',
-    iconBg: 'bg-[#ff5e75]/20',
+    border: 'border-border',
+    icon: 'text-white',
+    iconBg: 'bg-[#ff5e75] border-2 border-border',
     chart: '#ff5e75',
   },
   kaiwa_bebas: {
     bg: 'bg-[#73cfd9]/10',
-    border: 'border-[#73cfd9]/30',
-    icon: 'text-[#73cfd9]',
-    iconBg: 'bg-[#73cfd9]/20',
+    border: 'border-border',
+    icon: 'text-white',
+    iconBg: 'bg-[#73cfd9] border-2 border-border',
     chart: '#73cfd9',
   },
   drill: {
     bg: 'bg-[#7fbf50]/10',
-    border: 'border-[#7fbf50]/30',
-    icon: 'text-[#7fbf50]',
-    iconBg: 'bg-[#7fbf50]/20',
+    border: 'border-border',
+    icon: 'text-white',
+    iconBg: 'bg-[#7fbf50] border-2 border-border',
     chart: '#7fbf50',
   },
 } as const;
@@ -36,6 +36,11 @@ interface WeeklyStats {
   cardsLearned: number[];
   // Legacy support
   kaiwaMinutes?: number[];
+  // Card type breakdown
+  kanjiCards?: number[];
+  vocabularyCards?: number[];
+  grammarCards?: number[];
+  totalMasteredCards?: number;
 }
 
 interface Activity {
@@ -84,8 +89,7 @@ export default function AppDashboard() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">{UI_TEXT.dashboard.title}</h1>
-        <p className="text-muted-foreground">{UI_TEXT.dashboard.welcomeBack}</p>
+        <h1 className="text-2xl font-bold">{UI_TEXT.dashboard.title}</h1>
       </div>
 
       {/* Weekly Activity Charts */}
@@ -95,6 +99,9 @@ export default function AppDashboard() {
           roleplayMinutes={getWeeklyRoleplayMinutes()}
           freeChatMinutes={getWeeklyFreeChatMinutes()}
           cardsLearned={weeklyStats?.cardsLearned || []}
+          kanjiCards={weeklyStats?.kanjiCards}
+          vocabularyCards={weeklyStats?.vocabularyCards}
+          grammarCards={weeklyStats?.grammarCards}
           isLoading={isLoading}
         />
       </div>

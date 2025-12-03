@@ -53,17 +53,36 @@ export async function GET() {
           },
         });
 
-        // Get new cards (never reviewed)
-        const reviewedCardIds = await prisma.flashcardReview.findMany({
-          where: {
-            flashcard: { deckId: deck.id },
-            session: { userId },
-          },
-          select: { flashcardId: true },
-          distinct: ['flashcardId'],
-        });
+        // Get unique mastered cards (based on latest review rating)
+        const masteredCards = await prisma.$queryRaw<Array<{ count: bigint }>>`
+          SELECT COUNT(*) as count
+          FROM (
+            SELECT DISTINCT ON (fr."flashcardId") fr."flashcardId", fr."rating"
+            FROM "FlashcardReview" fr
+            INNER JOIN "StudySession" ss ON fr."sessionId" = ss."id"
+            INNER JOIN "Flashcard" f ON fr."flashcardId" = f."id"
+            WHERE ss."userId" = ${userId} AND f."deckId" = ${deck.id}
+            ORDER BY fr."flashcardId", fr."reviewedAt" DESC
+          ) latest_reviews
+          WHERE latest_reviews."rating" = 'hafal'
+        `;
 
-        const newCards = deck.flashcards.length - reviewedCardIds.length;
+        // Get unique not mastered cards (based on latest review rating)
+        const notMasteredCards = await prisma.$queryRaw<Array<{ count: bigint }>>`
+          SELECT COUNT(*) as count
+          FROM (
+            SELECT DISTINCT ON (fr."flashcardId") fr."flashcardId", fr."rating"
+            FROM "FlashcardReview" fr
+            INNER JOIN "StudySession" ss ON fr."sessionId" = ss."id"
+            INNER JOIN "Flashcard" f ON fr."flashcardId" = f."id"
+            WHERE ss."userId" = ${userId} AND f."deckId" = ${deck.id}
+            ORDER BY fr."flashcardId", fr."reviewedAt" DESC
+          ) latest_reviews
+          WHERE latest_reviews."rating" = 'belum_hafal'
+        `;
+
+        const uniqueHafal = Number(masteredCards[0]?.count || 0);
+        const uniqueBelumHafal = Number(notMasteredCards[0]?.count || 0);
 
         return {
           id: deck.id,
@@ -74,7 +93,8 @@ export async function GET() {
           isPublic: deck.isPublic,
           totalCards: deck.flashcards.length,
           dueCards,
-          newCards: Math.max(0, newCards),
+          uniqueHafal,
+          uniqueBelumHafal,
           studyCount: deck._count.studySessions,
           createdAt: deck.createdAt.toISOString(),
           updatedAt: deck.updatedAt.toISOString(),
