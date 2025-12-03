@@ -1,8 +1,9 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { Shield, ChevronRight, LogOut, ChevronsUpDown } from 'lucide-react';
+import { ChevronRight, LogOut, ChevronsUpDown } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import {
@@ -73,13 +74,14 @@ export function AdminSidebar({ admin, ...props }: AdminSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/admin">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Shield className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">GengoBot</span>
-                  <span className="truncate text-xs text-muted-foreground">Admin Panel</span>
-                </div>
+                <Image
+                  src="/logo.png"
+                  alt="Gengobot"
+                  width={120}
+                  height={32}
+                  className="h-6 w-auto drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]"
+                />
+                <span className="truncate text-xs text-muted-foreground">Admin Panel</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

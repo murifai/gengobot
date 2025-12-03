@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -13,8 +14,13 @@ export function Navbar() {
       <div className="container mx-auto px-6 flex justify-between items-center h-16">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary" />
-            <span className="text-xl font-bold text-foreground">GengoBot</span>
+            <Image
+              src="/logo.png"
+              alt="Gengobot"
+              width={150}
+              height={40}
+              className="h-8 w-auto drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]"
+            />
           </Link>
           <div className="hidden md:flex items-center gap-6">
             <Link

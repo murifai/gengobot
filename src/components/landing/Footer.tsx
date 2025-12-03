@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { Github, Twitter, Linkedin, Facebook } from 'lucide-react';
 
@@ -58,10 +59,15 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-8 gap-x-8 gap-y-10">
           {/* Logo & Description */}
           <div className="col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-primary" />
-              <span className="text-xl font-bold text-foreground">GengoBot</span>
-            </div>
+            <Link href="/" className="flex items-center gap-2 mb-4">
+              <Image
+                src="/logo.png"
+                alt="Gengobot"
+                width={150}
+                height={40}
+                className="h-8 w-auto drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]"
+              />
+            </Link>
             <p className="text-sm text-muted-foreground max-w-xs">
               Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor
               incididunt ut labore et dolore magna aliqua.

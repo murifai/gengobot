@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Auth main container
@@ -17,10 +16,13 @@ export function Auth({ children, imageSrc, className, ...props }: AuthProps) {
         {/* Header with logo */}
         <header className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
-              <Shield className="h-4 w-4" />
-            </div>
-            <span className="font-semibold text-lg">GengoBot</span>
+            <Image
+              src="/logo.png"
+              alt="Gengobot"
+              width={150}
+              height={40}
+              className="h-8 w-auto drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]"
+            />
           </Link>
         </header>
 
