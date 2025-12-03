@@ -21,6 +21,10 @@ export async function GET() {
         prerequisites: 'Basic greetings, Numbers 1-10',
         characterId: '',
         isActive: 'TRUE',
+        // AI Configuration
+        prompt: '',
+        voice: 'alloy',
+        speakingSpeed: '1.0',
       },
     ];
 
@@ -41,6 +45,9 @@ export async function GET() {
       { wch: 30 }, // prerequisites
       { wch: 30 }, // characterId
       { wch: 10 }, // isActive
+      { wch: 80 }, // prompt
+      { wch: 15 }, // voice
+      { wch: 15 }, // speakingSpeed
     ];
 
     const wb = XLSX.utils.book_new();
@@ -119,6 +126,24 @@ export async function GET() {
         Description: 'Active status (optional)',
         Example: 'TRUE',
         Notes: 'TRUE or FALSE, defaults to TRUE',
+      },
+      {
+        Field: 'prompt',
+        Description: 'AI system prompt (optional)',
+        Example: 'You are a friendly barista at a Japanese cafe...',
+        Notes: 'Custom AI persona/behavior instructions. Leave blank for auto-generated prompt',
+      },
+      {
+        Field: 'voice',
+        Description: 'OpenAI TTS voice (optional)',
+        Example: 'alloy',
+        Notes: 'Options: alloy, echo, fable, onyx, nova, shimmer. Defaults to alloy',
+      },
+      {
+        Field: 'speakingSpeed',
+        Description: 'Voice speaking speed (optional)',
+        Example: '1.0',
+        Notes: 'Range: 0.25 to 4.0. Defaults to 1.0',
       },
     ];
 

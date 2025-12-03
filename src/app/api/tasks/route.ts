@@ -48,6 +48,12 @@ export async function GET(request: NextRequest) {
       prisma.task.findMany({
         where,
         include: {
+          subcategory: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           _count: {
             select: {
               taskAttempts: true,

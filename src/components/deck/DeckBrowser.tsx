@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { LoadingState } from '@/components/ui/LoadingState';
+import { ChevronDown } from 'lucide-react';
 
 interface Deck {
   id: string;
@@ -34,6 +35,23 @@ const difficultyColors: Record<string, string> = {
   N1: 'bg-background text-foreground',
 };
 
+const categories = [
+  { value: '', label: 'Semua' },
+  { value: 'Kanji', label: 'Kanji' },
+  { value: 'Vocabulary', label: 'Kosakata' },
+  { value: 'Grammar', label: 'Bunpo' },
+  { value: 'Mixed', label: 'Campur' },
+];
+
+const difficulties = [
+  { value: '', label: 'Semua' },
+  { value: 'N5', label: 'N5' },
+  { value: 'N4', label: 'N4' },
+  { value: 'N3', label: 'N3' },
+  { value: 'N2', label: 'N2' },
+  { value: 'N1', label: 'N1' },
+];
+
 export default function DeckBrowser() {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,11 +59,19 @@ export default function DeckBrowser() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('');
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [isDifficultyOpen, setIsDifficultyOpen] = useState(false);
 
   useEffect(() => {
     fetchDecks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-fetch when filters change
+  useEffect(() => {
+    fetchDecks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryFilter, difficultyFilter, searchQuery]);
 
   const fetchDecks = async () => {
     try {
@@ -70,99 +96,142 @@ export default function DeckBrowser() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    fetchDecks();
+  const getCategoryLabel = () => {
+    const found = categories.find(c => c.value === categoryFilter);
+    return found ? found.label : 'Semua';
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <LoadingState type="spinner" size="lg" />
-      </div>
-    );
-  }
+  const getDifficultyLabel = () => {
+    const found = difficulties.find(d => d.value === difficultyFilter);
+    return found ? found.label : 'Semua';
+  };
 
   if (error) {
     return (
       <Card className="p-6 text-center">
         <p className="text-primary mb-4">{error}</p>
-        <Button onClick={fetchDecks}>Try Again</Button>
+        <Button onClick={fetchDecks}>Coba Lagi</Button>
       </Card>
     );
   }
 
   return (
     <div>
-      {/* Filters */}
-      <Card className="p-6 mb-6">
-        <form onSubmit={handleSearch} className="space-y-4">
+      {/* Filters - Neo Brutalism Style */}
+      <div className="mb-6 bg-card border-2 border-border rounded-base p-4 shadow-shadow">
+        <h2 className="text-lg font-bold text-foreground mb-4">Filter</h2>
+        <div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Search Input */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Cari</label>
+              <label className="block text-sm font-bold text-foreground mb-2">Cari</label>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Cari dek..."
-                className="w-full px-4 py-2 border-2 border-border rounded-base bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary"
+                className="w-full px-4 py-2 border-2 border-border rounded-base bg-card text-foreground font-bold text-sm focus:ring-2 focus:ring-primary focus:border-primary shadow-shadow"
               />
             </div>
 
+            {/* Category Filter - Dropdown */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Kategori</label>
-              <select
-                value={categoryFilter}
-                onChange={e => setCategoryFilter(e.target.value)}
-                className="w-full px-4 py-2 border-2 border-border rounded-base bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary"
-              >
-                <option value="">Semua</option>
-                <option value="Kanji">Kanji</option>
-                <option value="Vocabulary">Kosakata</option>
-                <option value="Grammar">Bunpo</option>
-                <option value="Mixed">Campur</option>
-              </select>
+              <label className="block text-sm font-bold text-foreground mb-2">Kategori</label>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+                  className={`w-full px-4 py-2 rounded-base text-sm font-bold border-2 border-border transition-all flex items-center justify-between ${
+                    categoryFilter !== ''
+                      ? 'bg-primary text-primary-foreground shadow-shadow translate-x-boxShadowX translate-y-boxShadowY'
+                      : 'bg-card text-foreground hover:bg-muted shadow-shadow'
+                  }`}
+                >
+                  <span>{getCategoryLabel()}</span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                {isCategoryOpen && (
+                  <div className="absolute z-10 mt-2 w-full bg-card border-2 border-border rounded-base shadow-shadow max-h-60 overflow-auto">
+                    {categories.map(category => (
+                      <button
+                        key={category.value}
+                        type="button"
+                        onClick={() => {
+                          setCategoryFilter(category.value);
+                          setIsCategoryOpen(false);
+                        }}
+                        className={`w-full px-4 py-2 text-sm font-bold text-left transition-colors border-b border-border last:border-b-0 ${
+                          categoryFilter === category.value
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-foreground hover:bg-muted'
+                        }`}
+                      >
+                        {category.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
+            {/* Difficulty Filter - Dropdown */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Level</label>
-              <select
-                value={difficultyFilter}
-                onChange={e => setDifficultyFilter(e.target.value)}
-                className="w-full px-4 py-2 border-2 border-border rounded-base bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary"
-              >
-                <option value="">Semua</option>
-                <option value="N5">N5</option>
-                <option value="N4">N4</option>
-                <option value="N3">N3</option>
-                <option value="N2">N2</option>
-                <option value="N1">N1</option>
-              </select>
+              <label className="block text-sm font-bold text-foreground mb-2">Level</label>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsDifficultyOpen(!isDifficultyOpen)}
+                  className={`w-full px-4 py-2 rounded-base text-sm font-bold border-2 border-border transition-all flex items-center justify-between ${
+                    difficultyFilter !== ''
+                      ? 'bg-primary text-primary-foreground shadow-shadow translate-x-boxShadowX translate-y-boxShadowY'
+                      : 'bg-card text-foreground hover:bg-muted shadow-shadow'
+                  }`}
+                >
+                  <span>{getDifficultyLabel()}</span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform ${isDifficultyOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                {isDifficultyOpen && (
+                  <div className="absolute z-10 mt-2 w-full bg-card border-2 border-border rounded-base shadow-shadow max-h-60 overflow-auto">
+                    {difficulties.map(difficulty => (
+                      <button
+                        key={difficulty.value}
+                        type="button"
+                        onClick={() => {
+                          setDifficultyFilter(difficulty.value);
+                          setIsDifficultyOpen(false);
+                        }}
+                        className={`w-full px-4 py-2 text-sm font-bold text-left transition-colors border-b border-border last:border-b-0 ${
+                          difficultyFilter === difficulty.value
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-foreground hover:bg-muted'
+                        }`}
+                      >
+                        {difficulty.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-
-          <div className="flex gap-2">
-            <Button type="submit" variant="default">
-              Filter
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setSearchQuery('');
-                setCategoryFilter('');
-                setDifficultyFilter('');
-                fetchDecks();
-              }}
-            >
-              Reset
-            </Button>
+        </div>
+        {(categoryFilter !== '' || difficultyFilter !== '' || searchQuery !== '') && (
+          <div className="mt-4">
+            <p className="text-sm text-muted-foreground">Menampilkan {decks.length} dek</p>
           </div>
-        </form>
-      </Card>
+        )}
+      </div>
 
       {/* Deck Grid */}
-      {decks.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center items-center min-h-[400px]">
+          <LoadingState type="spinner" size="lg" />
+        </div>
+      ) : decks.length === 0 ? (
         <Card className="p-12 text-center">
           <p className="text-muted-foreground">Tidak ada dek ditemukan</p>
         </Card>

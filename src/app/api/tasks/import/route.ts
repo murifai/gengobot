@@ -15,6 +15,10 @@ interface TaskImportRow {
   prerequisites?: string;
   characterId?: string;
   isActive?: string | boolean;
+  // AI Configuration
+  prompt?: string;
+  voice?: string;
+  speakingSpeed?: string | number;
 }
 
 // POST /api/tasks/import - Import tasks from Excel file
@@ -104,6 +108,39 @@ export async function POST(request: NextRequest) {
           }
         }
 
+        // Parse AI Configuration fields
+        const prompt = row.prompt?.trim() || '';
+
+        // Validate and parse voice
+        const validVoices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'];
+        let voice = 'alloy';
+        if (row.voice && row.voice.trim() !== '') {
+          const voiceValue = row.voice.trim().toLowerCase();
+          if (validVoices.includes(voiceValue)) {
+            voice = voiceValue;
+          } else {
+            throw new Error(
+              `Invalid voice: ${row.voice}. Must be one of: ${validVoices.join(', ')}`
+            );
+          }
+        }
+
+        // Validate and parse speakingSpeed (0.25 - 4.0)
+        let speakingSpeed = 1.0;
+        if (
+          row.speakingSpeed !== undefined &&
+          row.speakingSpeed !== null &&
+          row.speakingSpeed !== ''
+        ) {
+          const speed = parseFloat(String(row.speakingSpeed));
+          if (isNaN(speed) || speed < 0.25 || speed > 4.0) {
+            throw new Error(
+              `Invalid speakingSpeed: ${row.speakingSpeed}. Must be a number between 0.25 and 4.0`
+            );
+          }
+          speakingSpeed = speed;
+        }
+
         // Validate characterId if provided
         if (row.characterId && row.characterId.trim() !== '') {
           const character = await prisma.character.findUnique({
@@ -128,6 +165,10 @@ export async function POST(request: NextRequest) {
             conversationExample,
             estimatedDuration,
             isActive,
+            // AI Configuration
+            prompt,
+            voice,
+            speakingSpeed,
             ...(row.prerequisites && row.prerequisites.trim() !== ''
               ? { prerequisites: row.prerequisites.trim() }
               : {}),

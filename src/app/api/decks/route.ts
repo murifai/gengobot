@@ -39,13 +39,6 @@ export async function GET(request: NextRequest) {
       where.difficulty = difficulty;
     }
 
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-      ];
-    }
-
     if (isPublic !== null && isPublic !== undefined) {
       where.isPublic = isPublic === 'true';
     }
@@ -58,6 +51,18 @@ export async function GET(request: NextRequest) {
     }
 
     where.isActive = true;
+
+    // Apply search filter with AND to combine with visibility conditions
+    if (search) {
+      where.AND = [
+        {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
+          ],
+        },
+      ];
+    }
 
     // Fetch decks with pagination
     const [decks, total] = await Promise.all([
