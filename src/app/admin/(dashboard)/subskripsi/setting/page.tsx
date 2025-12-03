@@ -1,7 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CreditCard, Save, Plus, X, Loader2, DollarSign, Coins, Check } from 'lucide-react';
+import {
+  CreditCard,
+  Save,
+  Plus,
+  X,
+  Loader2,
+  DollarSign,
+  Coins,
+  Check,
+  Percent,
+} from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -14,10 +24,12 @@ interface TierConfig {
   id?: string;
   name: 'FREE' | 'BASIC' | 'PRO';
   priceMonthly: number;
-  priceAnnual: number;
   credits: number;
   features: string[];
   isActive: boolean;
+  discount3Months: number;
+  discount6Months: number;
+  discount12Months: number;
 }
 
 const TIER_LABELS: Record<string, string> = {
@@ -58,10 +70,12 @@ export default function SubscriptionSettingsPage() {
             existing || {
               name,
               priceMonthly: 0,
-              priceAnnual: 0,
               credits: 0,
               features: [],
               isActive: true,
+              discount3Months: 10,
+              discount6Months: 20,
+              discount12Months: 30,
             }
           );
         });
@@ -209,11 +223,11 @@ export default function SubscriptionSettingsPage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <DollarSign className="h-4 w-4" />
-                  Harga
+                  Harga Dasar Bulanan
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor={`monthly-${tier.name}`}>Bulanan (IDR)</Label>
+                  <Label htmlFor={`monthly-${tier.name}`}>Harga per Bulan (IDR)</Label>
                   <Input
                     id={`monthly-${tier.name}`}
                     type="number"
@@ -228,30 +242,129 @@ export default function SubscriptionSettingsPage() {
                     {formatCurrency(tier.priceMonthly)}/bulan
                   </p>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor={`annual-${tier.name}`}>Tahunan (IDR)</Label>
-                  <Input
-                    id={`annual-${tier.name}`}
-                    type="number"
-                    min="0"
-                    value={tier.priceAnnual}
-                    onChange={e =>
-                      updateTier(tier.name, 'priceAnnual', parseInt(e.target.value) || 0)
-                    }
-                    disabled={tier.name === 'FREE'}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {formatCurrency(tier.priceAnnual)}/tahun
-                    {tier.priceMonthly > 0 && tier.priceAnnual > 0 && (
-                      <span className="ml-1 text-green-600">
-                        (Hemat {Math.round((1 - tier.priceAnnual / (tier.priceMonthly * 12)) * 100)}
-                        %)
-                      </span>
-                    )}
-                  </p>
-                </div>
               </div>
+
+              {/* Discounts */}
+              {tier.name !== 'FREE' && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Percent className="h-4 w-4" />
+                    Diskon Durasi
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="space-y-1">
+                      <Label htmlFor={`discount3-${tier.name}`} className="text-xs">
+                        3 Bulan
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id={`discount3-${tier.name}`}
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={tier.discount3Months}
+                          onChange={e =>
+                            updateTier(
+                              tier.name,
+                              'discount3Months',
+                              Math.min(100, Math.max(0, parseInt(e.target.value) || 0))
+                            )
+                          }
+                          className="pr-6"
+                        />
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                          %
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor={`discount6-${tier.name}`} className="text-xs">
+                        6 Bulan
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id={`discount6-${tier.name}`}
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={tier.discount6Months}
+                          onChange={e =>
+                            updateTier(
+                              tier.name,
+                              'discount6Months',
+                              Math.min(100, Math.max(0, parseInt(e.target.value) || 0))
+                            )
+                          }
+                          className="pr-6"
+                        />
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                          %
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor={`discount12-${tier.name}`} className="text-xs">
+                        12 Bulan
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id={`discount12-${tier.name}`}
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={tier.discount12Months}
+                          onChange={e =>
+                            updateTier(
+                              tier.name,
+                              'discount12Months',
+                              Math.min(100, Math.max(0, parseInt(e.target.value) || 0))
+                            )
+                          }
+                          className="pr-6"
+                        />
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                          %
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Preview calculated prices */}
+                  <div className="text-xs text-muted-foreground space-y-1 bg-muted/50 p-2 rounded">
+                    <p className="font-medium">Preview Harga:</p>
+                    <p>
+                      3 bulan:{' '}
+                      {formatCurrency(
+                        Math.round(tier.priceMonthly * 3 * (1 - tier.discount3Months / 100))
+                      )}
+                      {tier.discount3Months > 0 && (
+                        <span className="text-green-600 ml-1">(-{tier.discount3Months}%)</span>
+                      )}
+                    </p>
+                    <p>
+                      6 bulan:{' '}
+                      {formatCurrency(
+                        Math.round(tier.priceMonthly * 6 * (1 - tier.discount6Months / 100))
+                      )}
+                      {tier.discount6Months > 0 && (
+                        <span className="text-green-600 ml-1">(-{tier.discount6Months}%)</span>
+                      )}
+                    </p>
+                    <p>
+                      12 bulan:{' '}
+                      {formatCurrency(
+                        Math.round(tier.priceMonthly * 12 * (1 - tier.discount12Months / 100))
+                      )}
+                      {tier.discount12Months > 0 && (
+                        <span className="text-green-600 ml-1">(-{tier.discount12Months}%)</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Credits */}
               <div className="space-y-3">
@@ -329,7 +442,7 @@ export default function SubscriptionSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Ringkasan Harga</CardTitle>
-          <CardDescription>Perbandingan harga antar tier</CardDescription>
+          <CardDescription>Perbandingan harga dan diskon antar tier</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -337,8 +450,10 @@ export default function SubscriptionSettingsPage() {
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-3 px-4 font-medium">Tier</th>
-                  <th className="text-right py-3 px-4 font-medium">Bulanan</th>
-                  <th className="text-right py-3 px-4 font-medium">Tahunan</th>
+                  <th className="text-right py-3 px-4 font-medium">Harga/Bulan</th>
+                  <th className="text-center py-3 px-4 font-medium">Diskon 3 Bln</th>
+                  <th className="text-center py-3 px-4 font-medium">Diskon 6 Bln</th>
+                  <th className="text-center py-3 px-4 font-medium">Diskon 12 Bln</th>
                   <th className="text-right py-3 px-4 font-medium">Kredit</th>
                   <th className="text-center py-3 px-4 font-medium">Status</th>
                 </tr>
@@ -352,8 +467,26 @@ export default function SubscriptionSettingsPage() {
                     <td className="py-3 px-4 text-right font-mono">
                       {formatCurrency(tier.priceMonthly)}
                     </td>
-                    <td className="py-3 px-4 text-right font-mono">
-                      {formatCurrency(tier.priceAnnual)}
+                    <td className="py-3 px-4 text-center">
+                      {tier.name !== 'FREE' ? (
+                        <span className="text-green-600 font-medium">{tier.discount3Months}%</span>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      {tier.name !== 'FREE' ? (
+                        <span className="text-green-600 font-medium">{tier.discount6Months}%</span>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      {tier.name !== 'FREE' ? (
+                        <span className="text-green-600 font-medium">{tier.discount12Months}%</span>
+                      ) : (
+                        '-'
+                      )}
                     </td>
                     <td className="py-3 px-4 text-right">{tier.credits.toLocaleString('id-ID')}</td>
                     <td className="py-3 px-4 text-center">

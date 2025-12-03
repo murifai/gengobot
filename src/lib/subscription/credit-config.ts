@@ -107,29 +107,72 @@ export const TIER_CONFIG = {
   },
 } as const;
 
-// Pricing in IDR (Indonesian Rupiah)
-export const TIER_PRICING = {
+// Default pricing in IDR (Indonesian Rupiah) - fallback values
+// Actual pricing should be fetched from database via getTierPricing()
+export const DEFAULT_TIER_PRICING = {
   [SubscriptionTier.FREE]: 0,
   [SubscriptionTier.BASIC]: 29000, // Rp 29,000/month
   [SubscriptionTier.PRO]: 49000, // Rp 49,000/month
 } as const;
 
-// Subscription duration discounts
-export const SUBSCRIPTION_DISCOUNTS = {
+// Default subscription duration discounts (percentage as decimal)
+// Actual discounts should be fetched from database
+export const DEFAULT_SUBSCRIPTION_DISCOUNTS = {
   1: 0, // Monthly - no discount
   3: 0.1, // 3 months - 10% discount
   6: 0.2, // 6 months - 20% discount
   12: 0.3, // 12 months - 30% discount
 } as const;
 
-// Helper function to calculate discounted price
+// Legacy export for backward compatibility
+export const TIER_PRICING = DEFAULT_TIER_PRICING;
+export const SUBSCRIPTION_DISCOUNTS = DEFAULT_SUBSCRIPTION_DISCOUNTS;
+
+// Type for tier pricing from database
+export interface TierPricingConfig {
+  priceMonthly: number;
+  discount3Months: number; // Percentage (0-100)
+  discount6Months: number; // Percentage (0-100)
+  discount12Months: number; // Percentage (0-100)
+}
+
+// Helper function to calculate discounted price using config
 export function getDiscountedPrice(
   tier: SubscriptionTier,
-  months: 1 | 3 | 6 | 12
-): { originalTotal: number; discountedTotal: number; savings: number; monthlyEquivalent: number } {
-  const monthlyPrice = TIER_PRICING[tier];
+  months: 1 | 3 | 6 | 12,
+  tierConfig?: TierPricingConfig | null
+): {
+  originalTotal: number;
+  discountedTotal: number;
+  savings: number;
+  monthlyEquivalent: number;
+  discountPercent: number;
+} {
+  // Use provided config or fallback to defaults
+  const monthlyPrice = tierConfig?.priceMonthly ?? DEFAULT_TIER_PRICING[tier];
+
+  // Get discount percentage based on duration
+  let discountPercent = 0;
+  if (tierConfig) {
+    switch (months) {
+      case 3:
+        discountPercent = tierConfig.discount3Months;
+        break;
+      case 6:
+        discountPercent = tierConfig.discount6Months;
+        break;
+      case 12:
+        discountPercent = tierConfig.discount12Months;
+        break;
+      default:
+        discountPercent = 0;
+    }
+  } else {
+    discountPercent = DEFAULT_SUBSCRIPTION_DISCOUNTS[months] * 100;
+  }
+
   const originalTotal = monthlyPrice * months;
-  const discount = SUBSCRIPTION_DISCOUNTS[months];
+  const discount = discountPercent / 100;
   const discountedTotal = Math.round(originalTotal * (1 - discount));
   const savings = originalTotal - discountedTotal;
   const monthlyEquivalent = Math.round(discountedTotal / months);
@@ -139,6 +182,7 @@ export function getDiscountedPrice(
     discountedTotal,
     savings,
     monthlyEquivalent,
+    discountPercent,
   };
 }
 

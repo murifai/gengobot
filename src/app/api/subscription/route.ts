@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/auth';
-import { creditService, TIER_CONFIG, TIER_PRICING } from '@/lib/subscription';
+import { creditService, TIER_CONFIG, TIER_PRICING, getDiscountedPrice } from '@/lib/subscription';
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -27,6 +27,19 @@ export async function GET() {
     const fallbackConfig = TIER_CONFIG[subscription.tier];
     const fallbackPrice = TIER_PRICING[subscription.tier];
 
+    // Get pricing config for calculating discounted prices
+    const pricingConfig = dbTierConfig
+      ? {
+          priceMonthly: dbTierConfig.priceMonthly,
+          discount3Months: dbTierConfig.discount3Months,
+          discount6Months: dbTierConfig.discount6Months,
+          discount12Months: dbTierConfig.discount12Months,
+        }
+      : null;
+
+    // Calculate 12-month price
+    const price12m = getDiscountedPrice(subscription.tier, 12, pricingConfig);
+
     // Merge database config with fallback
     const tierConfig = {
       monthlyCredits: dbTierConfig?.credits ?? fallbackConfig.monthlyCredits,
@@ -35,8 +48,15 @@ export async function GET() {
       textUnlimited: fallbackConfig.textUnlimited,
       realtimeEnabled: fallbackConfig.realtimeEnabled,
       price: dbTierConfig?.priceMonthly ?? fallbackPrice,
-      priceAnnual: dbTierConfig?.priceAnnual ?? fallbackPrice * 12,
       features: dbTierConfig?.features ?? [],
+      // Discount info
+      discounts: {
+        discount3Months: dbTierConfig?.discount3Months ?? 10,
+        discount6Months: dbTierConfig?.discount6Months ?? 20,
+        discount12Months: dbTierConfig?.discount12Months ?? 30,
+      },
+      // Calculated annual price (for backward compatibility)
+      priceAnnual: price12m.discountedTotal,
     };
 
     return NextResponse.json({

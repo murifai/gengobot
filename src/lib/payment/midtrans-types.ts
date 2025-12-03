@@ -213,4 +213,5 @@ export interface CheckoutResult {
   originalAmount?: number;
   discountAmount?: number;
   finalAmount?: number;
+  discountPercent?: number; // Persentase diskon durasi (0-100)
 }

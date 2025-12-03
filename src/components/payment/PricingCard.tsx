@@ -6,7 +6,11 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
 import { SubscriptionTier } from '@prisma/client';
-import { TIER_CONFIG, getDiscountedPrice } from '@/lib/subscription/credit-config';
+import {
+  TIER_CONFIG,
+  getDiscountedPrice,
+  TierPricingConfig,
+} from '@/lib/subscription/credit-config';
 
 interface PricingCardProps {
   tier: SubscriptionTier;
@@ -17,6 +21,12 @@ interface PricingCardProps {
   onSelect?: (tier: SubscriptionTier) => void;
   disabled?: boolean;
   className?: string;
+  /** Pricing config from database (for dynamic pricing) */
+  pricingConfig?: TierPricingConfig | null;
+  /** Features from database (for dynamic features) */
+  features?: string[];
+  /** Credits from database */
+  credits?: number;
 }
 
 const TIER_HIERARCHY: Record<SubscriptionTier, number> = {
@@ -34,6 +44,9 @@ export function PricingCard({
   onSelect,
   disabled = false,
   className,
+  pricingConfig,
+  features: propFeatures,
+  credits: propCredits,
 }: PricingCardProps) {
   // Determine if this is a downgrade
   const isDowngrade =
@@ -41,7 +54,10 @@ export function PricingCard({
     currentTier !== SubscriptionTier.FREE &&
     TIER_HIERARCHY[tier] < TIER_HIERARCHY[currentTier];
   const config = TIER_CONFIG[tier];
-  const pricing = getDiscountedPrice(tier, durationMonths);
+  const pricing = getDiscountedPrice(tier, durationMonths, pricingConfig);
+
+  // Use credits from props if available, otherwise fallback to config
+  const credits = propCredits ?? config.monthlyCredits;
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -67,8 +83,14 @@ export function PricingCard({
     }
   };
 
-  // Get tier features
+  // Get tier features - use API features if available, otherwise fallback to defaults
   const getFeatures = () => {
+    // If features provided from API and not empty, use them
+    if (propFeatures && propFeatures.length > 0) {
+      return propFeatures;
+    }
+
+    // Fallback to default features
     const features: string[] = [];
 
     if (tier === SubscriptionTier.FREE) {
@@ -77,7 +99,7 @@ export function PricingCard({
       features.push(`Limit ${config.trialDailyLimit} kredit/hari`);
       features.push(`${config.customCharacters} karakter custom`);
     } else {
-      features.push(`${config.monthlyCredits.toLocaleString()} kredit/bulan`);
+      features.push(`${credits.toLocaleString()} kredit/bulan`);
       if (config.textUnlimited) {
         features.push('Chat text unlimited');
       }

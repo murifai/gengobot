@@ -1,7 +1,12 @@
 import { prisma } from '@/lib/prisma';
 import { SubscriptionTier, SubscriptionStatus, CreditTransactionType } from '@prisma/client';
 import { voucherService } from '@/lib/voucher';
-import { TIER_PRICING, TIER_CONFIG, getDiscountedPrice } from '@/lib/subscription/credit-config';
+import {
+  TIER_CONFIG,
+  getDiscountedPrice,
+  TierPricingConfig,
+  DEFAULT_TIER_PRICING,
+} from '@/lib/subscription/credit-config';
 import {
   MidtransTransaction,
   MidtransTransactionStatus,
@@ -85,8 +90,24 @@ export class MidtransService {
   ): Promise<CheckoutResult> {
     const { userId, tier, durationMonths, voucherCode, payerEmail, payerName } = checkoutData;
 
-    // Calculate price
-    const priceDetails = getDiscountedPrice(tier, durationMonths);
+    // Fetch tier pricing from database
+    const tierConfig = await prisma.subscriptionTierConfig.findUnique({
+      where: { name: tier },
+    });
+
+    // Convert database config to TierPricingConfig format
+    const pricingConfig: TierPricingConfig | null = tierConfig
+      ? {
+          priceMonthly: tierConfig.priceMonthly,
+          discount3Months: tierConfig.discount3Months,
+          discount6Months: tierConfig.discount6Months,
+          discount12Months: tierConfig.discount12Months,
+        }
+      : null;
+
+    // Calculate price using database config (falls back to defaults if not found)
+    const priceDetails = getDiscountedPrice(tier, durationMonths, pricingConfig);
+    const monthlyPrice = pricingConfig?.priceMonthly ?? DEFAULT_TIER_PRICING[tier];
     let finalAmount = priceDetails.discountedTotal;
     let discountAmount = priceDetails.savings;
     let voucherDiscountAmount = 0;
@@ -135,7 +156,7 @@ export class MidtransService {
         {
           id: `${tier}_${durationMonths}m`,
           name: `Gengo ${tier} Plan - ${durationMonths} bulan`,
-          price: TIER_PRICING[tier],
+          price: monthlyPrice,
           quantity: durationMonths,
           category: 'subscription',
         },
@@ -155,11 +176,21 @@ export class MidtransService {
       },
     };
 
+    // Build discount description
+    let discountDescription = '';
+    if (priceDetails.discountPercent > 0 && voucherCode) {
+      discountDescription = `Diskon ${priceDetails.discountPercent}% + Voucher (${voucherCode})`;
+    } else if (priceDetails.discountPercent > 0) {
+      discountDescription = `Diskon ${priceDetails.discountPercent}% (${durationMonths} bulan)`;
+    } else if (voucherCode) {
+      discountDescription = `Voucher (${voucherCode})`;
+    }
+
     // Add discount item if applicable
     if (discountAmount > 0) {
       transactionRequest.item_details?.push({
         id: 'discount',
-        name: voucherCode ? `Diskon (${voucherCode})` : 'Diskon Durasi',
+        name: discountDescription || 'Diskon',
         price: -discountAmount,
         quantity: 1,
         category: 'discount',
@@ -186,6 +217,7 @@ export class MidtransService {
         originalAmount: priceDetails.originalTotal,
         discountAmount,
         finalAmount,
+        discountPercent: priceDetails.discountPercent,
       };
     } catch (error) {
       console.error('Error creating subscription transaction:', error);

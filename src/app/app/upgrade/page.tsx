@@ -8,20 +8,17 @@ import { PricingCard } from '@/components/payment/PricingCard';
 import { CheckoutSummary } from '@/components/payment/CheckoutSummary';
 import { SubscriptionTier } from '@prisma/client';
 import { useSubscription } from '@/hooks/useSubscription';
+import { usePricingPlans, useDurationOptions } from '@/hooks/usePricingPlans';
+import { TierPricingConfig } from '@/lib/subscription/credit-config';
 
 type DurationOption = 1 | 3 | 6 | 12;
-
-const DURATION_OPTIONS: { value: DurationOption; label: string; discount?: string }[] = [
-  { value: 1, label: '1 bulan' },
-  { value: 3, label: '3 bulan', discount: '10%' },
-  { value: 6, label: '6 bulan', discount: '15%' },
-  { value: 12, label: '12 bulan', discount: '20%' },
-];
 
 export default function UpgradePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { tier: currentTier, subscription, isLoading } = useSubscription();
+  const { isLoading: plansLoading, getPlan } = usePricingPlans();
+  const { durationOptions } = useDurationOptions();
 
   // Get initial tier from URL params
   const tierParam = searchParams?.get('tier') as SubscriptionTier | null;
@@ -32,6 +29,30 @@ export default function UpgradePage() {
       : SubscriptionTier.BASIC
   );
   const [selectedDuration, setSelectedDuration] = useState<DurationOption>(1);
+
+  // Get pricing config for each tier from API
+  const getPricingConfig = (tier: SubscriptionTier): TierPricingConfig | null => {
+    const plan = getPlan(tier);
+    if (!plan) return null;
+    return {
+      priceMonthly: plan.priceMonthly,
+      discount3Months: plan.discounts.discount3Months,
+      discount6Months: plan.discounts.discount6Months,
+      discount12Months: plan.discounts.discount12Months,
+    };
+  };
+
+  // Get features for each tier from API
+  const getFeatures = (tier: SubscriptionTier): string[] => {
+    const plan = getPlan(tier);
+    return plan?.features || [];
+  };
+
+  // Get credits for each tier from API
+  const getCredits = (tier: SubscriptionTier): number | undefined => {
+    const plan = getPlan(tier);
+    return plan?.credits;
+  };
 
   // Update selected tier when URL param changes
   useEffect(() => {
@@ -48,7 +69,7 @@ export default function UpgradePage() {
     setSelectedTier(tier);
   };
 
-  if (isLoading) {
+  if (isLoading || plansLoading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="flex justify-center py-12">
@@ -80,7 +101,7 @@ export default function UpgradePage() {
             <div>
               <h2 className="font-medium mb-3">Pilih Durasi</h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {DURATION_OPTIONS.map(option => (
+                {durationOptions.map(option => (
                   <button
                     key={option.value}
                     onClick={() => setSelectedDuration(option.value)}
@@ -112,6 +133,9 @@ export default function UpgradePage() {
                     subscription?.currentPeriodEnd ? new Date(subscription.currentPeriodEnd) : null
                   }
                   onSelect={handleTierSelect}
+                  pricingConfig={getPricingConfig(SubscriptionTier.BASIC)}
+                  features={getFeatures(SubscriptionTier.BASIC)}
+                  credits={getCredits(SubscriptionTier.BASIC)}
                   className={
                     selectedTier === SubscriptionTier.BASIC &&
                     currentTier !== SubscriptionTier.BASIC
@@ -128,6 +152,9 @@ export default function UpgradePage() {
                     subscription?.currentPeriodEnd ? new Date(subscription.currentPeriodEnd) : null
                   }
                   onSelect={handleTierSelect}
+                  pricingConfig={getPricingConfig(SubscriptionTier.PRO)}
+                  features={getFeatures(SubscriptionTier.PRO)}
+                  credits={getCredits(SubscriptionTier.PRO)}
                   className={
                     selectedTier === SubscriptionTier.PRO && currentTier !== SubscriptionTier.PRO
                       ? 'ring-2 ring-primary'
@@ -172,6 +199,7 @@ export default function UpgradePage() {
                 <CheckoutSummary
                   tier={selectedTier}
                   durationMonths={selectedDuration}
+                  pricingConfig={getPricingConfig(selectedTier)}
                   onCheckout={() => {
                     // Optional: track checkout event
                   }}

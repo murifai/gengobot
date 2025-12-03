@@ -9,13 +9,15 @@ import { VoucherInput } from '@/components/subscription/VoucherInput';
 import { VoucherApplied } from '@/components/subscription/VoucherApplied';
 import { cn } from '@/lib/utils';
 import { SubscriptionTier, VoucherType } from '@prisma/client';
-import { getDiscountedPrice } from '@/lib/subscription/credit-config';
+import { getDiscountedPrice, TierPricingConfig } from '@/lib/subscription/credit-config';
 
 interface CheckoutSummaryProps {
   tier: SubscriptionTier;
   durationMonths: 1 | 3 | 6 | 12;
   onCheckout?: () => void;
   className?: string;
+  /** Pricing config from database (for dynamic pricing) */
+  pricingConfig?: TierPricingConfig | null;
 }
 
 interface AppliedVoucher {
@@ -30,13 +32,14 @@ export function CheckoutSummary({
   durationMonths,
   onCheckout,
   className,
+  pricingConfig,
 }: CheckoutSummaryProps) {
   const [appliedVoucher, setAppliedVoucher] = useState<AppliedVoucher | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [invoiceUrl, setInvoiceUrl] = useState<string | null>(null);
 
-  const pricing = getDiscountedPrice(tier, durationMonths);
+  const pricing = getDiscountedPrice(tier, durationMonths, pricingConfig);
 
   // Calculate voucher discount
   let voucherDiscount = 0;

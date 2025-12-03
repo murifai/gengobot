@@ -702,11 +702,15 @@ model VoucherRedemption {
 model SubscriptionTierConfig {
   id           String           @id @default(cuid())
   name         SubscriptionTier @unique
-  priceMonthly Int              // in Rupiah
-  priceAnnual  Int              // in Rupiah
+  priceMonthly Int              // Base price in Rupiah (harga dasar bulanan)
   features     String[]         // feature list
   isActive     Boolean          @default(true)
   credits      Int              @default(0) // Monthly credits allocation
+
+  // Duration discount percentages (0-100)
+  discount3Months  Int @default(10)  // Diskon 3 bulan (default 10%)
+  discount6Months  Int @default(20)  // Diskon 6 bulan (default 20%)
+  discount12Months Int @default(30)  // Diskon 12 bulan (default 30%)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
