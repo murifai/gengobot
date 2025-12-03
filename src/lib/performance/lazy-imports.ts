@@ -130,29 +130,6 @@ export const LazyUserByDomicileChart = dynamic(
   }
 );
 
-// Heavy dashboard components (dnd-kit 35KB + tanstack-table 23KB + recharts)
-export const LazyDataTable = dynamic(
-  () => import('@/components/data-table').then(mod => mod.DataTable),
-  {
-    loading: () =>
-      React.createElement('div', {
-        className: 'animate-pulse bg-gray-200 dark:bg-gray-800 h-96 rounded-lg',
-      }),
-    ssr: false,
-  }
-);
-
-export const LazyChartAreaInteractive = dynamic(
-  () => import('@/components/chart-area-interactive').then(mod => mod.ChartAreaInteractive),
-  {
-    loading: () =>
-      React.createElement('div', {
-        className: 'animate-pulse bg-gray-200 dark:bg-gray-800 h-64 rounded-lg',
-      }),
-    ssr: false,
-  }
-);
-
 const lazyComponents = {
   FreeConversationClient: LazyFreeConversationClient,
   DeckLearningWithStats: LazyDeckLearningWithStats,
@@ -164,6 +141,4 @@ const lazyComponents = {
   SubscriberChart: LazySubscriberChart,
   UserByLevelChart: LazyUserByLevelChart,
   UserByDomicileChart: LazyUserByDomicileChart,
-  DataTable: LazyDataTable,
-  ChartAreaInteractive: LazyChartAreaInteractive,
 };
