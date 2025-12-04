@@ -48,6 +48,7 @@ export default function AdminTasksPage() {
   const [filterDifficulty, setFilterDifficulty] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [importing, setImporting] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [importResults, setImportResults] = useState<{
     total: number;
     success: number;
@@ -134,6 +135,40 @@ export default function AdminTasksPage() {
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleExportTasks = async () => {
+    try {
+      setExporting(true);
+
+      // Build query params based on current filters
+      const params = new URLSearchParams();
+      if (filterCategory !== 'all') params.set('category', filterCategory);
+      if (filterDifficulty !== 'all') params.set('difficulty', filterDifficulty);
+
+      const response = await fetch(`/api/tasks/export?${params.toString()}`);
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const date = new Date().toISOString().split('T')[0];
+        a.download = `tasks_export_${date}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        const data = await response.json();
+        alert(`Export failed: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error exporting tasks:', error);
+      alert('Failed to export tasks');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -284,6 +319,10 @@ export default function AdminTasksPage() {
               <Button variant="outline" size="sm" onClick={handleDownloadTemplate}>
                 <Download className="h-4 w-4 mr-2" />
                 Template
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExportTasks} disabled={exporting}>
+                <Download className="h-4 w-4 mr-2" />
+                {exporting ? 'Exporting...' : 'Export'}
               </Button>
               <Button variant="outline" size="sm" onClick={handleImportClick} disabled={importing}>
                 <Upload className="h-4 w-4 mr-2" />
