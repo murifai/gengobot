@@ -140,7 +140,39 @@ Set up cron job for processing scheduled tier changes:
 - [ ] Performance monitoring active
 - [ ] Database connection pool sized appropriately
 
-## Recent Changes Summary (November 2024)
+## Recent Changes Summary (December 2024)
+
+### New Features
+
+- **Browser Extension API**: Server-side infrastructure for Gengo Reader browser extension
+  - Token-based authentication with 30-day expiry
+  - OAuth integration via `/extension/auth` page
+  - CORS support for Chrome/Firefox extensions
+- **Extension Endpoints**: API for dictionary lookup and flashcard creation from any webpage
+
+### API Endpoints Added (Extension)
+
+- `POST /api/extension/auth` - Generate or validate extension token
+- `GET /api/extension/auth` - Check authentication status
+- `GET /api/extension/decks` - List user's decks for extension
+- `POST /api/extension/flashcards` - Create flashcard from extension
+
+### New Pages
+
+- `/extension/auth` - OAuth flow page for browser extension connection
+
+### Database Schema Changes
+
+- Added `ExtensionToken` model for browser extension authentication
+
+### Middleware Updates
+
+- Added CORS headers for `chrome-extension://` and `moz-extension://` origins
+- Handle preflight OPTIONS requests for extension API routes
+
+---
+
+## Previous Changes (November 2024)
 
 ### New Features
 
