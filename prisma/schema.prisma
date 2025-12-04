@@ -169,6 +169,7 @@ model User {
   trialHistory       TrialHistory?
   favoriteDecks      UserFavorite[]
   studyingDecks      UserStudyingDeck[]
+  extensionToken     ExtensionToken?
 
   @@index([email])
   @@index([isAdmin])
@@ -905,6 +906,20 @@ model DictionaryEntry {
   @@index([readings])
   @@index([jlptLevel])
   @@index([priority])
+}
+
+// ExtensionToken model - Authentication tokens for browser extensions (Gengo Reader)
+model ExtensionToken {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique // SHA-256 hashed token
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([token])
+  @@index([expiresAt])
 }
 
 // TrialHistory model - Track trial usage to prevent abuse

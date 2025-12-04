@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn as nextAuthSignIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { Dialog, DialogTitle, DialogDescription } from '@/components/ui/Dialog';
@@ -11,6 +11,10 @@ export function LoginForm() {
   const [error, setError] = useState('');
   const [isOpen, setIsOpen] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get returnTo from query params, default to /app
+  const returnTo = searchParams?.get('returnTo') || '/app';
 
   useEffect(() => {
     // If dialog is closed, redirect to home
@@ -25,7 +29,7 @@ export function LoginForm() {
 
     try {
       await nextAuthSignIn('google', {
-        callbackUrl: '/app',
+        callbackUrl: returnTo,
         redirect: true,
       });
     } catch (err) {

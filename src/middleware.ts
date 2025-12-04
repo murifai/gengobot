@@ -1,6 +1,35 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { auth } from '@/lib/auth/auth';
 
+// CORS configuration for browser extension
+const EXTENSION_ORIGINS = [
+  'chrome-extension://', // Chrome extensions (any ID in dev, specific in prod)
+  'moz-extension://', // Firefox extensions
+];
+
+function isExtensionRequest(request: NextRequest): boolean {
+  const origin = request.headers.get('origin') || '';
+  return EXTENSION_ORIGINS.some(prefix => origin.startsWith(prefix));
+}
+
+function addCorsHeaders(response: NextResponse, request: NextRequest): NextResponse {
+  const origin = request.headers.get('origin') || '';
+
+  // Allow extension origins
+  if (isExtensionRequest(request)) {
+    response.headers.set('Access-Control-Allow-Origin', origin);
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization, X-Extension-Token'
+    );
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
+    response.headers.set('Access-Control-Max-Age', '86400');
+  }
+
+  return response;
+}
+
 // Legacy route redirects for backward compatibility
 const LEGACY_REDIRECTS: Record<string, string> = {
   '/dashboard/tasks': '/app/kaiwa/roleplay',
@@ -20,8 +49,21 @@ const PATTERN_REDIRECTS = [
 ];
 
 export async function middleware(request: NextRequest) {
-  const session = await auth();
   const { pathname } = request.nextUrl;
+
+  // Handle CORS preflight requests for API routes from extensions
+  if (request.method === 'OPTIONS' && pathname.startsWith('/api/') && isExtensionRequest(request)) {
+    const response = new NextResponse(null, { status: 204 });
+    return addCorsHeaders(response, request);
+  }
+
+  // Add CORS headers to API responses for extension requests
+  if (pathname.startsWith('/api/extension/') && isExtensionRequest(request)) {
+    const response = NextResponse.next();
+    return addCorsHeaders(response, request);
+  }
+
+  const session = await auth();
 
   // Check for exact legacy route matches first
   if (LEGACY_REDIRECTS[pathname]) {
