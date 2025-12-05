@@ -119,7 +119,9 @@ export default function MessageBubble({
             setIsPlaying(true);
           })
           .catch(err => {
-            console.error('[MessageBubble] Auto-play failed:', err);
+            // On mobile, autoplay is often blocked - this is expected behavior
+            // User can still tap the play button manually
+            console.log('[MessageBubble] Auto-play blocked (expected on mobile):', err.name);
           });
       }
     };

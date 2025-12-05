@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { TaskChatInputV2 } from '@/components/task/TaskChatInputV2';
 import TokenizedText from '@/components/vocabulary/TokenizedText';
-import { Info, X } from 'lucide-react';
+import { Info, X, Volume2, VolumeX, Loader2 } from 'lucide-react';
 import { ProgressHeader } from '@/components/task/ProgressHeader';
 import { CompletionSuggestion } from '@/components/task/CompletionSuggestion';
 import { MessageLimitWarning } from '@/components/task/MessageLimitWarning';
@@ -114,6 +114,133 @@ export default function StreamingChatInterface({
   const [showParser, setShowParser] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Mobile audio unlock state
+  // On mobile, audio autoplay is blocked until user interacts with the page
+  // We track if audio has been "unlocked" by a user gesture
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
+  const [showAudioUnlockPrompt, setShowAudioUnlockPrompt] = useState(false);
+  const [playingAudioIdx, setPlayingAudioIdx] = useState<number | null>(null);
+  const [loadingAudioIdx, setLoadingAudioIdx] = useState<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const pendingAudioRef = useRef<{ url: string; idx: number } | null>(null);
+
+  // Detect if on mobile
+  const isMobile =
+    typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  // Unlock audio context - called on first user interaction
+  const unlockAudio = useCallback(() => {
+    // Create and play silent audio to unlock audio context
+    const silentAudio = new Audio(
+      'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA'
+    );
+    silentAudio
+      .play()
+      .then(() => {
+        setAudioUnlocked(true);
+        setShowAudioUnlockPrompt(false);
+        console.log('[StreamingChatInterface] Audio unlocked for mobile');
+
+        // If there was pending audio, play it now
+        if (pendingAudioRef.current) {
+          playAudio(pendingAudioRef.current.url, pendingAudioRef.current.idx);
+          pendingAudioRef.current = null;
+        }
+      })
+      .catch(err => {
+        console.error('[StreamingChatInterface] Failed to unlock audio:', err);
+      });
+  }, []);
+
+  // Play audio function
+  const playAudio = useCallback(
+    (audioUrl: string, idx: number) => {
+      // On mobile, if audio not unlocked, show prompt and queue the audio
+      if (isMobile && !audioUnlocked) {
+        pendingAudioRef.current = { url: audioUrl, idx };
+        setShowAudioUnlockPrompt(true);
+        return;
+      }
+
+      // Stop current audio if playing
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      setLoadingAudioIdx(idx);
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+
+      audio.onloadeddata = () => {
+        setLoadingAudioIdx(null);
+        setPlayingAudioIdx(idx);
+        audio.play().catch(err => {
+          console.error('[StreamingChatInterface] Audio play failed:', err);
+          setPlayingAudioIdx(null);
+          // On mobile, if play fails, show unlock prompt
+          if (isMobile) {
+            pendingAudioRef.current = { url: audioUrl, idx };
+            setShowAudioUnlockPrompt(true);
+            setAudioUnlocked(false);
+          }
+        });
+      };
+
+      audio.onended = () => {
+        setPlayingAudioIdx(null);
+        audioRef.current = null;
+      };
+
+      audio.onerror = e => {
+        console.error('[StreamingChatInterface] Audio error:', e);
+        setLoadingAudioIdx(null);
+        setPlayingAudioIdx(null);
+        audioRef.current = null;
+      };
+
+      audio.load();
+    },
+    [isMobile, audioUnlocked]
+  );
+
+  // Stop audio function
+  const stopAudio = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setPlayingAudioIdx(null);
+    setLoadingAudioIdx(null);
+  }, []);
+
+  // Auto-play latest AI audio response
+  const lastAudioPlayedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (messages.length === 0) return;
+
+    const lastMessage = messages[messages.length - 1];
+    if (
+      lastMessage.role === 'assistant' &&
+      lastMessage.audioUrl &&
+      !lastMessage.isStreaming &&
+      lastMessage.audioUrl !== lastAudioPlayedRef.current
+    ) {
+      lastAudioPlayedRef.current = lastMessage.audioUrl;
+      playAudio(lastMessage.audioUrl, messages.length - 1);
+    }
+  }, [messages, playAudio]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -121,6 +248,28 @@ export default function StreamingChatInterface({
 
   return (
     <div className={cn('fixed inset-0 flex bg-background', className)}>
+      {/* Mobile Audio Unlock Prompt */}
+      {showAudioUnlockPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card border-2 border-border rounded-base p-6 mx-4 max-w-sm shadow-shadow">
+            <div className="flex items-center gap-3 mb-4">
+              <Volume2 className="w-8 h-8 text-primary" />
+              <h3 className="text-lg font-bold">Aktifkan Audio</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Tap tombol di bawah untuk mengaktifkan audio. Setelah diaktifkan, audio akan otomatis
+              diputar.
+            </p>
+            <button
+              onClick={unlockAudio}
+              className="w-full py-3 px-4 bg-primary text-primary-foreground font-semibold rounded-base border-2 border-border shadow-shadow hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none transition-all"
+            >
+              🔊 Aktifkan Audio
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Chat Area */}
       <div className="flex flex-col flex-1">
         {/* Header */}
@@ -237,9 +386,6 @@ export default function StreamingChatInterface({
             </div>
           ) : (
             messages.map((message, idx) => {
-              const isLatestAI = message.role === 'assistant' && idx === messages.length - 1;
-              const shouldAutoPlay = isLatestAI && !!message.audioUrl && !message.isStreaming;
-
               return (
                 <div
                   key={idx}
@@ -271,27 +417,41 @@ export default function StreamingChatInterface({
                       </div>
                     )}
 
-                    {/* Hidden audio player for AI responses - auto-play only */}
+                    {/* Audio play button for AI responses */}
                     {message.role === 'assistant' && message.audioUrl && !message.isStreaming && (
-                      <audio
-                        src={message.audioUrl}
-                        autoPlay={shouldAutoPlay}
-                        onLoadedMetadata={e => {
-                          console.log('[StreamingChatInterface] Audio loaded:', {
-                            idx,
-                            audioUrl: message.audioUrl,
-                            duration: e.currentTarget.duration,
-                            autoPlay: shouldAutoPlay,
-                          });
+                      <button
+                        onClick={() => {
+                          if (playingAudioIdx === idx) {
+                            stopAudio();
+                          } else {
+                            playAudio(message.audioUrl!, idx);
+                          }
                         }}
-                        onError={e => {
-                          console.error('[StreamingChatInterface] Audio error:', {
-                            idx,
-                            audioUrl: message.audioUrl,
-                            error: e.currentTarget.error,
-                          });
-                        }}
-                      />
+                        className={cn(
+                          'mt-2 flex items-center gap-2 px-3 py-1.5 rounded-base border-2 border-border transition-all text-sm',
+                          playingAudioIdx === idx
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-card hover:bg-accent'
+                        )}
+                        aria-label={playingAudioIdx === idx ? 'Stop audio' : 'Play audio'}
+                      >
+                        {loadingAudioIdx === idx ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Loading...</span>
+                          </>
+                        ) : playingAudioIdx === idx ? (
+                          <>
+                            <VolumeX className="w-4 h-4" />
+                            <span>Stop</span>
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="w-4 h-4" />
+                            <span>Putar</span>
+                          </>
+                        )}
+                      </button>
                     )}
 
                     <div className="flex items-center justify-between mt-2 gap-2">
