@@ -2,11 +2,15 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Edit, Download, Plus, Trash2, Edit2 } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronLeft, Plus, Edit2, Trash2, Search, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { LoadingState } from '@/components/ui/LoadingState';
 import FlashcardEditor from '@/components/deck/FlashcardEditor';
 import { CardType } from '@/types/deck';
-interface DeckViewPageProps {
+
+interface DeckCardsPageProps {
   params: Promise<{ deckId: string }>;
 }
 
@@ -40,21 +44,16 @@ interface Deck {
   difficulty?: string;
   isPublic: boolean;
   totalCards: number;
-  studyCount: number;
-  isActive: boolean;
-  createdAt: string;
-  creator: {
-    name: string | null;
-    email: string;
-  };
+  isOwner: boolean;
   flashcards: Flashcard[];
 }
 
-export default function DeckViewPage({ params }: DeckViewPageProps) {
+export default function DeckCardsPage({ params }: DeckCardsPageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
   const [deck, setDeck] = useState<Deck | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [filterCardType, setFilterCardType] = useState<string>('all');
   const [showEditor, setShowEditor] = useState(false);
   const [editingCard, setEditingCard] = useState<Flashcard | undefined>();
@@ -67,13 +66,11 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
         const data = await response.json();
         setDeck(data);
       } else {
-        alert('Failed to load deck');
-        router.push('/app/drill/my-decks');
+        router.push('/app/drill');
       }
     } catch (error) {
       console.error('Error fetching deck:', error);
-      alert('Failed to load deck');
-      router.push('/app/drill/my-decks');
+      router.push('/app/drill');
     } finally {
       setLoading(false);
     }
@@ -84,30 +81,8 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedParams.deckId]);
 
-  const handleExport = async () => {
-    if (!deck) return;
-
-    try {
-      const response = await fetch(`/api/decks/${deck.id}/export`);
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${deck.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }
-    } catch (error) {
-      console.error('Error exporting deck:', error);
-      alert('Failed to export deck');
-    }
-  };
-
   const handleDeleteCard = async (cardId: string) => {
-    if (!window.confirm('Delete this flashcard?')) return;
+    if (!window.confirm('Hapus kartu ini? Tindakan ini tidak dapat dibatalkan.')) return;
 
     try {
       const response = await fetch(`/api/flashcards/${cardId}`, {
@@ -115,15 +90,14 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
       });
 
       if (response.ok) {
-        alert('Flashcard deleted successfully');
         fetchDeck();
       } else {
         const data = await response.json();
-        alert(`Failed to delete flashcard: ${data.error}`);
+        alert(`Gagal menghapus kartu: ${data.error}`);
       }
     } catch (error) {
       console.error('Error deleting flashcard:', error);
-      alert('Failed to delete flashcard');
+      alert('Gagal menghapus kartu');
     }
   };
 
@@ -153,23 +127,36 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
       case 'kanji':
         return (
           <>
-            <div className="text-4xl font-bold mb-2">{card.kanji}</div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">{card.kanjiMeaning}</div>
+            <div className="text-4xl font-bold mb-2 text-foreground">{card.kanji}</div>
+            <div className="text-sm text-muted-foreground">{card.kanjiMeaning}</div>
+            {(card.onyomi || card.kunyomi) && (
+              <div className="text-xs text-muted-foreground mt-1">
+                {card.onyomi && <span>音: {card.onyomi}</span>}
+                {card.onyomi && card.kunyomi && ' | '}
+                {card.kunyomi && <span>訓: {card.kunyomi}</span>}
+              </div>
+            )}
           </>
         );
       case 'vocabulary':
         return (
           <>
-            <div className="text-2xl font-bold mb-1">{card.word}</div>
-            <div className="text-sm text-gray-500 dark:text-gray-500 mb-1">{card.reading}</div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">{card.wordMeaning}</div>
+            <div className="text-2xl font-bold mb-1 text-foreground">{card.word}</div>
+            <div className="text-sm text-muted-foreground mb-1">{card.reading}</div>
+            <div className="text-sm text-foreground">{card.wordMeaning}</div>
+            {card.partOfSpeech && (
+              <div className="text-xs text-muted-foreground mt-1">{card.partOfSpeech}</div>
+            )}
           </>
         );
       case 'grammar':
         return (
           <>
-            <div className="text-xl font-bold mb-2">{card.grammarPoint}</div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">{card.grammarMeaning}</div>
+            <div className="text-xl font-bold mb-2 text-foreground">{card.grammarPoint}</div>
+            <div className="text-sm text-foreground">{card.grammarMeaning}</div>
+            {card.usageNote && (
+              <div className="text-xs text-muted-foreground mt-1">{card.usageNote}</div>
+            )}
           </>
         );
       default:
@@ -177,10 +164,36 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
     }
   };
 
+  const getCardTypeLabel = (type: CardType) => {
+    switch (type) {
+      case 'kanji':
+        return 'Kanji';
+      case 'vocabulary':
+        return 'Kosakata';
+      case 'grammar':
+        return 'Tata Bahasa';
+      default:
+        return type;
+    }
+  };
+
+  const getCardTypeColor = (type: CardType) => {
+    switch (type) {
+      case 'kanji':
+        return 'bg-[var(--card-kanji)]';
+      case 'vocabulary':
+        return 'bg-[var(--card-vocabulary)]';
+      case 'grammar':
+        return 'bg-[var(--card-grammar)]';
+      default:
+        return 'bg-muted';
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-muted-foreground">Loading...</div>
+        <LoadingState type="spinner" size="lg" />
       </div>
     );
   }
@@ -188,104 +201,88 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
   if (!deck) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-muted-foreground">Deck not found</div>
+        <div className="text-muted-foreground">Dek tidak ditemukan</div>
       </div>
     );
   }
 
-  const filteredCards = deck.flashcards.filter(
-    card => filterCardType === 'all' || card.cardType === filterCardType
-  );
+  // Filter cards
+  const filteredCards = deck.flashcards.filter(card => {
+    const matchesType = filterCardType === 'all' || card.cardType === filterCardType;
+    const matchesSearch =
+      searchQuery === '' ||
+      card.kanji?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      card.kanjiMeaning?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      card.word?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      card.wordMeaning?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      card.reading?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      card.grammarPoint?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      card.grammarMeaning?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesType && matchesSearch;
+  });
 
   const cardTypes = Array.from(new Set(deck.flashcards.map(c => c.cardType)));
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Button
-            variant="ghost"
-            className="mb-4 gap-2"
-            onClick={() => router.push('/app/drill/my-decks')}
-          >
-            <ArrowLeft size={20} />
-            Back to My Decks
-          </Button>
-
-          <div className="flex items-start justify-between">
+      {/* Header */}
+      <div className="bg-card border-b-2 border-border px-4 py-4">
+        <div className="container mx-auto">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/app/drill"
+              className="p-2 hover:bg-accent rounded-base transition-colors"
+              aria-label="Kembali"
+            >
+              <ChevronLeft className="w-7 h-7 text-foreground" />
+            </Link>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-foreground mb-2">{deck.name}</h1>
-              {deck.description && <p className="text-muted-foreground mb-4">{deck.description}</p>}
-              <div className="flex flex-wrap gap-2">
-                {deck.category && (
-                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-secondary/10 text-secondary">
-                    {deck.category}
-                  </span>
-                )}
-                {deck.difficulty && (
-                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-tertiary-green/10 text-tertiary-green">
-                    {deck.difficulty}
-                  </span>
-                )}
-                <span
-                  className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    deck.isPublic
-                      ? 'bg-secondary/10 text-secondary'
-                      : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  {deck.isPublic ? 'Public' : 'Private'}
-                </span>
+              <h1 className="text-2xl font-bold text-foreground">{deck.name}</h1>
+              <p className="text-sm text-muted-foreground">{deck.totalCards} kartu</p>
+            </div>
+            <div className="flex gap-2">
+              {deck.isOwner && (
+                <Link href={`/app/drill/decks/${deck.id}/edit`}>
+                  <Button variant="secondary" className="gap-2">
+                    <Settings size={18} />
+                    Edit Detail
+                  </Button>
+                </Link>
+              )}
+              <Link href={`/app/drill/${deck.id}`}>
+                <Button variant="default">Pelajari</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-6">
+        {/* Search and Filter */}
+        <Card className="p-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Cari kartu..."
+                  className="w-full pl-10 pr-4 py-2 border-2 border-border rounded-base bg-card text-foreground font-medium focus:ring-2 focus:ring-primary focus:border-primary"
+                />
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <Button variant="secondary" className="gap-2" onClick={handleExport}>
-                <Download size={20} />
-                Export
-              </Button>
-              <Button
-                variant="default"
-                className="gap-2"
-                onClick={() => router.push(`/app/drill/decks/${deck.id}/edit`)}
-              >
-                <Edit size={20} />
-                Edit Deck
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-card rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-muted-foreground mb-1">Total Cards</div>
-            <div className="text-2xl font-bold text-foreground">{deck.totalCards}</div>
-          </div>
-          <div className="bg-card rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-muted-foreground mb-1">Study Sessions</div>
-            <div className="text-2xl font-bold text-primary">{deck.studyCount}</div>
-          </div>
-          <div className="bg-card rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-muted-foreground mb-1">Created</div>
-            <div className="text-sm font-medium text-foreground">
-              {new Date(deck.createdAt).toLocaleDateString()}
-            </div>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="bg-card rounded-lg p-4 shadow-sm mb-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+            {/* Type Filter */}
             <div className="flex gap-2 flex-wrap">
-              <span className="text-sm text-muted-foreground self-center">Card Type:</span>
               <Button
                 variant={filterCardType === 'all' ? 'default' : 'secondary'}
                 size="sm"
                 onClick={() => setFilterCardType('all')}
               >
-                All ({deck.flashcards.length})
+                Semua ({deck.flashcards.length})
               </Button>
               {cardTypes.map(type => (
                 <Button
@@ -294,104 +291,118 @@ export default function DeckViewPage({ params }: DeckViewPageProps) {
                   size="sm"
                   onClick={() => setFilterCardType(type)}
                 >
-                  {type.charAt(0).toUpperCase() + type.slice(1)} (
+                  {getCardTypeLabel(type)} (
                   {deck.flashcards.filter(c => c.cardType === type).length})
                 </Button>
               ))}
             </div>
 
-            <Button variant="default" className="gap-2" onClick={handleCreateCard}>
-              <Plus size={20} />
-              Add Card
-            </Button>
-          </div>
-        </div>
-
-        {/* Flashcards */}
-        <div className="bg-card rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-bold text-foreground mb-4">
-            Flashcards ({filteredCards.length})
-          </h2>
-
-          {filteredCards.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-muted-foreground mb-4">
-                No flashcards found. Add some flashcards to get started!
-              </div>
+            {/* Add Card Button (only for owner) */}
+            {deck.isOwner && (
               <Button variant="default" className="gap-2" onClick={handleCreateCard}>
                 <Plus size={20} />
-                Add Your First Card
+                Tambah Kartu
               </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredCards.map(card => (
-                <div
-                  key={card.id}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <span className="px-2 py-1 text-xs font-semibold rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                      {card.cardType}
-                    </span>
+            )}
+          </div>
+        </Card>
+
+        {/* Cards Grid */}
+        {filteredCards.length === 0 ? (
+          <Card className="p-12 text-center">
+            {deck.flashcards.length === 0 ? (
+              <>
+                <p className="text-muted-foreground mb-4">Belum ada kartu dalam dek ini.</p>
+                {deck.isOwner && (
+                  <Button variant="default" className="gap-2" onClick={handleCreateCard}>
+                    <Plus size={20} />
+                    Tambah Kartu Pertama
+                  </Button>
+                )}
+              </>
+            ) : (
+              <p className="text-muted-foreground">Tidak ada kartu yang cocok dengan pencarian.</p>
+            )}
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredCards.map(card => (
+              <Card
+                key={card.id}
+                className="p-4 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <span
+                    className={`px-2 py-1 text-xs font-bold rounded-base border-2 border-border ${getCardTypeColor(card.cardType)}`}
+                  >
+                    {getCardTypeLabel(card.cardType)}
+                  </span>
+                  {deck.isOwner && (
                     <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <button
                         onClick={() => handleEditCard(card)}
-                        className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-                        title="Edit card"
+                        className="p-1.5 rounded-base hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                        title="Edit kartu"
                       >
                         <Edit2 size={16} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      </button>
+                      <button
                         onClick={() => handleDeleteCard(card.id)}
-                        className="text-red-500 hover:text-red-700"
-                        title="Delete card"
+                        className="p-1.5 rounded-base hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary"
+                        title="Hapus kartu"
                       >
                         <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="mb-3">{getCardContent(card)}</div>
-
-                  {card.exampleSentence && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-                      <div className="font-medium mb-1">Example:</div>
-                      <div>{card.exampleSentence}</div>
+                      </button>
                     </div>
                   )}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* Help Text */}
-        <div className="mt-6 bg-secondary/10 border border-secondary/30 rounded-lg p-4">
-          <h3 className="font-semibold text-secondary mb-2">Managing Flashcards</h3>
-          <ul className="text-sm text-foreground space-y-1 list-disc list-inside">
-            <li>Click &quot;Add Card&quot; to create new flashcards manually</li>
-            <li>Click the edit icon on any card to modify it</li>
-            <li>Click the delete icon to remove a card (cannot be undone)</li>
-            <li>Use the card type filters to view specific types of cards</li>
-            <li>Export your deck to Excel for backup or sharing</li>
-          </ul>
-        </div>
+                <div className="mb-3">{getCardContent(card)}</div>
 
-        {/* Flashcard Editor Modal */}
-        {showEditor && (
-          <FlashcardEditor
-            deckId={deck.id}
-            flashcard={editingCard}
-            onSave={handleEditorSave}
-            onCancel={handleEditorCancel}
-          />
+                {card.exampleSentence && (
+                  <div className="text-xs text-muted-foreground border-t-2 border-border pt-2 mt-2">
+                    <div className="font-bold mb-1">Contoh:</div>
+                    <div className="text-foreground">{card.exampleSentence}</div>
+                    {card.exampleTranslation && (
+                      <div className="text-muted-foreground mt-1">{card.exampleTranslation}</div>
+                    )}
+                  </div>
+                )}
+
+                {card.tags && card.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {card.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded-base"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Results count */}
+        {searchQuery && filteredCards.length > 0 && (
+          <p className="text-sm text-muted-foreground mt-4 text-center">
+            Menampilkan {filteredCards.length} dari {deck.flashcards.length} kartu
+          </p>
         )}
       </div>
+
+      {/* Flashcard Editor Modal */}
+      {showEditor && deck.isOwner && (
+        <FlashcardEditor
+          deckId={deck.id}
+          flashcard={editingCard}
+          onSave={handleEditorSave}
+          onCancel={handleEditorCancel}
+        />
+      )}
     </div>
   );
 }
