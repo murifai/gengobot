@@ -128,28 +128,59 @@ export default function StreamingChatInterface({
   const isMobile =
     typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-  // Unlock audio context - called on first user interaction
-  const unlockAudio = useCallback(() => {
-    // Create and play silent audio to unlock audio context
-    const silentAudio = new Audio(
-      'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA'
-    );
-    silentAudio
-      .play()
-      .then(() => {
-        setAudioUnlocked(true);
-        setShowAudioUnlockPrompt(false);
-        console.log('[StreamingChatInterface] Audio unlocked for mobile');
+  // Unlock audio context and play pending audio - called on user tap
+  // This only shows once for the first audio, subsequent audios play automatically
+  const unlockAudioAndPlay = useCallback(() => {
+    if (!pendingAudioRef.current) {
+      setShowAudioUnlockPrompt(false);
+      setAudioUnlocked(true);
+      return;
+    }
 
-        // If there was pending audio, play it now
-        if (pendingAudioRef.current) {
-          playAudio(pendingAudioRef.current.url, pendingAudioRef.current.idx);
+    const { url, idx } = pendingAudioRef.current;
+
+    // Stop any current audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
+    // Create and play the actual pending audio directly from user tap
+    const audio = new Audio(url);
+    audioRef.current = audio;
+
+    setLoadingAudioIdx(idx);
+    setShowAudioUnlockPrompt(false);
+
+    audio.onloadeddata = () => {
+      setLoadingAudioIdx(null);
+      setPlayingAudioIdx(idx);
+      audio
+        .play()
+        .then(() => {
+          setAudioUnlocked(true); // Mark as unlocked - future audios won't show prompt
           pendingAudioRef.current = null;
-        }
-      })
-      .catch(err => {
-        console.error('[StreamingChatInterface] Failed to unlock audio:', err);
-      });
+          console.log('[StreamingChatInterface] Audio unlocked and playing');
+        })
+        .catch(err => {
+          console.error('[StreamingChatInterface] Audio play failed:', err);
+          setPlayingAudioIdx(null);
+        });
+    };
+
+    audio.onended = () => {
+      setPlayingAudioIdx(null);
+      audioRef.current = null;
+    };
+
+    audio.onerror = e => {
+      console.error('[StreamingChatInterface] Audio error:', e);
+      setLoadingAudioIdx(null);
+      setPlayingAudioIdx(null);
+      audioRef.current = null;
+    };
+
+    audio.load();
   }, []);
 
   // Play audio function
@@ -261,7 +292,7 @@ export default function StreamingChatInterface({
               diputar.
             </p>
             <button
-              onClick={unlockAudio}
+              onClick={unlockAudioAndPlay}
               className="w-full py-3 px-4 bg-primary text-primary-foreground font-semibold rounded-base border-2 border-border shadow-shadow hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none transition-all"
             >
               🔊 Aktifkan Audio
