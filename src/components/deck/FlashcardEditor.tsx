@@ -84,7 +84,7 @@ export default function FlashcardEditor({
       switch (cardType) {
         case 'kanji':
           if (!kanji || !kanjiMeaning) {
-            alert('Kanji and Meaning are required for kanji cards');
+            alert('Kanji dan Arti wajib diisi untuk kartu kanji');
             setSaving(false);
             return;
           }
@@ -99,7 +99,7 @@ export default function FlashcardEditor({
 
         case 'vocabulary':
           if (!word || !wordMeaning || !reading) {
-            alert('Word, Meaning, and Reading are required for vocabulary cards');
+            alert('Kata, Arti, dan Cara Baca wajib diisi untuk kartu kosakata');
             setSaving(false);
             return;
           }
@@ -114,7 +114,7 @@ export default function FlashcardEditor({
 
         case 'grammar':
           if (!grammarPoint || !grammarMeaning) {
-            alert('Grammar Point and Meaning are required for grammar cards');
+            alert('Pola Tata Bahasa dan Arti wajib diisi untuk kartu tata bahasa');
             setSaving(false);
             return;
           }
@@ -139,27 +139,40 @@ export default function FlashcardEditor({
       });
 
       if (response.ok) {
-        alert(flashcard ? 'Flashcard updated successfully!' : 'Flashcard created successfully!');
+        alert(flashcard ? 'Kartu berhasil diperbarui!' : 'Kartu berhasil dibuat!');
         onSave();
       } else {
         const data = await response.json();
-        alert(`Failed to save flashcard: ${data.error}`);
+        alert(`Gagal menyimpan kartu: ${data.error}`);
       }
     } catch (error) {
       console.error('Error saving flashcard:', error);
-      alert('Failed to save flashcard. Please try again.');
+      alert('Gagal menyimpan kartu. Silakan coba lagi.');
     } finally {
       setSaving(false);
     }
   };
 
   const renderPreview = () => {
+    const getCardTypeLabel = (type: CardType) => {
+      switch (type) {
+        case 'kanji':
+          return 'Kanji';
+        case 'vocabulary':
+          return 'Kosakata';
+        case 'grammar':
+          return 'Tata Bahasa';
+        default:
+          return type;
+      }
+    };
+
     return (
       <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 border-2 border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Card Preview</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Pratinjau Kartu</h3>
           <span className="px-2 py-1 text-xs font-semibold rounded bg-secondary/10 text-foreground">
-            {cardType}
+            {getCardTypeLabel(cardType)}
           </span>
         </div>
 
@@ -172,7 +185,7 @@ export default function FlashcardEditor({
                   {kanji || '?'}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {kanjiMeaning || 'Meaning'}
+                  {kanjiMeaning || 'Arti'}
                 </div>
               </>
             )}
@@ -182,10 +195,10 @@ export default function FlashcardEditor({
                   {word || '?'}
                 </div>
                 <div className="text-lg text-gray-500 dark:text-gray-400 mb-1">
-                  {reading || 'Reading'}
+                  {reading || 'Cara Baca'}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {wordMeaning || 'Meaning'}
+                  {wordMeaning || 'Arti'}
                 </div>
               </>
             )}
@@ -195,7 +208,7 @@ export default function FlashcardEditor({
                   {grammarPoint || '?'}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {grammarMeaning || 'Meaning'}
+                  {grammarMeaning || 'Arti'}
                 </div>
               </>
             )}
@@ -205,7 +218,7 @@ export default function FlashcardEditor({
         {/* Additional info */}
         {exampleSentence && (
           <div className="bg-secondary/10 rounded p-3 text-sm">
-            <div className="font-medium text-secondary mb-1">Example:</div>
+            <div className="font-medium text-secondary mb-1">Contoh:</div>
             <div className="text-foreground mb-1">{exampleSentence}</div>
             {exampleTranslation && (
               <div className="text-blue-600 dark:text-blue-300 text-xs">{exampleTranslation}</div>
@@ -222,7 +235,7 @@ export default function FlashcardEditor({
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {flashcard ? 'Edit Flashcard' : 'Create Flashcard'}
+            {flashcard ? 'Edit Kartu' : 'Buat Kartu'}
           </h2>
           <button
             onClick={onCancel}
@@ -236,7 +249,7 @@ export default function FlashcardEditor({
           {/* Card Type Selector */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Card Type *
+              Jenis Kartu *
             </label>
             <div className="flex gap-2">
               <Button
@@ -253,7 +266,7 @@ export default function FlashcardEditor({
                 size="sm"
                 onClick={() => setCardType('vocabulary')}
               >
-                Vocabulary
+                Kosakata
               </Button>
               <Button
                 type="button"
@@ -261,7 +274,7 @@ export default function FlashcardEditor({
                 size="sm"
                 onClick={() => setCardType('grammar')}
               >
-                Grammar
+                Tata Bahasa
               </Button>
             </div>
           </div>
@@ -286,19 +299,19 @@ export default function FlashcardEditor({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Meaning *
+                      Arti *
                     </label>
                     <Input
                       type="text"
                       value={kanjiMeaning}
                       onChange={e => setKanjiMeaning(e.target.value)}
-                      placeholder="sun, day"
+                      placeholder="matahari, hari"
                       required
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Onyomi (On Reading)
+                      Onyomi (Bacaan On)
                     </label>
                     <Input
                       type="text"
@@ -309,7 +322,7 @@ export default function FlashcardEditor({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Kunyomi (Kun Reading)
+                      Kunyomi (Bacaan Kun)
                     </label>
                     <Input
                       type="text"
@@ -326,7 +339,7 @@ export default function FlashcardEditor({
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Word *
+                      Kata *
                     </label>
                     <Input
                       type="text"
@@ -338,19 +351,19 @@ export default function FlashcardEditor({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Meaning *
+                      Arti *
                     </label>
                     <Input
                       type="text"
                       value={wordMeaning}
                       onChange={e => setWordMeaning(e.target.value)}
-                      placeholder="to eat"
+                      placeholder="makan"
                       required
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Reading (Furigana) *
+                      Cara Baca (Furigana) *
                     </label>
                     <Input
                       type="text"
@@ -362,23 +375,23 @@ export default function FlashcardEditor({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Part of Speech
+                      Kelas Kata
                     </label>
                     <select
                       value={partOfSpeech}
                       onChange={e => setPartOfSpeech(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                     >
-                      <option value="">Select (optional)</option>
-                      <option value="Noun">Noun</option>
-                      <option value="Verb (Ichidan)">Verb (Ichidan)</option>
-                      <option value="Verb (Godan)">Verb (Godan)</option>
-                      <option value="Verb (Irregular)">Verb (Irregular)</option>
-                      <option value="い-Adjective">い-Adjective</option>
-                      <option value="な-Adjective">な-Adjective</option>
-                      <option value="Adverb">Adverb</option>
-                      <option value="Particle">Particle</option>
-                      <option value="Counter">Counter</option>
+                      <option value="">Pilih (opsional)</option>
+                      <option value="Noun">Kata Benda</option>
+                      <option value="Verb (Ichidan)">Kata Kerja (Ichidan)</option>
+                      <option value="Verb (Godan)">Kata Kerja (Godan)</option>
+                      <option value="Verb (Irregular)">Kata Kerja (Tidak Beraturan)</option>
+                      <option value="い-Adjective">Kata Sifat-i</option>
+                      <option value="な-Adjective">Kata Sifat-na</option>
+                      <option value="Adverb">Kata Keterangan</option>
+                      <option value="Particle">Partikel</option>
+                      <option value="Counter">Kata Satuan</option>
                     </select>
                   </div>
                 </>
@@ -389,7 +402,7 @@ export default function FlashcardEditor({
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Grammar Point *
+                      Pola Tata Bahasa *
                     </label>
                     <Input
                       type="text"
@@ -401,24 +414,24 @@ export default function FlashcardEditor({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Meaning *
+                      Arti *
                     </label>
                     <Input
                       type="text"
                       value={grammarMeaning}
                       onChange={e => setGrammarMeaning(e.target.value)}
-                      placeholder="To be doing something (continuous action)"
+                      placeholder="Sedang melakukan sesuatu (aksi berkelanjutan)"
                       required
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Usage Note
+                      Catatan Penggunaan
                     </label>
                     <textarea
                       value={usageNote}
                       onChange={e => setUsageNote(e.target.value)}
-                      placeholder="Verb て-form + います"
+                      placeholder="Kata kerja bentuk-て + います"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                       rows={2}
                     />
@@ -429,13 +442,13 @@ export default function FlashcardEditor({
               {/* Common Fields */}
               <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                 <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                  Additional Information (Optional)
+                  Informasi Tambahan (Opsional)
                 </h3>
 
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Example Sentence
+                      Contoh Kalimat
                     </label>
                     <textarea
                       value={exampleSentence}
@@ -448,24 +461,24 @@ export default function FlashcardEditor({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Example Translation
+                      Terjemahan Contoh
                     </label>
                     <Input
                       type="text"
                       value={exampleTranslation}
                       onChange={e => setExampleTranslation(e.target.value)}
-                      placeholder="Today's weather is good."
+                      placeholder="Cuaca hari ini bagus."
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Notes
+                      Catatan
                     </label>
                     <textarea
                       value={notes}
                       onChange={e => setNotes(e.target.value)}
-                      placeholder="Additional notes or mnemonics..."
+                      placeholder="Catatan tambahan atau cara mengingat..."
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                       rows={2}
                     />
@@ -473,13 +486,13 @@ export default function FlashcardEditor({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Tags (comma-separated)
+                      Tag (pisahkan dengan koma)
                     </label>
                     <Input
                       type="text"
                       value={tags}
                       onChange={e => setTags(e.target.value)}
-                      placeholder="JLPT N5, common, daily life"
+                      placeholder="JLPT N5, umum, kehidupan sehari-hari"
                     />
                   </div>
                 </div>
@@ -489,14 +502,14 @@ export default function FlashcardEditor({
             {/* Right Column - Preview */}
             <div className="lg:sticky lg:top-6 h-fit">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Preview</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Pratinjau</h3>
                 <Button
                   type="button"
                   variant="secondary"
                   size="sm"
                   onClick={() => setShowPreview(!showPreview)}
                 >
-                  {showPreview ? 'Hide' : 'Show'} Preview
+                  {showPreview ? 'Sembunyikan' : 'Tampilkan'} Pratinjau
                 </Button>
               </div>
               {showPreview && renderPreview()}
@@ -506,10 +519,10 @@ export default function FlashcardEditor({
           {/* Action Buttons */}
           <div className="flex gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
             <Button type="submit" variant="default" disabled={saving} className="flex-1">
-              {saving ? 'Saving...' : flashcard ? 'Update Card' : 'Create Card'}
+              {saving ? 'Menyimpan...' : flashcard ? 'Perbarui Kartu' : 'Buat Kartu'}
             </Button>
             <Button type="button" variant="secondary" onClick={onCancel} disabled={saving}>
-              Cancel
+              Batal
             </Button>
           </div>
         </form>

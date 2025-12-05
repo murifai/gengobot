@@ -426,26 +426,26 @@ export default function DeckBrowser() {
 
   return (
     <div>
-      {/* Tabs - Neo Brutalism Style */}
-      <div className="flex border-b-2 border-border mb-6">
+      {/* Tabs - Neo Brutalism Style Full Width */}
+      <div className="flex mb-6">
         <button
           onClick={() => setActiveTab('public')}
-          className={`flex items-center gap-2 px-6 py-3 font-bold text-base transition-colors relative ${
+          className={`flex-1 flex items-center justify-center gap-2 py-3 font-bold text-base transition-colors border-2 border-border ${
             activeTab === 'public'
-              ? 'text-foreground bg-card border-2 border-border border-b-card -mb-[2px] rounded-t-base'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-          }`}
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-card text-muted-foreground hover:text-foreground hover:bg-muted/50'
+          } rounded-l-base border-r-0`}
         >
           <Users size={18} />
           Dek Publik
         </button>
         <button
           onClick={() => setActiveTab('private')}
-          className={`flex items-center gap-2 px-6 py-3 font-bold text-base transition-colors relative ${
+          className={`flex-1 flex items-center justify-center gap-2 py-3 font-bold text-base transition-colors border-2 border-border ${
             activeTab === 'private'
-              ? 'text-foreground bg-card border-2 border-border border-b-card -mb-[2px] rounded-t-base'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-          }`}
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-card text-muted-foreground hover:text-foreground hover:bg-muted/50'
+          } rounded-r-base`}
         >
           <BookOpen size={18} />
           Dek Pribadi
