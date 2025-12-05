@@ -39,7 +39,7 @@ export default function FlashcardEditor({
 }: FlashcardEditorProps) {
   const [cardType, setCardType] = useState<CardType>(flashcard?.cardType || 'vocabulary');
   const [saving, setSaving] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
 
   // Kanji fields
   const [kanji, setKanji] = useState(flashcard?.kanji || '');
@@ -153,6 +153,24 @@ export default function FlashcardEditor({
     }
   };
 
+  const CARD_COLORS: Record<string, { front: string; back: string; accent: string }> = {
+    kanji: {
+      front: 'var(--card-kanji)',
+      back: 'var(--card-kanji-back)',
+      accent: '#FF9800',
+    },
+    vocabulary: {
+      front: 'var(--card-vocabulary)',
+      back: 'var(--card-vocabulary-back)',
+      accent: '#4CAF50',
+    },
+    grammar: {
+      front: 'var(--card-grammar)',
+      back: 'var(--card-grammar-back)',
+      accent: '#FF5722',
+    },
+  };
+
   const renderPreview = () => {
     const getCardTypeLabel = (type: CardType) => {
       switch (type) {
@@ -167,64 +185,179 @@ export default function FlashcardEditor({
       }
     };
 
+    const cardColors = CARD_COLORS[cardType] || CARD_COLORS.vocabulary;
+
     return (
-      <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 border-2 border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Pratinjau Kartu</h3>
-          <span className="px-2 py-1 text-xs font-semibold rounded bg-secondary/10 text-foreground">
+      <div className="space-y-4">
+        {/* Card Preview - Neo Brutalism Style */}
+        <div
+          className="relative min-h-[280px] p-6"
+          style={{
+            backgroundColor: cardColors.front,
+            border: '3px solid #000',
+            boxShadow: '4px 4px 0px 0px #000',
+          }}
+        >
+          {/* Card type badge */}
+          <div
+            className="absolute top-3 left-3 px-3 py-1 text-xs font-bold uppercase tracking-wider"
+            style={{
+              backgroundColor: cardColors.accent,
+              color: 'white',
+              border: '2px solid #000',
+              boxShadow: '2px 2px 0px 0px #000',
+            }}
+          >
             {getCardTypeLabel(cardType)}
-          </span>
-        </div>
+          </div>
 
-        {/* Front of card */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-8 mb-4 min-h-[200px] flex items-center justify-center">
-          <div className="text-center">
-            {cardType === 'kanji' && (
-              <>
-                <div className="text-6xl font-bold mb-2 text-gray-900 dark:text-white">
-                  {kanji || '?'}
+          {/* Front of card content */}
+          <div className="flex items-center justify-center min-h-[200px] pt-8">
+            <div className="text-center">
+              {cardType === 'kanji' && (
+                <>
+                  <div className="text-7xl font-bold mb-2 text-black font-jp-mincho">
+                    {kanji || '漢'}
+                  </div>
+                </>
+              )}
+              {cardType === 'vocabulary' && (
+                <>
+                  <div className="text-5xl font-bold mb-2 text-black font-jp-mincho">
+                    {word || '言葉'}
+                  </div>
+                  {reading && <div className="text-xl text-black/70">{reading}</div>}
+                </>
+              )}
+              {cardType === 'grammar' && (
+                <div className="text-3xl font-bold text-black font-jp-mincho">
+                  {grammarPoint || '〜文法'}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {kanjiMeaning || 'Arti'}
-                </div>
-              </>
-            )}
-            {cardType === 'vocabulary' && (
-              <>
-                <div className="text-4xl font-bold mb-2 text-gray-900 dark:text-white">
-                  {word || '?'}
-                </div>
-                <div className="text-lg text-gray-500 dark:text-gray-400 mb-1">
-                  {reading || 'Cara Baca'}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {wordMeaning || 'Arti'}
-                </div>
-              </>
-            )}
-            {cardType === 'grammar' && (
-              <>
-                <div className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">
-                  {grammarPoint || '?'}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {grammarMeaning || 'Arti'}
-                </div>
-              </>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Additional info */}
-        {exampleSentence && (
-          <div className="bg-secondary/10 rounded p-3 text-sm">
-            <div className="font-medium text-secondary mb-1">Contoh:</div>
-            <div className="text-foreground mb-1">{exampleSentence}</div>
-            {exampleTranslation && (
-              <div className="text-blue-600 dark:text-blue-300 text-xs">{exampleTranslation}</div>
-            )}
+        {/* Back Preview - Meaning & Details */}
+        <div
+          className="p-4 space-y-3"
+          style={{
+            backgroundColor: cardColors.back,
+            border: '3px solid #000',
+            boxShadow: '4px 4px 0px 0px #000',
+          }}
+        >
+          {/* Meaning Section */}
+          <div
+            className="p-3 bg-white"
+            style={{
+              border: '2px solid #000',
+              boxShadow: '2px 2px 0px 0px #000',
+            }}
+          >
+            <h4 className="text-xs font-bold uppercase tracking-wider text-black/60 mb-1">Arti</h4>
+            <p className="text-base font-bold text-black">
+              {cardType === 'kanji'
+                ? kanjiMeaning || 'Arti kanji'
+                : cardType === 'vocabulary'
+                  ? wordMeaning || 'Arti kata'
+                  : grammarMeaning || 'Arti pola'}
+            </p>
           </div>
-        )}
+
+          {/* Kanji readings */}
+          {cardType === 'kanji' && (onyomi || kunyomi) && (
+            <div className="grid grid-cols-2 gap-2">
+              {onyomi && (
+                <div
+                  className="p-2 bg-white"
+                  style={{
+                    border: '2px solid #000',
+                    boxShadow: '2px 2px 0px 0px #000',
+                  }}
+                >
+                  <h4 className="text-[10px] font-bold uppercase text-black/60 mb-0.5">
+                    On&apos;yomi
+                  </h4>
+                  <p className="text-sm font-bold text-black">{onyomi}</p>
+                </div>
+              )}
+              {kunyomi && (
+                <div
+                  className="p-2 bg-white"
+                  style={{
+                    border: '2px solid #000',
+                    boxShadow: '2px 2px 0px 0px #000',
+                  }}
+                >
+                  <h4 className="text-[10px] font-bold uppercase text-black/60 mb-0.5">
+                    Kun&apos;yomi
+                  </h4>
+                  <p className="text-sm font-bold text-black">{kunyomi}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Part of speech for vocabulary */}
+          {cardType === 'vocabulary' && partOfSpeech && (
+            <div
+              className="inline-block px-2 py-0.5 bg-white text-xs font-bold"
+              style={{
+                border: '2px solid #000',
+                boxShadow: '2px 2px 0px 0px #000',
+              }}
+            >
+              {partOfSpeech}
+            </div>
+          )}
+
+          {/* Usage note for grammar */}
+          {cardType === 'grammar' && usageNote && (
+            <div
+              className="p-2 bg-white"
+              style={{
+                border: '2px solid #000',
+                boxShadow: '2px 2px 0px 0px #000',
+              }}
+            >
+              <h4 className="text-[10px] font-bold uppercase text-black/60 mb-0.5">
+                Catatan Penggunaan
+              </h4>
+              <p className="text-xs text-black whitespace-pre-wrap">{usageNote}</p>
+            </div>
+          )}
+
+          {/* Example Sentence */}
+          {exampleSentence && (
+            <div
+              className="p-2 bg-white"
+              style={{
+                border: '2px solid #000',
+                boxShadow: '2px 2px 0px 0px #000',
+              }}
+            >
+              <h4 className="text-[10px] font-bold uppercase text-black/60 mb-1">Contoh</h4>
+              <p className="text-sm font-medium text-black mb-0.5">{exampleSentence}</p>
+              {exampleTranslation && <p className="text-xs text-black/70">{exampleTranslation}</p>}
+            </div>
+          )}
+
+          {/* Notes */}
+          {notes && (
+            <div
+              className="p-2"
+              style={{
+                backgroundColor: cardColors.accent + '20',
+                border: '2px solid #000',
+                borderLeft: `4px solid ${cardColors.accent}`,
+              }}
+            >
+              <h4 className="text-[10px] font-bold uppercase text-black/60 mb-0.5">Catatan</h4>
+              <p className="text-xs text-black whitespace-pre-wrap">{notes}</p>
+            </div>
+          )}
+        </div>
       </div>
     );
   };
@@ -509,7 +642,7 @@ export default function FlashcardEditor({
                   size="sm"
                   onClick={() => setShowPreview(!showPreview)}
                 >
-                  {showPreview ? 'Sembunyikan' : 'Tampilkan'} Pratinjau
+                  {showPreview ? 'Sembunyikan' : 'Tampilkan'}
                 </Button>
               </div>
               {showPreview && renderPreview()}

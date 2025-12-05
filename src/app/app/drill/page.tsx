@@ -2,7 +2,6 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import DeckBrowser from '@/components/deck/DeckBrowser';
 import { LoadingState } from '@/components/ui/LoadingState';
-import { Button } from '@/components/ui/Button';
 import { ChevronLeft } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -16,7 +15,7 @@ export default function DrillHubPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-card border-b-2 border-border px-4 py-4 flex items-center justify-between">
+      <div className="bg-card border-b-2 border-border px-4 py-4">
         <div className="flex items-center gap-4">
           <Link
             href="/app"
@@ -26,14 +25,6 @@ export default function DrillHubPage() {
             <ChevronLeft className="w-7 h-7 text-foreground" />
           </Link>
           <h1 className="text-2xl font-bold">Dek Drill</h1>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/app/drill/decks/new">
-            <Button>Buat Dek</Button>
-          </Link>
-          <Link href="/app/drill/my-decks">
-            <Button variant="outline">Dek Saya</Button>
-          </Link>
         </div>
       </div>
 
