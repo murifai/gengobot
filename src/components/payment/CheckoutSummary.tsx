@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Loader2, ExternalLink, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -37,7 +37,6 @@ export function CheckoutSummary({
   const [appliedVoucher, setAppliedVoucher] = useState<AppliedVoucher | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [invoiceUrl, setInvoiceUrl] = useState<string | null>(null);
 
   const pricing = getDiscountedPrice(tier, durationMonths, pricingConfig);
 
@@ -96,11 +95,10 @@ export function CheckoutSummary({
         throw new Error(data.error || 'Failed to create checkout');
       }
 
-      setInvoiceUrl(data.transaction.redirectUrl);
       onCheckout?.();
 
-      // Redirect to payment page
-      window.open(data.transaction.redirectUrl, '_blank');
+      // Redirect to payment page directly
+      window.location.href = data.transaction.redirectUrl;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
     } finally {
@@ -189,23 +187,16 @@ export function CheckoutSummary({
         )}
 
         {/* Checkout button */}
-        {invoiceUrl ? (
-          <Button onClick={() => window.open(invoiceUrl, '_blank')} className="w-full">
-            <ExternalLink className="h-4 w-4 mr-2" />
-            Buka Halaman Pembayaran
-          </Button>
-        ) : (
-          <Button onClick={handleCheckout} disabled={isLoading} className="w-full">
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Memproses...
-              </>
-            ) : (
-              `Bayar ${formatCurrency(finalAmount)}`
-            )}
-          </Button>
-        )}
+        <Button onClick={handleCheckout} disabled={isLoading} className="w-full">
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Memproses...
+            </>
+          ) : (
+            `Bayar ${formatCurrency(finalAmount)}`
+          )}
+        </Button>
 
         {/* Mock mode indicator */}
         {process.env.NODE_ENV === 'development' && (

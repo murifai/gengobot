@@ -60,6 +60,8 @@ export async function POST(request: NextRequest) {
         voucherCode,
         payerEmail: session.user.email || undefined,
         payerName: session.user.name || undefined,
+        changeType: tierValidation.changeType,
+        scheduledForNextPeriod: tierValidation.scheduledForNextPeriod,
       },
       {
         payerEmail: session.user.email || undefined,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, Check } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -29,6 +29,9 @@ export default function UpgradePage() {
       : SubscriptionTier.BASIC
   );
   const [selectedDuration, setSelectedDuration] = useState<DurationOption>(1);
+
+  // Ref for checkout section (for mobile auto-scroll)
+  const checkoutRef = useRef<HTMLDivElement>(null);
 
   // Get pricing config for each tier from API
   const getPricingConfig = (tier: SubscriptionTier): TierPricingConfig | null => {
@@ -65,8 +68,18 @@ export default function UpgradePage() {
     router.back();
   };
 
+  // Scroll to checkout section on mobile
+  const scrollToCheckout = useCallback(() => {
+    // Only scroll on mobile (lg breakpoint is 1024px)
+    if (window.innerWidth < 1024 && checkoutRef.current) {
+      checkoutRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
+
   const handleTierSelect = (tier: SubscriptionTier) => {
     setSelectedTier(tier);
+    // Auto-scroll to checkout on mobile after selecting a tier
+    setTimeout(scrollToCheckout, 100);
   };
 
   if (isLoading || plansLoading) {
@@ -176,7 +189,7 @@ export default function UpgradePage() {
           </div>
 
           {/* Right side - Checkout summary */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1" ref={checkoutRef}>
             <div className="sticky top-4">
               {currentTier === selectedTier ? (
                 <div className="text-center py-8 text-muted-foreground">

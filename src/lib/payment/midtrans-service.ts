@@ -547,12 +547,33 @@ export class MidtransService {
 
     if (isDowngrade && existingSubscription) {
       // For downgrades: schedule the tier change for when current period ends
+      // Credits will be granted when the scheduled change is processed (by cron job)
       await prisma.subscription.update({
         where: { userId },
         data: {
           scheduledTier: tier,
           scheduledTierStartAt: existingSubscription.currentPeriodEnd,
           scheduledDurationMonths: durationMonths,
+        },
+      });
+
+      // Record payment for downgrade (no credits added yet - they'll be added when downgrade activates)
+      await prisma.creditTransaction.create({
+        data: {
+          userId,
+          type: CreditTransactionType.ADJUSTMENT,
+          amount: 0, // No credits added now
+          balance: existingSubscription.creditsRemaining, // Keep current balance
+          description: `Pembayaran downgrade ke ${tier} - ${durationMonths} bulan (aktif ${existingSubscription.currentPeriodEnd.toLocaleDateString('id-ID')})`,
+          metadata: {
+            tier,
+            durationMonths,
+            amountPaid: amount,
+            paymentType: notification.payment_type,
+            transactionId: notification.transaction_id,
+            scheduledFor: existingSubscription.currentPeriodEnd.toISOString(),
+            isScheduledDowngrade: true,
+          },
         },
       });
 
