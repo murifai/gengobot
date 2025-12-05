@@ -1,6 +1,7 @@
 'use client';
 
-import { Check, Zap, Star, AlertTriangle } from 'lucide-react';
+import { useState } from 'react';
+import { Check, Zap, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -48,6 +49,8 @@ export function PricingCard({
   features: propFeatures,
   credits: propCredits,
 }: PricingCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   // Determine if this is a downgrade
   const isDowngrade =
     currentTier &&
@@ -116,43 +119,26 @@ export function PricingCard({
     return features;
   };
 
-  const isPro = tier === SubscriptionTier.PRO;
   const isFree = tier === SubscriptionTier.FREE;
 
   return (
-    <Card
-      className={cn(
-        'relative',
-        isPro && 'border-primary shadow-lg',
-        isCurrentPlan && 'bg-muted/30',
-        className
-      )}
-    >
-      {isPro && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <Badge variant="primary" className="flex items-center gap-1">
-            <Star className="h-3 w-3" />
-            Popular
-          </Badge>
-        </div>
+    <Card className={cn('relative flex flex-col', isCurrentPlan && 'bg-muted/30', className)}>
+      {isCurrentPlan && (
+        <Badge className="absolute -top-3 right-4" variant="secondary">
+          Paket Saat Ini
+        </Badge>
       )}
 
       <CardHeader className="text-center pb-2">
-        <CardTitle className="flex items-center justify-center gap-2">
-          {isPro && <Zap className="h-5 w-5 text-primary" />}
+        <CardTitle className="text-2xl font-bold flex items-center justify-center gap-2">
+          {tier === SubscriptionTier.PRO && <Zap className="h-5 w-5 text-primary" />}
           {getTierName()}
         </CardTitle>
-
-        {isCurrentPlan && (
-          <Badge variant="secondary" size="sm">
-            Paket saat ini
-          </Badge>
-        )}
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-col flex-1">
         {/* Pricing */}
-        <div className="text-center">
+        <div className="text-center mb-4">
           {isFree ? (
             <div className="text-3xl font-bold">Gratis</div>
           ) : (
@@ -173,19 +159,40 @@ export function PricingCard({
           )}
         </div>
 
-        {/* Features */}
-        <ul className="space-y-2">
-          {getFeatures().map((feature, index) => (
-            <li key={index} className="flex items-center gap-2 text-sm">
-              <Check className="h-4 w-4 text-tertiary-green shrink-0" />
-              <span>{feature}</span>
-            </li>
-          ))}
-        </ul>
+        {/* Toggle Features Button */}
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center justify-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+        >
+          {isExpanded ? (
+            <>
+              <span>Sembunyikan fitur</span>
+              <ChevronUp className="h-4 w-4" />
+            </>
+          ) : (
+            <>
+              <span>Lihat fitur</span>
+              <ChevronDown className="h-4 w-4" />
+            </>
+          )}
+        </button>
+
+        {/* Features - Collapsible */}
+        {isExpanded && (
+          <ul className="space-y-2 mb-4">
+            {getFeatures().map((feature, index) => (
+              <li key={index} className="flex items-center gap-2 text-sm">
+                <Check className="h-4 w-4 text-tertiary-green shrink-0" />
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+        )}
 
         {/* Downgrade Warning */}
         {isDowngrade && currentPeriodEnd && (
-          <div className="p-3 bg-warning/10 border border-warning/30 rounded-base text-sm">
+          <div className="p-3 bg-warning/10 border border-warning/30 rounded-base text-sm mb-4">
             <div className="flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
               <p className="text-warning-foreground">
@@ -203,13 +210,16 @@ export function PricingCard({
           </div>
         )}
 
-        {/* CTA Button */}
+        {/* Spacer to push button to bottom */}
+        <div className="flex-1" />
+
+        {/* CTA Button - Always at bottom */}
         {!isFree && onSelect && (
           <Button
             onClick={() => onSelect(tier)}
             disabled={disabled || isCurrentPlan}
-            variant={isPro ? 'default' : 'outline'}
-            className="w-full"
+            variant="outline"
+            className="w-full mt-auto"
           >
             {isCurrentPlan
               ? 'Paket Saat Ini'

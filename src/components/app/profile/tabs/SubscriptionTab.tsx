@@ -2,16 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { CreditCard, History, Zap, ArrowUpRight } from 'lucide-react';
+import { CreditCard, History, Zap } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Separator } from '@/components/ui/separator';
 import { CreditBalance } from '@/components/subscription/CreditBalance';
 import { UsageHistory } from '@/components/subscription/UsageHistory';
 import { UsageWarning } from '@/components/subscription/UsageWarning';
 import { TrialStatus, TrialExpired } from '@/components/subscription/TrialStatus';
-import { PricingTable } from '@/components/subscription/PricingTable';
 import { useSubscription, useCreditWarning, useTrialStatus } from '@/hooks/useSubscription';
 import { SubscriptionTier } from '@prisma/client';
 import { TIER_PRICING } from '@/lib/subscription/credit-config';
@@ -35,7 +33,6 @@ export function SubscriptionTab() {
   const warningLevel = useCreditWarning(balance);
   const trialStatus = useTrialStatus(balance);
 
-  const [showPricing, setShowPricing] = useState(false);
   const [historyOffset, setHistoryOffset] = useState(0);
   const historyLimit = 10;
 
@@ -212,45 +209,6 @@ export function SubscriptionTab() {
           hasMore={transactions.length > 0 && transactions.length % historyLimit === 0}
           onLoadMore={handleLoadMoreHistory}
         />
-      </div>
-
-      <Separator />
-
-      {/* Pricing / Upgrade Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="font-medium">Bandingkan Paket</h3>
-          <Button variant="ghost" size="sm" onClick={() => setShowPricing(!showPricing)}>
-            {showPricing ? 'Sembunyikan' : 'Lihat Semua'}
-            <ArrowUpRight className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
-
-        {showPricing && (
-          <PricingTable currentTier={tier} onSelectTier={handleUpgrade} showFree={false} />
-        )}
-
-        {!showPricing && tier !== SubscriptionTier.PRO && (
-          <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="py-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">
-                    {tier === SubscriptionTier.FREE
-                      ? 'Upgrade ke Basic atau Pro'
-                      : 'Upgrade ke Pro'}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Dapatkan lebih banyak kredit dan fitur premium
-                  </p>
-                </div>
-                <Button size="sm" onClick={() => handleUpgrade()}>
-                  Upgrade
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   );

@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileHeader } from './ProfileHeader';
 import { PersonalTab } from './tabs/PersonalTab';
+import { SubscriptionTab } from './tabs/SubscriptionTab';
 import { SettingTab } from './tabs/SettingTab';
-import { CharactersTab } from './tabs/CharactersTab';
-import { User, Settings, Users } from 'lucide-react';
+import { User, CreditCard, Settings } from 'lucide-react';
 
 export interface UserProfile {
   id: string;
@@ -28,8 +28,8 @@ interface ProfilePageProps {
 
 const tabs = [
   { value: 'personal', label: 'Profil', icon: User },
-  { value: 'setting', label: 'Setting', icon: Settings },
-  { value: 'characters', label: 'Karakter', icon: Users },
+  { value: 'billing', label: 'Langganan', icon: CreditCard },
+  { value: 'setting', label: 'Settings', icon: Settings },
 ];
 
 export function ProfilePage({ user }: ProfilePageProps) {
@@ -57,12 +57,12 @@ export function ProfilePage({ user }: ProfilePageProps) {
           <PersonalTab user={user} />
         </TabsContent>
 
-        <TabsContent value="setting" className="mt-6">
-          <SettingTab user={user} />
+        <TabsContent value="billing" className="mt-6">
+          <SubscriptionTab />
         </TabsContent>
 
-        <TabsContent value="characters" className="mt-6">
-          <CharactersTab />
+        <TabsContent value="setting" className="mt-6">
+          <SettingTab user={user} />
         </TabsContent>
       </Tabs>
     </div>

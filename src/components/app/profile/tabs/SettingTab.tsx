@@ -4,16 +4,13 @@ import { useState } from 'react';
 import { useTheme } from 'next-themes';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { Dialog, DialogTitle, DialogDescription } from '@/components/ui/Dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { CreditCard, AlertTriangle, Trash2, LogOut, Zap, ChevronRight, Moon } from 'lucide-react';
+import { AlertTriangle, Trash2, LogOut, Moon } from 'lucide-react';
 import { UserProfile } from '../ProfilePage';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { useSubscription } from '@/hooks/useSubscription';
-import { SubscriptionTier } from '@prisma/client';
 
 interface SettingTabProps {
   user: UserProfile;
@@ -24,12 +21,6 @@ export function SettingTab({ user }: SettingTabProps) {
   const { theme, setTheme } = useTheme();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-  const { balance, isLoading: isSubscriptionLoading, tier } = useSubscription();
-
-  const handleUpgrade = () => {
-    router.push('/app/upgrade');
-  };
 
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
@@ -52,91 +43,8 @@ export function SettingTab({ user }: SettingTabProps) {
     }
   };
 
-  const getTierBadgeVariant = ():
-    | 'default'
-    | 'primary'
-    | 'secondary'
-    | 'success'
-    | 'warning'
-    | 'danger' => {
-    switch (tier) {
-      case SubscriptionTier.PRO:
-        return 'primary';
-      case SubscriptionTier.BASIC:
-        return 'secondary';
-      default:
-        return 'default';
-    }
-  };
-
-  const getTierLabel = () => {
-    switch (tier) {
-      case SubscriptionTier.PRO:
-        return 'Pro';
-      case SubscriptionTier.BASIC:
-        return 'Basic';
-      default:
-        return 'Free';
-    }
-  };
-
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('id-ID').format(num);
-  };
-
   return (
     <div className="space-y-6">
-      {/* Langganan */}
-      {isSubscriptionLoading ? (
-        <Card>
-          <CardContent className="py-8">
-            <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              <CardTitle className="text-base">Langganan</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Paket</span>
-              <Badge variant={getTierBadgeVariant()}>{getTierLabel()}</Badge>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Saldo Kredit</span>
-              <span className="text-sm font-semibold">
-                {balance ? formatNumber(balance.remaining) : '—'}
-              </span>
-            </div>
-
-            <div className="flex flex-col gap-2 pt-2">
-              {tier !== SubscriptionTier.PRO && (
-                <Button className="w-full" onClick={handleUpgrade}>
-                  <Zap className="h-4 w-4 mr-2" />
-                  Upgrade
-                </Button>
-              )}
-
-              <Button
-                variant="outline"
-                className="w-full justify-between"
-                onClick={() => router.push('/app/subscription')}
-              >
-                <span>Detail Langganan</span>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Tampilan */}
       <Card>
         <CardHeader>

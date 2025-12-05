@@ -7,7 +7,6 @@ import {
   CreditCard,
   BarChart3,
   ArrowUpCircle,
-  Calendar,
   AlertCircle,
   XCircle,
   RefreshCw,
@@ -19,7 +18,6 @@ import { Badge } from '@/components/ui/Badge';
 import { Separator } from '@/components/ui/separator';
 import { CreditBalance } from '@/components/subscription/CreditBalance';
 import { PaymentHistory } from '@/components/payment/PaymentHistory';
-import { PricingComparison } from '@/components/subscription/PricingTable';
 import { CreditUsageChart } from '@/components/subscription/CreditUsageChart';
 import { useSubscription } from '@/hooks/useSubscription';
 import { SubscriptionTier } from '@prisma/client';
@@ -30,7 +28,6 @@ export default function BillingPage() {
   const { subscription, balance, tier, isLoading, isTrialActive, trialDaysRemaining, refresh } =
     useSubscription();
 
-  const [showPricingComparison, setShowPricingComparison] = useState(false);
   const [cancellationStatus, setCancellationStatus] = useState<{
     isCanceled: boolean;
     cancelDate?: string;
@@ -376,30 +373,6 @@ export default function BillingPage() {
 
         {/* Payment History */}
         <PaymentHistory />
-
-        {/* Subscription Plans Comparison */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Calendar className="h-5 w-5" />
-                Bandingkan Paket
-              </CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowPricingComparison(!showPricingComparison)}
-              >
-                {showPricingComparison ? 'Sembunyikan' : 'Lihat'}
-              </Button>
-            </div>
-          </CardHeader>
-          {showPricingComparison && (
-            <CardContent>
-              <PricingComparison currentTier={tier} onSelectTier={handleUpgrade} />
-            </CardContent>
-          )}
-        </Card>
       </div>
     </div>
   );
