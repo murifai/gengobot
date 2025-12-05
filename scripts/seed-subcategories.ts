@@ -30,7 +30,7 @@ async function seedData() {
         'Kuliner',
         'Olahraga',
         'Salon',
-        'Sekolah / Kampus',
+        'Sekolah/Kampus',
         'Transportasi Umum',
       ],
     },
