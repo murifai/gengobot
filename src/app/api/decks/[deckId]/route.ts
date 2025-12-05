@@ -56,7 +56,14 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    return NextResponse.json(deck);
+    // Add isOwner flag for frontend
+    const isOwner = deck.createdBy === dbUser.id || dbUser.isAdmin;
+
+    return NextResponse.json({
+      ...deck,
+      isOwner,
+      totalCards: deck._count.flashcards,
+    });
   } catch (error) {
     console.error('Error fetching deck:', error);
     return NextResponse.json({ error: 'Failed to fetch deck' }, { status: 500 });
