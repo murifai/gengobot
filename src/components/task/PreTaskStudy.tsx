@@ -104,13 +104,13 @@ export default function PreTaskStudy({
           </button>
           <div className="mb-6">
             <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 mb-4">
-              Step 1: Scenario
+              Langkah 1: Skenario
             </Badge>
             <h1 className="text-3xl font-bold text-foreground mb-2">{taskTitle}</h1>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Task Scenario</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Skenario percakapan</h2>
             {taskScenario ? (
               <div className="p-6 bg-primary/5 rounded-lg border-l-4 border-primary">
                 <p className="text-foreground leading-relaxed whitespace-pre-wrap">
@@ -118,12 +118,12 @@ export default function PreTaskStudy({
                 </p>
               </div>
             ) : (
-              <p className="text-muted-foreground italic">No scenario provided</p>
+              <p className="text-muted-foreground italic">Tidak ada skenario</p>
             )}
           </div>
 
           <div className="flex justify-end">
-            <Button onClick={() => setCurrentStep('objectives')}>Continue</Button>
+            <Button onClick={() => setCurrentStep('objectives')}>Lanjut</Button>
           </div>
         </Card>
       </div>
@@ -144,13 +144,13 @@ export default function PreTaskStudy({
           </button>
           <div className="mb-6">
             <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 mb-4">
-              Step 2: Learning Objectives
+              Langkah 2: Tujuan Pembelajaran
             </Badge>
             <h1 className="text-3xl font-bold text-foreground mb-2">{taskTitle}</h1>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-foreground mb-4">What You&apos;ll Learn</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Yang Akan Kamu Pelajari</h2>
             {learningObjectives.length > 0 ? (
               <ul className="space-y-3">
                 {learningObjectives.map((objective, idx) => (
@@ -163,15 +163,15 @@ export default function PreTaskStudy({
                 ))}
               </ul>
             ) : (
-              <p className="text-muted-foreground italic">No learning objectives specified</p>
+              <p className="text-muted-foreground italic">Tidak ada tujuan pembelajaran</p>
             )}
           </div>
 
           <div className="flex justify-between">
             <Button onClick={() => setCurrentStep('scenario')} variant="secondary">
-              Back
+              Kembali
             </Button>
-            <Button onClick={() => setCurrentStep('study-selection')}>Continue</Button>
+            <Button onClick={() => setCurrentStep('study-selection')}>Lanjut</Button>
           </div>
         </Card>
       </div>
@@ -192,15 +192,15 @@ export default function PreTaskStudy({
           </button>
           <div className="mb-6">
             <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 mb-4">
-              Step 3: Pre-Task Study (Optional)
+              Langkah 3: Belajar Dulu (Opsional)
             </Badge>
-            <h1 className="text-2xl font-bold text-foreground mb-4">Pre-Task Study</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-4">Belajar Dulu</h1>
             <h2 className="text-lg text-muted-foreground mb-6">{taskTitle}</h2>
           </div>
 
           <p className="text-muted-foreground mb-6">
-            Would you like to review the study materials associated with this task? You can choose
-            to study now or skip directly to the task instructions.
+            Mau review materi belajar untuk percakapan ini? Kamu bisa belajar dulu atau langsung ke
+            instruksi percakapan.
           </p>
 
           <div className="space-y-4 mb-8">
@@ -220,7 +220,7 @@ export default function PreTaskStudy({
                     <p className="text-sm text-muted-foreground mb-2">{deck.description}</p>
                   )}
                   <div className="flex gap-3 text-xs text-muted-foreground">
-                    <span>{deck.flashcards.length} cards</span>
+                    <span>{deck.flashcards.length} kartu</span>
                     {deck.category && <span>• {deck.category}</span>}
                     {deck.difficulty && <span>• {deck.difficulty}</span>}
                   </div>
@@ -229,7 +229,7 @@ export default function PreTaskStudy({
             ) : (
               <div className="p-4 bg-muted rounded-lg">
                 <p className="text-muted-foreground">
-                  No study materials available for this task yet.
+                  Belum ada materi belajar untuk percakapan ini.
                 </p>
               </div>
             )}
@@ -237,10 +237,10 @@ export default function PreTaskStudy({
 
           <div className="flex gap-4">
             <Button onClick={() => setCurrentStep('objectives')} variant="secondary">
-              Back
+              Kembali
             </Button>
             <Button onClick={() => setCurrentStep('success-criteria')} variant="secondary">
-              Skip to Instructions
+              Lewati
             </Button>
             {decks.length > 0 && (
               <Button
@@ -250,7 +250,7 @@ export default function PreTaskStudy({
                 }}
                 className="flex-1"
               >
-                Start Study Review
+                Mulai Belajar
               </Button>
             )}
           </div>
@@ -286,34 +286,34 @@ export default function PreTaskStudy({
           </button>
           <div className="mb-6">
             <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 mb-4">
-              Step 4: Success Criteria
+              Langkah 4: Kriteria Sukses
             </Badge>
             <h1 className="text-3xl font-bold text-foreground mb-2">{taskTitle}</h1>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Conversation Example</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Contoh Percakapan</h2>
             {conversationExample ? (
               <div className="bg-muted rounded-lg p-4 font-mono text-sm whitespace-pre-wrap text-foreground">
                 {conversationExample}
               </div>
             ) : (
-              <p className="text-muted-foreground italic">No conversation example provided</p>
+              <p className="text-muted-foreground italic">Tidak ada contoh percakapan</p>
             )}
           </div>
 
           <div className="p-4 bg-primary/10 rounded-lg border-l-4 border-primary mb-8">
             <p className="text-foreground font-medium">
-              Ready to begin? Click &quot;Start Task&quot; when you&apos;re prepared!
+              Sudah siap? Klik &quot;Mulai percakapan&quot; kalau sudah!
             </p>
           </div>
 
           <div className="flex gap-4">
             <Button onClick={() => setCurrentStep('study-selection')} variant="secondary">
-              Back to Study
+              Kembali
             </Button>
             <Button onClick={onComplete} className="flex-1">
-              Start Task
+              Mulai percakapan
             </Button>
           </div>
         </Card>

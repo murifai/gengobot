@@ -272,7 +272,7 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
-          <p className="mt-4 text-muted-foreground">Loading task attempt...</p>
+          <p className="mt-4 text-muted-foreground">Memuat percakapan...</p>
         </div>
       </div>
     );
@@ -284,18 +284,18 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
         <nav className="bg-card border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
-              <h1 className="text-xl font-bold text-foreground">Task Attempt</h1>
+              <h1 className="text-xl font-bold text-foreground">Percobaan percakapan</h1>
               <Button onClick={() => router.push('/dashboard/tasks')} variant="secondary">
-                Back to Tasks
+                Kembali
               </Button>
             </div>
           </div>
         </nav>
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
-            <p className="text-primary">{error || 'Task attempt not found'}</p>
+            <p className="text-primary">{error || 'Percobaan percakapan tidak ditemukan'}</p>
             <Button onClick={() => router.push('/dashboard/tasks')} className="mt-4">
-              Back to Tasks
+              Kembali
             </Button>
           </div>
         </main>
@@ -309,9 +309,9 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="mt-4 text-lg font-medium text-foreground">Generating Feedback...</p>
+          <p className="mt-4 text-lg font-medium text-foreground">Membuat Feedback...</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Please wait while we analyze your conversation
+            Tunggu sebentar ya, kami sedang menganalisis percakapanmu
           </p>
         </div>
       </div>
@@ -404,14 +404,14 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Reset Conversation?</AlertDialogTitle>
+                  <AlertDialogTitle>Reset Percakapan?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to reset this conversation? All messages will be cleared
-                    and you will start from the beginning.
+                    Yakin mau reset percakapan ini? Semua pesan akan dihapus dan kamu akan mulai
+                    dari awal.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>Batal</AlertDialogCancel>
                   <AlertDialogAction onClick={resetChat}>Reset</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -434,16 +434,16 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
             <AlertDialog open={showIncompleteDialog} onOpenChange={setShowIncompleteDialog}>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Task Not Complete</AlertDialogTitle>
+                  <AlertDialogTitle>percakapan Belum Selesai</AlertDialogTitle>
                   <AlertDialogDescription>
-                    You haven&apos;t completed all learning objectives yet (
+                    Kamu belum menyelesaikan semua tujuan pembelajaran (
                     {taskProgress.completedObjectivesCount}/{taskProgress.totalObjectivesCount}{' '}
-                    completed). Are you sure you want to finish and get feedback now?
+                    selesai). Yakin mau selesaikan dan dapat feedback sekarang?
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Continue Practice</AlertDialogCancel>
-                  <AlertDialogAction onClick={completeAttempt}>Finish Anyway</AlertDialogAction>
+                  <AlertDialogCancel>Lanjut Latihan</AlertDialogCancel>
+                  <AlertDialogAction onClick={completeAttempt}>Selesaikan</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
