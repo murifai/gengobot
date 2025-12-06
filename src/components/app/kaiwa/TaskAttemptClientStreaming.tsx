@@ -341,6 +341,43 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
             }
           }}
           onBackToTasks={() => router.push('/dashboard/tasks')}
+          onStartRecommendedTask={async recommendation => {
+            try {
+              // Use taskId directly if available (from database recommendations)
+              const taskId = recommendation.taskId;
+
+              if (taskId) {
+                // Create attempt with the known taskId
+                const attemptResponse = await fetch('/api/task-attempts', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    userId: attempt.userId,
+                    taskId,
+                    forceNew: true,
+                  }),
+                });
+
+                if (attemptResponse.ok) {
+                  const { attempt: newAttempt } = await attemptResponse.json();
+                  router.push(`/app/kaiwa/roleplay/${taskId}/attempt/${newAttempt.id}`);
+                  return;
+                }
+              }
+
+              // Fallback: redirect to roleplay page with category filter
+              const fallbackParams = new URLSearchParams();
+              if (recommendation.category) {
+                fallbackParams.set('category', recommendation.category);
+              }
+              router.push(
+                `/app/kaiwa/roleplay${fallbackParams.toString() ? '?' + fallbackParams.toString() : ''}`
+              );
+            } catch (error) {
+              console.error('Error starting recommended task:', error);
+              router.push('/app/kaiwa/roleplay');
+            }
+          }}
         />
       </div>
     );

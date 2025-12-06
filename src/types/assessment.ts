@@ -172,24 +172,87 @@ export interface SimplifiedAssessment {
   attemptId: string;
   taskId: string;
 
-  // 1. Objective Achievement
+  // Task Info
+  taskTitle: string;
+  scenarioName: string;
+  difficulty: string;
+
+  // 1. Objective Achievement with details
   objectives: {
-    text: string;
+    text: string; // The objective text
     achieved: boolean;
-    evidence: string[];
+    evidence: string[]; // Evidence from conversation
+    feedback?: string; // Achievement description if completed (in Indonesian)
+    exampleJp?: string; // Japanese example from conversation
+    suggestion?: string; // Suggestion if not achieved (in Indonesian)
   }[];
   objectivesAchieved: number;
   totalObjectives: number;
 
-  // 2. Conversation Feedback
-  conversationFeedback: {
-    strengths: string[]; // What user did well
-    areasToImprove: string[]; // Specific improvements
-    overallFeedback: string; // General narrative
-    encouragement: string; // Motivational message
+  // 2. Language Corrections
+  corrections: {
+    error: string; // What learner said in Japanese
+    correct: string; // Correct Japanese expression
+    explanation: string; // Brief explanation in Indonesian
+  }[];
+
+  // 3. Grammar Point Highlight (Poin Penting)
+  grammarPoint?: {
+    title: string; // Grammar point title in Indonesian
+    explanation: string; // Explanation in Indonesian
+    examples: {
+      japanese: string;
+      meaning: string; // Indonesian meaning
+    }[];
   };
 
-  // 3. Statistics
+  // 4. Tips for Natural Speaking
+  tips: {
+    situation: string; // Situation description in Indonesian
+    expression: string; // Japanese expression to use
+    note: string; // Additional note in Indonesian
+  }[];
+
+  // 5. Poin Penting Percakapan (Key Conversation Highlights)
+  conversationHighlights: {
+    exchanges: {
+      speaker: 'user' | 'partner';
+      text: string; // Japanese text
+    }[];
+    note: string; // Explanation in Indonesian
+  }[];
+
+  // 6. Task Recommendations (Rekomendasi Tema Percakapan) - From database
+  taskRecommendations: {
+    title: string; // Task title
+    reason: string; // Why this task is recommended (in Indonesian)
+    category?: string; // Task category
+    taskId?: string; // Task ID for direct navigation
+  }[];
+
+  // Legacy fields for backward compatibility
+  achievements: {
+    text: string;
+    exampleJp?: string;
+  }[];
+  practice: string[];
+  moments: {
+    exchanges: {
+      speaker: 'user' | 'partner';
+      text: string;
+    }[];
+    note: string;
+  }[];
+
+  // Legacy - Conversation Feedback (keep for backward compatibility)
+  conversationFeedback: {
+    strengths: string[];
+    areasToImprove: string[];
+    overallFeedback: string;
+    encouragement: string;
+  };
+
+  // Statistics
   statistics: {
     duration: number; // seconds
     durationMinutes: number;
@@ -198,7 +261,7 @@ export interface SimplifiedAssessment {
     completionRate: number; // percentage
   };
 
-  // 4. Recommendations
+  // Recommendations
   suggestRetry: boolean;
   nextSteps: string[];
 

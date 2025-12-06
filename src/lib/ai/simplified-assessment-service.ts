@@ -6,6 +6,7 @@ import { SimplifiedAssessment } from '@/types/assessment';
 import { ObjectiveTracking } from './objective-detection';
 import { MODELS } from './openai-client';
 import { creditService } from '@/lib/subscription';
+import { prisma } from '@/lib/prisma';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -29,6 +30,64 @@ interface GenerateAssessmentParams {
 
 export class SimplifiedAssessmentService {
   /**
+   * Fetch related tasks from database based on current task's category and difficulty
+   */
+  private static async getRelatedTasks(
+    task: Task,
+    limit: number = 3
+  ): Promise<SimplifiedAssessment['taskRecommendations']> {
+    try {
+      // Find tasks in the same category, excluding the current task
+      const relatedTasks = await prisma.task.findMany({
+        where: {
+          isActive: true,
+          id: { not: task.id },
+          OR: [
+            // Same category
+            { category: task.category },
+            // Same difficulty level
+            { difficulty: task.difficulty },
+          ],
+        },
+        select: {
+          id: true,
+          title: true,
+          category: true,
+          difficulty: true,
+        },
+        orderBy: [
+          // Prioritize same category first
+          { usageCount: 'desc' },
+        ],
+        take: limit * 2, // Get more to filter
+      });
+
+      // Sort to prioritize same category, then same difficulty
+      const sortedTasks = relatedTasks.sort((a, b) => {
+        const aScore =
+          (a.category === task.category ? 2 : 0) + (a.difficulty === task.difficulty ? 1 : 0);
+        const bScore =
+          (b.category === task.category ? 2 : 0) + (b.difficulty === task.difficulty ? 1 : 0);
+        return bScore - aScore;
+      });
+
+      // Take top tasks and format as recommendations
+      return sortedTasks.slice(0, limit).map(t => ({
+        title: t.title,
+        reason:
+          t.category === task.category
+            ? `Task serupa dalam kategori ${t.category}`
+            : `Latihan level ${t.difficulty}`,
+        category: t.category,
+        taskId: t.id,
+      }));
+    } catch (error) {
+      console.error('[SimplifiedAssessmentService] Error fetching related tasks:', error);
+      return [];
+    }
+  }
+
+  /**
    * Generate simplified assessment based on conversation and objectives
    */
   static async generateAssessment(params: GenerateAssessmentParams): Promise<SimplifiedAssessment> {
@@ -44,14 +103,18 @@ export class SimplifiedAssessmentService {
     const totalObjectives = objectiveStatus.length;
     const completionRate = totalObjectives > 0 ? (objectivesAchieved / totalObjectives) * 100 : 0;
 
-    // Generate conversation feedback using AI
-    const conversationFeedback = await this.generateConversationFeedback(
-      task,
-      conversationHistory,
-      objectiveStatus,
-      userId,
-      attemptId
-    );
+    // Generate conversation feedback using AI (returns new structure)
+    // Fetch related tasks from database (in parallel with AI feedback)
+    const [feedbackResult, relatedTasks] = await Promise.all([
+      this.generateConversationFeedback(
+        task,
+        conversationHistory,
+        objectiveStatus,
+        userId,
+        attemptId
+      ),
+      this.getRelatedTasks(task, 3),
+    ]);
 
     // Generate next steps
     const nextSteps = this.generateNextSteps(objectiveStatus, task);
@@ -59,22 +122,56 @@ export class SimplifiedAssessmentService {
     // Determine if retry is suggested
     const suggestRetry = objectivesAchieved < totalObjectives * 0.7; // Suggest retry if < 70% objectives achieved
 
-    // Build simplified assessment
+    // Build objectives with feedback from AI
+    const objectivesWithFeedback = objectiveStatus.map(obj => {
+      // Find matching feedback from AI response
+      const aiFeedback = feedbackResult.objectiveFeedback.find(
+        f => f.objectiveText === obj.objectiveText || f.achieved === (obj.status === 'completed')
+      );
+
+      return {
+        text: obj.objectiveText,
+        achieved: obj.status === 'completed',
+        evidence: obj.evidence || [],
+        feedback: aiFeedback?.feedback,
+        exampleJp: aiFeedback?.exampleJp,
+        suggestion: aiFeedback?.suggestion,
+      };
+    });
+
+    // Build simplified assessment with new structure
     const assessment: SimplifiedAssessment = {
       attemptId: '', // Will be set by the caller
       taskId: task.id,
 
-      // Objectives
-      objectives: objectiveStatus.map(obj => ({
-        text: obj.objectiveText,
-        achieved: obj.status === 'completed',
-        evidence: obj.evidence || [],
-      })),
+      // Task Info
+      taskTitle: task.title,
+      scenarioName: task.scenario,
+      difficulty: task.difficulty,
+
+      // Objectives with feedback
+      objectives: objectivesWithFeedback,
       objectivesAchieved,
       totalObjectives,
 
-      // Conversation feedback
-      conversationFeedback,
+      // Language corrections
+      corrections: feedbackResult.corrections,
+      grammarPoint: feedbackResult.grammarPoint,
+      tips: feedbackResult.tips,
+
+      // Conversation highlights (Poin Penting Percakapan)
+      conversationHighlights: feedbackResult.conversationHighlights,
+
+      // Task recommendations (from database, not AI)
+      taskRecommendations: relatedTasks,
+
+      // Legacy fields for backward compatibility
+      achievements: feedbackResult.achievements,
+      practice: relatedTasks.map(r => r.reason),
+      moments: feedbackResult.moments,
+
+      // Legacy conversation feedback for backward compatibility
+      conversationFeedback: feedbackResult.legacy,
 
       // Statistics
       statistics: {
@@ -96,7 +193,16 @@ export class SimplifiedAssessmentService {
   }
 
   /**
-   * Generate conversation feedback using AI
+   * AI feedback response structure
+   */
+  private static defaultFeedbackResponse = {
+    objectiveFeedback: [],
+    corrections: [],
+    tips: [],
+  };
+
+  /**
+   * Generate conversation feedback using AI - returns full feedback structure
    */
   private static async generateConversationFeedback(
     task: Task,
@@ -104,7 +210,23 @@ export class SimplifiedAssessmentService {
     objectiveStatus: ObjectiveTracking[],
     userId: string,
     attemptId: string
-  ): Promise<SimplifiedAssessment['conversationFeedback']> {
+  ): Promise<{
+    legacy: SimplifiedAssessment['conversationFeedback'];
+    objectiveFeedback: {
+      objectiveText: string;
+      achieved: boolean;
+      feedback?: string;
+      exampleJp?: string;
+      suggestion?: string;
+    }[];
+    corrections: SimplifiedAssessment['corrections'];
+    grammarPoint?: SimplifiedAssessment['grammarPoint'];
+    tips: SimplifiedAssessment['tips'];
+    conversationHighlights: SimplifiedAssessment['conversationHighlights'];
+    // Legacy fields
+    achievements: SimplifiedAssessment['achievements'];
+    moments: SimplifiedAssessment['moments'];
+  }> {
     const prompt = this.buildFeedbackPrompt(task, conversationHistory, objectiveStatus);
 
     try {
@@ -114,13 +236,13 @@ export class SimplifiedAssessmentService {
           {
             role: 'system',
             content:
-              'You are a supportive Japanese language learning instructor providing constructive feedback. Be specific, educational, and encouraging.',
+              'You are a supportive Japanese language learning instructor providing constructive feedback in Indonesian. Be specific, educational, and encouraging. Always respond with valid JSON.',
           },
           { role: 'user', content: prompt },
         ],
         response_format: { type: 'json_object' },
         temperature: 0.7,
-        max_tokens: 1000,
+        max_tokens: 2000,
       });
 
       // Deduct credits for feedback generation (usage-based billing)
@@ -148,30 +270,108 @@ export class SimplifiedAssessmentService {
 
       const feedbackData = JSON.parse(response.choices[0]?.message?.content || '{}');
 
+      // Map objective feedback from AI response
+      const objectiveFeedback = (feedbackData.objective_feedback || []).map(
+        (obj: {
+          objective_text: string;
+          achieved: boolean;
+          feedback?: string;
+          example_jp?: string;
+          suggestion?: string;
+        }) => ({
+          objectiveText: obj.objective_text,
+          achieved: obj.achieved,
+          feedback: obj.feedback || undefined,
+          exampleJp: obj.example_jp || undefined,
+          suggestion: obj.suggestion || undefined,
+        })
+      );
+
+      const corrections: SimplifiedAssessment['corrections'] =
+        feedbackData.corrections || this.defaultFeedbackResponse.corrections;
+
+      const grammarPoint: SimplifiedAssessment['grammarPoint'] | undefined =
+        feedbackData.grammar_point
+          ? {
+              title: feedbackData.grammar_point.title,
+              explanation: feedbackData.grammar_point.explanation,
+              examples: feedbackData.grammar_point.examples || [],
+            }
+          : undefined;
+
+      const tips: SimplifiedAssessment['tips'] =
+        feedbackData.tips || this.defaultFeedbackResponse.tips;
+
+      // Map conversation highlights from AI response
+      const conversationHighlights: SimplifiedAssessment['conversationHighlights'] = (
+        feedbackData.conversation_highlights || []
+      ).map((highlight: { exchanges: { speaker: string; text: string }[]; note: string }) => ({
+        exchanges: highlight.exchanges.map(ex => ({
+          speaker: ex.speaker as 'user' | 'partner',
+          text: ex.text,
+        })),
+        note: highlight.note,
+      }));
+
+      // Generate legacy fields for backward compatibility
+      const achievedObjectives = objectiveFeedback.filter((o: { achieved: boolean }) => o.achieved);
+      const legacyAchievements = achievedObjectives.map(
+        (o: { feedback?: string; exampleJp?: string }) => ({
+          text: o.feedback || 'Objektif tercapai',
+          exampleJp: o.exampleJp,
+        })
+      );
+
+      const legacyStrengths = achievedObjectives.map(
+        (o: { feedback?: string }) => o.feedback || 'Objektif tercapai'
+      );
+      const legacyAreasToImprove = corrections.map((c: { explanation: string }) => c.explanation);
+
       return {
-        strengths: feedbackData.strengths || [
-          'You participated in the conversation and attempted the task.',
-        ],
-        areasToImprove: feedbackData.areasToImprove || [
-          'Continue practicing to improve your skills.',
-        ],
-        overallFeedback:
-          feedbackData.overallFeedback ||
-          'You made a good effort in this task. Keep practicing to improve your Japanese skills.',
-        encouragement:
-          feedbackData.encouragement ||
-          'Keep up the good work! Regular practice will help you improve.',
+        legacy: {
+          strengths:
+            legacyStrengths.length > 0
+              ? legacyStrengths
+              : ['Kamu sudah berusaha mengikuti percakapan dengan baik.'],
+          areasToImprove:
+            legacyAreasToImprove.length > 0
+              ? legacyAreasToImprove
+              : ['Terus berlatih untuk meningkatkan kemampuanmu.'],
+          overallFeedback:
+            grammarPoint?.explanation ||
+            'Kamu sudah berusaha dengan baik dalam percakapan ini. Terus berlatih!',
+          encouragement: 'Setiap percakapan adalah kesempatan belajar. Terus semangat! 頑張って！',
+        },
+        objectiveFeedback,
+        corrections,
+        grammarPoint,
+        tips,
+        conversationHighlights,
+        // Legacy
+        achievements:
+          legacyAchievements.length > 0
+            ? legacyAchievements
+            : [{ text: 'Kamu sudah berusaha mengikuti percakapan dengan baik.' }],
+        moments: [],
       };
     } catch (error) {
       console.error('Error generating conversation feedback:', error);
 
       // Fallback feedback if AI fails
       return {
-        strengths: ['You participated in the conversation and attempted the task.'],
-        areasToImprove: ['Continue practicing to build your confidence and skills.'],
-        overallFeedback:
-          'You engaged with the task. Keep practicing to improve your Japanese conversation skills.',
-        encouragement: 'Every conversation is a learning opportunity. Keep going!',
+        legacy: {
+          strengths: ['Kamu sudah berusaha mengikuti percakapan dengan baik.'],
+          areasToImprove: ['Terus berlatih untuk meningkatkan kepercayaan diri dan kemampuanmu.'],
+          overallFeedback:
+            'Kamu sudah berusaha dalam tugas ini. Terus berlatih untuk meningkatkan kemampuan percakapan Jepangmu.',
+          encouragement: 'Setiap percakapan adalah kesempatan belajar. Terus semangat!',
+        },
+        objectiveFeedback: [],
+        corrections: [],
+        tips: [],
+        conversationHighlights: [],
+        achievements: [{ text: 'Kamu sudah berusaha mengikuti percakapan dengan baik.' }],
+        moments: [],
       };
     }
   }
@@ -184,50 +384,117 @@ export class SimplifiedAssessmentService {
     conversationHistory: Message[],
     objectiveStatus: ObjectiveTracking[]
   ): string {
-    return `You are providing feedback for a Japanese language learning task completion.
+    return `You are a Japanese language education expert specializing in conversational assessment. Analyze the conversation and provide helpful feedback for Indonesian learners.
 
-# Task Details
-- Title: ${task.title}
+## CONVERSATION LOG
+${conversationHistory.map(msg => `${msg.role.toUpperCase()}: ${msg.content}`).join('\n\n')}
+
+## TASK INFORMATION
+- Task Title: ${task.title}
 - Scenario: ${task.scenario}
-- JLPT Level: ${task.difficulty}
+- Learner Level: ${task.difficulty}
+- Category: ${task.category || 'General'}
 
-# Learning Objectives & Achievement:
+## TASK OBJECTIVES STATUS
 ${objectiveStatus
   .map(
     (obj, i) =>
-      `${i + 1}. ${obj.objectiveText} - ${obj.status === 'completed' ? '✓ ACHIEVED' : '✗ NOT ACHIEVED'}`
+      `${i + 1}. "${obj.objectiveText}" - ${obj.status === 'completed' ? '✓ ACHIEVED' : '✗ NOT ACHIEVED'}`
   )
   .join('\n')}
 
-# Complete Conversation:
-${conversationHistory.map(msg => `${msg.role.toUpperCase()}: ${msg.content}`).join('\n\n')}
+## ASSESSMENT CRITERIA
 
-# Your Task:
-Provide constructive feedback on the learner's conversation performance.
+### 1. Objective Feedback
+For EACH objective above, provide:
+- If ACHIEVED: Brief positive feedback describing what they did well (in Indonesian) + Japanese example from conversation
+- If NOT ACHIEVED: Constructive suggestion on how to achieve it next time (in Indonesian)
 
-Focus on:
-1. What they did well (strengths) - be specific with examples
-2. What they can improve (specific, actionable advice)
-3. Overall assessment of their communication
-4. Encouragement and positive reinforcement
+### 2. Language Corrections
+Identify grammar/vocabulary errors. For each error:
+- Show what learner said
+- Show the correct expression
+- Brief explanation in Indonesian
 
-Be supportive, specific, and educational. Reference actual messages when possible.
+### 3. Grammar Point (Poin Penting)
+Highlight ONE important grammar point relevant to this scenario with examples.
 
-Response Format (JSON):
+### 4. Natural Speaking Tips
+Provide tips for more natural expressions in this context.
+
+### 5. Poin Penting Percakapan (Conversation Highlights)
+Select 1-2 key moments from the conversation that are educational/noteworthy. Show the exchange and explain what happened.
+
+## OUTPUT FORMAT (JSON)
 {
-  "strengths": [
-    "Successfully used polite expressions like 'お願いします'",
-    "Clear and natural question formation",
-    "Good use of appropriate vocabulary for the situation"
+  "objective_feedback": [
+    {
+      "objective_text": "The exact objective text",
+      "achieved": true,
+      "feedback": "Positive description of what they did well (Indonesian)",
+      "example_jp": "Japanese example from conversation",
+      "suggestion": null
+    },
+    {
+      "objective_text": "The exact objective text",
+      "achieved": false,
+      "feedback": null,
+      "example_jp": null,
+      "suggestion": "Constructive suggestion for improvement (Indonesian)"
+    }
   ],
-  "areasToImprove": [
-    "Could use more varied sentence structures",
-    "Try incorporating more conjunctions like 'それから' to connect ideas",
-    "Practice using past tense forms more consistently"
+  "corrections": [
+    {
+      "error": "What learner said in Japanese",
+      "correct": "Correct Japanese expression",
+      "explanation": "Brief explanation in Indonesian"
+    }
   ],
-  "overallFeedback": "You demonstrated good understanding of the restaurant scenario and successfully communicated your needs. Your use of polite language was appropriate, though there's room to expand your vocabulary range. Keep practicing natural conversation flow.",
-  "encouragement": "Great job completing this task! You're making solid progress in practical Japanese conversation. Keep up the good work!"
-}`;
+  "grammar_point": {
+    "title": "Grammar point title in Indonesian",
+    "explanation": "Explanation in Indonesian",
+    "examples": [
+      {
+        "japanese": "Japanese example",
+        "meaning": "Indonesian meaning"
+      }
+    ]
+  },
+  "tips": [
+    {
+      "situation": "Situation description in Indonesian",
+      "expression": "Japanese expression to use",
+      "note": "Additional note in Indonesian"
+    }
+  ],
+  "conversation_highlights": [
+    {
+      "exchanges": [
+        {
+          "speaker": "user",
+          "text": "Japanese text from learner"
+        },
+        {
+          "speaker": "partner",
+          "text": "Japanese text from AI partner"
+        }
+      ],
+      "note": "Explanation of what happened and why it's noteworthy (Indonesian)"
+    }
+  ]
+}
+
+## IMPORTANT GUIDELINES
+1. Be encouraging - Frame corrections as "tips" not "mistakes"
+2. Keep it simple - Maximum 4 corrections, prioritize most impactful ones
+3. Be specific - Use actual quotes from the conversation
+4. Use casual Indonesian - Friendly tone, like a supportive tutor
+5. No scores - Only qualitative feedback
+6. For objective_feedback: MUST include ALL objectives from the list above
+7. Maximum 3 tips
+8. Maximum 2 conversation_highlights
+9. If there are no errors to correct, return empty corrections array
+10. If no significant grammar point to highlight, omit grammar_point field`;
   }
 
   /**
