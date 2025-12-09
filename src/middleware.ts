@@ -54,6 +54,8 @@ const PUBLIC_ROUTES = [
   '/api/v1/auth/register',
   '/api/webhooks',
   '/extension',
+  '/admin/auth', // Admin auth pages (login, forgot-password, etc.)
+  '/api/admin/auth', // Admin auth API endpoints
 ];
 
 // Legacy route redirects for backward compatibility
@@ -165,12 +167,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Admin routes - require authentication and admin role
-  if (pathname.startsWith('/admin') && !session) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    url.searchParams.set('returnTo', pathname);
-    return NextResponse.redirect(url);
+  // Admin dashboard routes - use separate admin auth system (not NextAuth)
+  // Auth is handled by admin layout via getAdminSession()
+  if (pathname.startsWith('/admin') && !pathname.startsWith('/api/admin/')) {
+    return NextResponse.next();
   }
 
   // Add pathname to headers for layout to use
