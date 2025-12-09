@@ -1046,7 +1046,41 @@ server {
     limit_req zone=api_limit burst=10 nodelay;
     limit_conn addr 5;
 
+    # Static assets (pass through without rewrite)
+    location /_next/static {
+        proxy_pass http://nextjs_upstream;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        expires 365d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Admin API routes
+    location /api/admin/ {
+        proxy_pass http://nextjs_upstream;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # NextAuth API (needed for session checks)
+    location /api/auth/ {
+        proxy_pass http://nextjs_upstream;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Main admin app - rewrite paths to /admin/*
+    # admin.gengobot.com/ -> /admin
+    # admin.gengobot.com/auth/login -> /admin/auth/login
     location / {
+        rewrite ^/(.*)$ /admin/$1 break;
+
         proxy_pass http://nextjs_upstream;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;

@@ -149,6 +149,18 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Admin routes - use separate admin auth system (not NextAuth)
+  // IMPORTANT: This must be BEFORE auth() call to avoid NextAuth redirect
+  // Auth is handled by admin layout via getAdminSession()
+  if (pathname.startsWith('/admin') && !pathname.startsWith('/api/admin/')) {
+    return NextResponse.next();
+  }
+
+  // API admin routes - auth handled in route handlers
+  if (pathname.startsWith('/api/admin/')) {
+    return NextResponse.next();
+  }
+
   const session = await auth();
 
   // Protected routes - require authentication
@@ -165,12 +177,6 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
-  }
-
-  // Admin dashboard routes - use separate admin auth system (not NextAuth)
-  // Auth is handled by admin layout via getAdminSession()
-  if (pathname.startsWith('/admin') && !pathname.startsWith('/api/admin/')) {
-    return NextResponse.next();
   }
 
   // Add pathname to headers for layout to use
