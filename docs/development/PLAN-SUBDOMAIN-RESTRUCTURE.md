@@ -39,7 +39,7 @@
 
 ---
 
-## Part 1: Route Restructure (Remove `/app/` prefix)
+## Part 1: Route Restructure (Remove `/app/` prefix) ✅ DONE
 
 ### Problem
 
@@ -99,7 +99,7 @@ Current URL structure with subdomain:
 
 ---
 
-## Part 2: Directory Structure
+## Part 2: Directory Structure ✅ DONE
 
 ### Current Structure
 
@@ -176,7 +176,7 @@ src/app/
 
 ---
 
-## Part 3: Migration Phases
+## Part 3: Migration Phases ✅ DONE
 
 ### Phase 1: Create Git Branch
 
@@ -1062,7 +1062,7 @@ server {
 
 ---
 
-## Part 7: Environment Variables
+## Part 7: Environment Variables (Manual)
 
 ### Production `.env`
 
@@ -1109,7 +1109,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3000/api
 
 ---
 
-## Part 8: DNS Configuration
+## Part 8: DNS Configuration (Manual)
 
 Add these A records at your DNS provider:
 
