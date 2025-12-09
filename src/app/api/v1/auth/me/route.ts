@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest, unauthorizedResponse } from '@/lib/auth/api-auth';
 import { prisma } from '@/lib/prisma';
+import { corsHeaders, handleCorsPreflightRequest } from '@/lib/cors';
+
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsPreflightRequest(request);
+}
 
 export async function GET(request: NextRequest) {
   const authResult = await authenticateRequest(request);
@@ -25,10 +30,13 @@ export async function GET(request: NextRequest) {
     return unauthorizedResponse('User not found');
   }
 
-  return NextResponse.json({
-    user: {
-      ...user,
-      role: user.isAdmin ? 'ADMIN' : 'USER',
+  return NextResponse.json(
+    {
+      user: {
+        ...user,
+        role: user.isAdmin ? 'ADMIN' : 'USER',
+      },
     },
-  });
+    { headers: corsHeaders(request) }
+  );
 }

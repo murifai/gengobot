@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest, unauthorizedResponse } from '@/lib/auth/api-auth';
 import { prisma } from '@/lib/prisma';
+import { corsHeaders, handleCorsPreflightRequest } from '@/lib/cors';
+
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsPreflightRequest(request);
+}
 
 // GET /api/v1/decks - List user's decks
 export async function GET(request: NextRequest) {
@@ -15,7 +20,7 @@ export async function GET(request: NextRequest) {
     orderBy: { updatedAt: 'desc' },
   });
 
-  return NextResponse.json({ decks });
+  return NextResponse.json({ decks }, { headers: corsHeaders(request) });
 }
 
 // POST /api/v1/decks - Create deck
@@ -37,5 +42,5 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ deck }, { status: 201 });
+  return NextResponse.json({ deck }, { status: 201, headers: corsHeaders(request) });
 }
