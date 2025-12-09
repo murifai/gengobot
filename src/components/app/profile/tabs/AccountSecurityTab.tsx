@@ -25,7 +25,7 @@ export function AccountSecurityTab({ user }: AccountSecurityTabProps) {
   const { balance, isLoading: isSubscriptionLoading, tier } = useSubscription();
 
   const handleUpgrade = () => {
-    router.push('/app/upgrade');
+    router.push('/upgrade');
   };
 
   const handleDeleteAccount = async () => {
@@ -126,7 +126,7 @@ export function AccountSecurityTab({ user }: AccountSecurityTabProps) {
               <Button
                 variant="outline"
                 className="w-full justify-between"
-                onClick={() => router.push('/app/subscription')}
+                onClick={() => router.push('/subscription')}
               >
                 <span>Detail Langganan</span>
                 <ChevronRight className="h-4 w-4" />

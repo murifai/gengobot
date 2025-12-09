@@ -10,6 +10,7 @@ import {
   Book,
   CreditCard,
 } from 'lucide-react';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
 import {
@@ -32,22 +33,22 @@ import { User } from '@/types/user';
 const items = [
   {
     title: 'Beranda',
-    url: '/app',
+    url: '/',
     icon: Home,
   },
   {
     title: 'Kaiwa',
-    url: '/app/kaiwa',
+    url: '/kaiwa',
     icon: MessageSquare,
   },
   {
     title: 'Drill',
-    url: '/app/drill',
+    url: '/drill',
     icon: BookOpen,
   },
   {
     title: 'Ujian',
-    url: '/app/ujian',
+    url: '/ujian',
     icon: GraduationCap,
     badge: 'Soon',
   },
@@ -56,12 +57,12 @@ const items = [
 const bottomItems = [
   {
     title: 'Billing',
-    url: '/app/billing',
+    url: '/billing',
     icon: CreditCard,
   },
   {
     title: 'Profile',
-    url: '/app/profile',
+    url: '/profile',
     icon: UserIcon,
   },
 ];
@@ -82,7 +83,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="/app">
+              <Link href="/">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <Book className="size-4" />
                 </div>
@@ -90,7 +91,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                   <span className="truncate font-semibold">GengoBot</span>
                   <span className="truncate text-xs">Belajar Bahasa</span>
                 </div>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -108,7 +109,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                     isActive={pathname === item.url}
                     onClick={() => router.push(item.url)}
                   >
-                    <a href={item.url} className="flex items-center gap-2">
+                    <Link href={item.url} className="flex items-center gap-2">
                       <item.icon />
                       <span>{item.title}</span>
                       {'badge' in item && (
@@ -116,7 +117,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                           {item.badge}
                         </span>
                       )}
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -134,10 +135,10 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                     isActive={pathname === item.url}
                     onClick={() => router.push(item.url)}
                   >
-                    <a href={item.url}>
+                    <Link href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

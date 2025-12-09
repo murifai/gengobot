@@ -145,7 +145,8 @@ IMPORTANT:
 - Do NOT answer questions on behalf of the user
 - Do NOT provide translations in any other language
 - Do NOT give hints unless explicitly asked
-- ALWAYS respond in Japanese only`;
+- ALWAYS respond in Japanese only
+- DONT Answer with list like AI. ALWAYS answer with sentence`;
 
     // Build conversation messages for OpenAI
     const conversationMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [

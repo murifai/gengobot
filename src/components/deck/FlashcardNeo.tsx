@@ -50,6 +50,10 @@ interface Deck {
 interface FlashcardNeoProps {
   deck: Deck;
   sessionId: string;
+  initialCardIndex?: number;
+  initialReviewedCardIds?: string[];
+  initialHafalCount?: number;
+  initialBelumHafalCount?: number;
   onComplete: () => void;
   onExit: () => void;
 }
@@ -84,12 +88,24 @@ const CARD_COLORS: Record<string, { front: string; back: string; accent: string 
   },
 };
 
-export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: FlashcardNeoProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+export default function FlashcardNeo({
+  deck,
+  sessionId,
+  initialCardIndex = 0,
+  initialReviewedCardIds = [],
+  initialHafalCount = 0,
+  initialBelumHafalCount = 0,
+  onComplete,
+  onExit,
+}: FlashcardNeoProps) {
+  const [currentIndex, setCurrentIndex] = useState(initialCardIndex);
   const [showAnswer, setShowAnswer] = useState(false);
   const [reviewStartTime, setReviewStartTime] = useState<number>(Date.now());
   const [submittingRating, setSubmittingRating] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [reviewedCardIds, setReviewedCardIds] = useState<string[]>(initialReviewedCardIds);
+  const [hafalCount, setHafalCount] = useState(initialHafalCount);
+  const [belumHafalCount, setBelumHafalCount] = useState(initialBelumHafalCount);
 
   const currentCard = deck.flashcards[currentIndex];
   const totalCards = deck.flashcards.length;
@@ -100,6 +116,33 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
   useEffect(() => {
     setReviewStartTime(Date.now());
   }, [currentIndex]);
+
+  // Save progress to server
+  const saveProgress = useCallback(
+    async (
+      newIndex: number,
+      newReviewedIds: string[],
+      newHafalCount: number,
+      newBelumHafalCount: number
+    ) => {
+      try {
+        await fetch(`/api/app/drill-sessions/${sessionId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            currentCardIndex: newIndex,
+            reviewedCardIds: newReviewedIds,
+            cardsReviewed: newReviewedIds.length,
+            hafalCount: newHafalCount,
+            belumHafalCount: newBelumHafalCount,
+          }),
+        });
+      } catch (error) {
+        console.error('Error saving progress:', error);
+      }
+    },
+    [sessionId]
+  );
 
   // Keyboard controls
   useEffect(() => {
@@ -205,9 +248,22 @@ export default function FlashcardNeo({ deck, sessionId, onComplete, onExit }: Fl
         throw new Error('Failed to submit rating');
       }
 
+      // Update local state
+      const newReviewedIds = [...reviewedCardIds, currentCard.id];
+      const newHafalCount = rating === 'hafal' ? hafalCount + 1 : hafalCount;
+      const newBelumHafalCount = rating === 'belum_hafal' ? belumHafalCount + 1 : belumHafalCount;
+
+      setReviewedCardIds(newReviewedIds);
+      setHafalCount(newHafalCount);
+      setBelumHafalCount(newBelumHafalCount);
+
       if (currentIndex < totalCards - 1) {
-        setCurrentIndex(currentIndex + 1);
+        const newIndex = currentIndex + 1;
+        setCurrentIndex(newIndex);
         setShowAnswer(false);
+
+        // Save progress to server (don't await to not block UI)
+        saveProgress(newIndex, newReviewedIds, newHafalCount, newBelumHafalCount);
       } else {
         onComplete();
       }

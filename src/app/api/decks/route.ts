@@ -95,6 +95,16 @@ export async function GET(request: NextRequest) {
       prisma.deck.count({ where }),
     ]);
 
+    // Get user's favorites to check isFavorite status
+    const userFavorites = await prisma.userFavorite.findMany({
+      where: {
+        userId: dbUser.id,
+        deckId: { in: decks.map(d => d.id) },
+      },
+      select: { deckId: true },
+    });
+    const favoriteIds = new Set(userFavorites.map(f => f.deckId));
+
     // Calculate statistics for each deck including hafal/belum_hafal
     const decksWithStats = await Promise.all(
       decks.map(async deck => {
@@ -144,6 +154,9 @@ export async function GET(request: NextRequest) {
           uniqueBelumHafal,
           createdAt: deck.createdAt,
           updatedAt: deck.updatedAt,
+          isFavorite: favoriteIds.has(deck.id),
+          isOwner: deck.createdBy === dbUser.id,
+          creatorName: deck.creator?.name || deck.creator?.email?.split('@')[0] || 'Anonymous',
         };
       })
     );

@@ -375,7 +375,7 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
               );
             } catch (error) {
               console.error('Error starting recommended task:', error);
-              router.push('/app/kaiwa/roleplay');
+              router.push('/kaiwa/roleplay');
             }
           }}
         />

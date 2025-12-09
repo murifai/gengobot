@@ -115,7 +115,7 @@ export default function TasksClient({}: TasksClientProps) {
       {/* Header */}
       <div className="bg-card border-b-2 border-border px-4 py-4 flex items-center gap-4">
         <button
-          onClick={() => router.push('/app/kaiwa')}
+          onClick={() => router.push('/kaiwa')}
           className="p-2 hover:bg-accent rounded-base transition-colors"
           aria-label="Go back"
         >

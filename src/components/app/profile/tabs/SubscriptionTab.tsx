@@ -133,11 +133,7 @@ export function SubscriptionTab() {
           )}
 
           {tier !== SubscriptionTier.FREE && (
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => router.push('/app/billing')}
-            >
+            <Button variant="outline" className="w-full" onClick={() => router.push('/billing')}>
               Kelola Langganan
             </Button>
           )}

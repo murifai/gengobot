@@ -130,7 +130,7 @@ export function CharactersTab() {
                 <span className="sr-only">Grid view</span>
               </Button>
             </div>
-            <Link href="/app/profile/characters/new">
+            <Link href="/profile/characters/new">
               <Button size="sm" className="gap-2">
                 <Plus className="h-4 w-4" />
                 Buat Baru
@@ -159,7 +159,7 @@ export function CharactersTab() {
             <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
               Buat karakter AI pertama Anda untuk memulai latihan percakapan bahasa Jepang
             </p>
-            <Link href="/app/profile/characters/new">
+            <Link href="/profile/characters/new">
               <Button className="gap-2">
                 <Plus className="h-4 w-4" />
                 Buat Karakter

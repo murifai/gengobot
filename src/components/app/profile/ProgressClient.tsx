@@ -147,7 +147,7 @@ export default function ProgressClient({ user }: ProgressClientProps) {
                 <p className="text-gray-600 dark:text-gray-400">
                   No progress data yet. Start learning to track your progress!
                 </p>
-                <Button onClick={() => router.push('/app/kaiwa/roleplay')} className="mt-4">
+                <Button onClick={() => router.push('/kaiwa/roleplay')} className="mt-4">
                   Start Learning
                 </Button>
               </div>

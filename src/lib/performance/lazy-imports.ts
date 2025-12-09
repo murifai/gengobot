@@ -16,7 +16,7 @@ const DefaultLoader = () => {
 
 // Kaiwa Components
 export const LazyFreeConversationClient = dynamic(
-  () => import('@/app/app/kaiwa/bebas/FreeConversationClient'),
+  () => import('@/app/(app)/kaiwa/bebas/FreeConversationClient'),
   {
     loading: DefaultLoader,
     ssr: false,

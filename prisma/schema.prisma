@@ -469,6 +469,11 @@ model StudySession {
   belumHafalCount Int @default(0)
   hafalCount      Int @default(0)
 
+  // Progress tracking for resume functionality
+  currentCardIndex Int     @default(0) // Current position in the deck
+  cardOrder        Json?   // Array of flashcard IDs in study order
+  reviewedCardIds  Json?   // Array of already reviewed card IDs
+
   startTime   DateTime  @default(now())
   endTime     DateTime?
   isCompleted Boolean   @default(false)

@@ -148,12 +148,12 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
   };
 
   const handleCancelResume = () => {
-    router.push('/app/kaiwa/roleplay');
+    router.push('/kaiwa/roleplay');
   };
 
   const handleCancel = () => {
     // Navigate back to task selection
-    router.push('/app/kaiwa/roleplay');
+    router.push('/kaiwa/roleplay');
   };
 
   const handleSkip = async () => {
@@ -237,7 +237,7 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
         <div className="text-center">
           <p className="text-destructive">{error || 'Task not found'}</p>
           <button
-            onClick={() => router.push('/app/kaiwa/roleplay')}
+            onClick={() => router.push('/kaiwa/roleplay')}
             className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
           >
             Back to Tasks

@@ -58,7 +58,9 @@ export async function GET(request: Request, { params }: RouteParams) {
 
 /**
  * POST /api/decks/[deckId]/share
- * Generate or regenerate share token for a deck
+ * Generate or get share token for a deck
+ * - Owner can always generate/regenerate share token
+ * - Anyone can get share URL for public decks (uses existing token or generates one)
  */
 export async function POST(request: Request, { params }: RouteParams) {
   try {
@@ -81,19 +83,33 @@ export async function POST(request: Request, { params }: RouteParams) {
 
     const deck = await prisma.deck.findUnique({
       where: { id: deckId },
-      select: { id: true, createdBy: true },
+      select: { id: true, createdBy: true, isPublic: true, shareToken: true },
     });
 
     if (!deck) {
       return NextResponse.json({ error: 'Deck not found' }, { status: 404 });
     }
 
-    // Only owner can generate share link
-    if (deck.createdBy !== dbUser.id) {
-      return NextResponse.json({ error: 'Only deck owner can share' }, { status: 403 });
+    const isOwner = deck.createdBy === dbUser.id;
+
+    // For non-owners, only allow sharing public decks
+    if (!isOwner && !deck.isPublic) {
+      return NextResponse.json(
+        { error: 'Only deck owner can share private decks' },
+        { status: 403 }
+      );
     }
 
-    // Generate unique share token
+    // If deck already has a share token, return it (don't regenerate for non-owners)
+    if (deck.shareToken && !isOwner) {
+      return NextResponse.json({
+        success: true,
+        shareToken: deck.shareToken,
+        shareUrl: `/app/drill/decks/share/${deck.shareToken}`,
+      });
+    }
+
+    // Generate unique share token (owner can always regenerate, non-owner gets new one if none exists)
     const shareToken = nanoid(12);
 
     const updatedDeck = await prisma.deck.update({

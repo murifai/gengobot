@@ -87,6 +87,7 @@ export const authConfig: NextAuthConfig = {
               data: {
                 email: profile.email,
                 name: profile.name || null,
+                fullName: profile.name || null, // Also store in fullName for profile display
                 image: profileImage,
                 emailVerified: new Date(),
                 isAdmin: false,
@@ -100,6 +101,8 @@ export const authConfig: NextAuthConfig = {
               where: { email: profile.email },
               data: {
                 name: profile.name || existingUser.name,
+                // Only update fullName if it's not set yet (user may have customized it)
+                fullName: existingUser.fullName || profile.name || existingUser.name,
                 image: profileImage || existingUser.image,
                 emailVerified: new Date(),
               },

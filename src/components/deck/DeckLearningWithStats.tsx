@@ -56,6 +56,10 @@ interface Deck {
 interface DeckLearningWithStatsProps {
   deck: Deck;
   sessionId: string;
+  initialCardIndex?: number;
+  initialReviewedCardIds?: string[];
+  initialHafalCount?: number;
+  initialBelumHafalCount?: number;
   onComplete: () => void;
   onExit: () => void;
 }
@@ -89,6 +93,10 @@ function getCompletionMessage(hafalPercentage: number): CompletionMessage {
 export default function DeckLearningWithStats({
   deck,
   sessionId,
+  initialCardIndex = 0,
+  initialReviewedCardIds = [],
+  initialHafalCount = 0,
+  initialBelumHafalCount = 0,
   onComplete,
   onExit,
 }: DeckLearningWithStatsProps) {
@@ -142,6 +150,10 @@ export default function DeckLearningWithStats({
       <FlashcardNeo
         deck={deck}
         sessionId={sessionId}
+        initialCardIndex={initialCardIndex}
+        initialReviewedCardIds={initialReviewedCardIds}
+        initialHafalCount={initialHafalCount}
+        initialBelumHafalCount={initialBelumHafalCount}
         onComplete={handleCompleteLearning}
         onExit={onExit}
       />
@@ -168,7 +180,7 @@ export default function DeckLearningWithStats({
           {/* Action Buttons */}
           <div className="mt-8 flex gap-4 justify-center flex-wrap">
             <Link
-              href={`/app/drill/decks/${deck.id}/study`}
+              href={`/app/drill/${deck.id}`}
               className="px-8 py-4 font-bold text-lg bg-secondary text-white rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
             >
               Coba Lagi

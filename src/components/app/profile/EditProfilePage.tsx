@@ -183,7 +183,7 @@ export function EditProfilePage({ user }: EditProfilePageProps) {
         throw new Error('Failed to update profile');
       }
 
-      router.push('/app/profile');
+      router.push('/profile');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan');

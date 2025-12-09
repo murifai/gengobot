@@ -30,22 +30,70 @@ function addCorsHeaders(response: NextResponse, request: NextRequest): NextRespo
   return response;
 }
 
+// Protected routes that require authentication (new structure without /app prefix)
+const PROTECTED_ROUTES = [
+  '/drill',
+  '/kaiwa',
+  '/ujian',
+  '/profile',
+  '/onboarding',
+  '/settings',
+  '/payment',
+  '/choose-plan',
+  '/billing',
+  '/subscription',
+  '/upgrade',
+];
+
+// Public routes that don't require authentication
+const PUBLIC_ROUTES = [
+  '/login',
+  '/auth',
+  '/api/auth',
+  '/api/v1/auth/login',
+  '/api/v1/auth/register',
+  '/api/webhooks',
+  '/extension',
+];
+
 // Legacy route redirects for backward compatibility
+// Now redirects old /app/* routes to new /* routes
 const LEGACY_REDIRECTS: Record<string, string> = {
-  '/dashboard/tasks': '/app/kaiwa/roleplay',
-  '/dashboard/chat': '/app/kaiwa/bebas',
-  '/chat-webrtc': '/app/kaiwa/bebas',
-  '/dashboard/characters': '/app/profile/characters',
-  '/dashboard/progress': '/app/profile/progress',
-  '/dashboard/settings': '/app/profile/settings',
-  '/dashboard': '/app',
+  // Old dashboard routes
+  '/dashboard/tasks': '/kaiwa/roleplay',
+  '/dashboard/chat': '/kaiwa/bebas',
+  '/chat-webrtc': '/kaiwa/bebas',
+  '/dashboard/characters': '/profile/characters',
+  '/dashboard/progress': '/profile/progress',
+  '/dashboard/settings': '/profile/settings',
+  '/dashboard': '/',
+  // Old /app/* routes (backwards compatibility)
+  '/app': '/',
+  '/app/drill': '/drill',
+  '/app/kaiwa': '/kaiwa',
+  '/app/ujian': '/ujian',
+  '/app/profile': '/profile',
+  '/app/onboarding': '/onboarding',
+  '/app/settings': '/settings',
+  '/app/payment': '/payment',
+  '/app/choose-plan': '/choose-plan',
+  '/app/billing': '/billing',
+  '/app/subscription': '/subscription',
+  '/app/upgrade': '/upgrade',
 };
 
 // Pattern-based redirects (for paths with dynamic segments)
 const PATTERN_REDIRECTS = [
-  { from: /^\/dashboard\/tasks\/(.+)$/, to: '/app/kaiwa/roleplay/$1' },
-  { from: /^\/dashboard\/characters\/(.+)$/, to: '/app/profile/characters/$1' },
-  { from: /^\/study(.*)$/, to: '/app/drill$1' },
+  { from: /^\/dashboard\/tasks\/(.+)$/, to: '/kaiwa/roleplay/$1' },
+  { from: /^\/dashboard\/characters\/(.+)$/, to: '/profile/characters/$1' },
+  { from: /^\/study(.*)$/, to: '/drill$1' },
+  // Legacy /app/* pattern redirects
+  { from: /^\/app\/drill\/(.+)$/, to: '/drill/$1' },
+  { from: /^\/app\/kaiwa\/(.+)$/, to: '/kaiwa/$1' },
+  { from: /^\/app\/ujian\/(.+)$/, to: '/ujian/$1' },
+  { from: /^\/app\/profile\/(.+)$/, to: '/profile/$1' },
+  { from: /^\/app\/payment\/(.+)$/, to: '/payment/$1' },
+  { from: /^\/app\/(.+)$/, to: '/$1' }, // Catch-all for any other /app/* routes
 ];
 
 export async function middleware(request: NextRequest) {
@@ -63,7 +111,19 @@ export async function middleware(request: NextRequest) {
     return addCorsHeaders(response, request);
   }
 
-  const session = await auth();
+  // Allow public routes without auth check
+  if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) {
+    return NextResponse.next();
+  }
+
+  // Allow static files
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/images') ||
+    pathname.startsWith('/fonts')
+  ) {
+    return NextResponse.next();
+  }
 
   // Check for exact legacy route matches first
   if (LEGACY_REDIRECTS[pathname]) {
@@ -77,26 +137,38 @@ export async function middleware(request: NextRequest) {
     const match = pathname.match(from);
     if (match) {
       const url = request.nextUrl.clone();
-      url.pathname = to.replace('$1', match[1]);
+      url.pathname = to.replace('$1', match[1] || '');
       return NextResponse.redirect(url, 301); // Permanent redirect
     }
   }
 
+  // API v1 routes: auth handled in route handlers (JWT support)
+  if (pathname.startsWith('/api/v1/')) {
+    return NextResponse.next();
+  }
+
+  const session = await auth();
+
   // Protected routes - require authentication
-  // /app routes - require authentication
-  if (pathname.startsWith('/app') && !session) {
+  const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
+  if (isProtectedRoute && !session) {
     const url = request.nextUrl.clone();
-    url.pathname = '/';
-    url.searchParams.set('login', 'required');
+    url.pathname = '/login';
     url.searchParams.set('returnTo', pathname);
     return NextResponse.redirect(url);
   }
 
-  // Admin routes - require authentication
+  // Root path - require authentication (dashboard)
+  if (pathname === '/' && !session) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
+  }
+
+  // Admin routes - require authentication and admin role
   if (pathname.startsWith('/admin') && !session) {
     const url = request.nextUrl.clone();
-    url.pathname = '/';
-    url.searchParams.set('login', 'required');
+    url.pathname = '/login';
     url.searchParams.set('returnTo', pathname);
     return NextResponse.redirect(url);
   }

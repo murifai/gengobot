@@ -622,7 +622,7 @@ export default function DeckBrowser() {
                     </div>
                     {expandedSections.myDecks ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                   </button>
-                  <Link href="/app/drill/decks/new">
+                  <Link href="/drill/decks/new">
                     <Button variant="default" className="gap-2 shrink-0">
                       <Plus size={18} />
                       Buat Dek

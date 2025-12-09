@@ -99,7 +99,7 @@ export default function ChatClient({ user }: ChatClientProps) {
             <p className="text-gray-600 dark:text-gray-400">
               {UI_TEXT.kaiwa.noCharactersAvailable}
             </p>
-            <Button onClick={() => router.push('/app/profile/characters')} className="mt-4">
+            <Button onClick={() => router.push('/profile/characters')} className="mt-4">
               {UI_TEXT.kaiwa.createCharacter}
             </Button>
           </div>

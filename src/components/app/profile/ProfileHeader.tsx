@@ -55,7 +55,7 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
         </div>
       </div>
 
-      <Link href="/app/profile/edit">
+      <Link href="/profile/edit">
         <Button variant="outline" className="gap-2">
           <Pencil className="h-4 w-4" />
           Edit Profile

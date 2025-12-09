@@ -7,7 +7,9 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/Badge';
 import { Users, Plus, Pencil, Trash2, Loader2, LayoutGrid, List, ChevronLeft } from 'lucide-react';
+import { useSubscription } from '@/hooks/useSubscription';
 
 interface Character {
   id: string;
@@ -27,11 +29,20 @@ type ViewMode = 'grid' | 'list';
 
 export default function CharactersClient({}: CharactersClientProps) {
   const router = useRouter();
+  const { tierConfig } = useSubscription();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+
+  // Calculate custom characters count and limit
+  const customCharactersCount = characters.filter(c => c.isUserCreated).length;
+  const customCharactersLimit = tierConfig?.customCharactersUnlimited
+    ? null
+    : (tierConfig?.customCharacters ?? 1);
+  const isAtLimit =
+    customCharactersLimit !== null && customCharactersCount >= customCharactersLimit;
 
   useEffect(() => {
     fetchCharacters();
@@ -125,7 +136,14 @@ export default function CharactersClient({}: CharactersClientProps) {
                   <Users className="h-5 w-5" />
                   Karakter AI
                 </CardTitle>
-                <CardDescription>Daftar semua karakter yang tersedia</CardDescription>
+                <CardDescription className="flex items-center gap-2">
+                  <span>Daftar semua karakter yang tersedia</span>
+                  <Badge variant={isAtLimit ? 'warning' : 'secondary'} size="sm">
+                    {customCharactersLimit === null
+                      ? `${customCharactersCount} karakter`
+                      : `${customCharactersCount}/${customCharactersLimit}`}
+                  </Badge>
+                </CardDescription>
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex items-center border rounded-md">
@@ -148,8 +166,8 @@ export default function CharactersClient({}: CharactersClientProps) {
                     <span className="sr-only">Grid view</span>
                   </Button>
                 </div>
-                <Link href="/app/profile/characters/new">
-                  <Button size="sm" className="gap-2">
+                <Link href="/profile/characters/new">
+                  <Button size="sm" className="gap-2" disabled={isAtLimit}>
                     <Plus className="h-4 w-4" />
                     Buat Baru
                   </Button>
@@ -176,7 +194,7 @@ export default function CharactersClient({}: CharactersClientProps) {
                 <p className="text-muted-foreground mb-4">
                   Belum ada karakter. Buat karakter pertama Anda!
                 </p>
-                <Link href="/app/profile/characters/new">
+                <Link href="/profile/characters/new">
                   <Button size="sm" className="gap-2">
                     <Plus className="h-4 w-4" />
                     Buat Karakter

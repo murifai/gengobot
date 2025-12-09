@@ -14,26 +14,26 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dasbor', href: '/app', icon: LayoutDashboard },
-  { label: 'Drill', href: '/app/drill', icon: BookOpen },
-  { label: 'Kaiwa', href: '/app/kaiwa', icon: MessageSquare },
-  { label: 'Ujian', href: '/app/ujian', icon: GraduationCap },
-  { label: 'Profile', href: '/app/profile', icon: User },
+  { label: 'Dasbor', href: '/', icon: LayoutDashboard },
+  { label: 'Drill', href: '/drill', icon: BookOpen },
+  { label: 'Kaiwa', href: '/kaiwa', icon: MessageSquare },
+  { label: 'Ujian', href: '/ujian', icon: GraduationCap },
+  { label: 'Profile', href: '/profile', icon: User },
 ];
 
 export function MobileBottomNav() {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
-    if (href === '/app') {
-      return pathname === '/app';
+    if (href === '/') {
+      return pathname === '/';
     }
     return pathname?.startsWith(href);
   };
 
   // Hide navigation in onboarding and subscription flow (prevent bypass)
-  const isOnboardingRoute = pathname?.startsWith('/app/onboarding');
-  const isChoosePlanRoute = pathname?.startsWith('/app/choose-plan');
+  const isOnboardingRoute = pathname?.startsWith('/onboarding');
+  const isChoosePlanRoute = pathname?.startsWith('/choose-plan');
 
   // Hide navigation in chat routes (only when actually in chat interface)
   const isChatRoute =
