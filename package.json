@@ -23,8 +23,10 @@
     "db:studio": "npx prisma studio",
     "db:generate": "npx prisma generate",
     "admin:make": "ts-node scripts/make-admin.ts",
-    "admin:seed": "tsx scripts/seed-admin.ts",
-    "seed:categories": "tsx scripts/seed-subcategories.ts",
+    "admin:seed": "npx tsx scripts/seed-admin.ts",
+    "seed:categories": "npx tsx scripts/seed-subcategories.ts",
+    "seed:export": "npx tsx scripts/export-db-to-seed.ts",
+    "seed:all": "npx tsx prisma/seeds/index.ts",
     "users:create": "ts-node scripts/create-test-users.ts",
     "users:create-db": "tsx scripts/create-db-users.ts",
     "prepare": "husky"
