@@ -55,31 +55,17 @@ export async function getEffectiveTier(userId: string): Promise<SubscriptionTier
 
 /**
  * Get user's subscription with tier info
- * Creates a FREE subscription if none exists
+ * @deprecated Use creditService.getOrCreateSubscription() instead - it properly checks trial eligibility
  */
 export async function getOrCreateSubscription(userId: string) {
-  let subscription = await prisma.subscription.findUnique({
+  const subscription = await prisma.subscription.findUnique({
     where: { userId },
   });
 
   if (!subscription) {
-    // Create a FREE tier subscription
-    const now = new Date();
-    const periodEnd = new Date(now);
-    periodEnd.setMonth(periodEnd.getMonth() + 1);
-
-    subscription = await prisma.subscription.create({
-      data: {
-        userId,
-        tier: SubscriptionTier.FREE,
-        status: SubscriptionStatus.ACTIVE,
-        currentPeriodStart: now,
-        currentPeriodEnd: periodEnd,
-        creditsTotal: 0,
-        creditsUsed: 0,
-        creditsRemaining: 0,
-      },
-    });
+    throw new Error(
+      'Use creditService.getOrCreateSubscription() to create subscriptions with proper trial eligibility check'
+    );
   }
 
   return subscription;

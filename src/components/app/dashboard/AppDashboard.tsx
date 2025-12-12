@@ -3,7 +3,7 @@
 import { LazyActivityChart, LazyRecentActivity } from '@/lib/performance/lazy-imports';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Zap, Layers, MessageSquare, Play, ArrowRight, Sparkles } from 'lucide-react';
+import { Zap, Layers, MessageSquare, Play, ArrowRight, Sparkles, Crown } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/Badge';
@@ -227,8 +227,8 @@ export default function AppDashboard() {
                 <div className="p-2 bg-primary/20 rounded-lg">
                   <Zap className="h-6 w-6 text-primary" />
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-2xl font-bold">
                       {formatCredits(dashboardData.credits.remaining)}
                     </span>
@@ -239,28 +239,43 @@ export default function AppDashboard() {
                       </Badge>
                     )}
                   </div>
-                  <div className="mt-1">
-                    <Progress
-                      value={dashboardData.credits.used}
-                      max={dashboardData.credits.total}
-                      className="h-2 w-48"
-                    />
-                  </div>
+                  {dashboardData.credits.total > 0 && (
+                    <div className="mt-1">
+                      <Progress
+                        value={dashboardData.credits.used}
+                        max={dashboardData.credits.total}
+                        className="h-2 w-full max-w-xs"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Trial daily limit */}
-              {dashboardData.credits.isTrialActive &&
-                dashboardData.credits.trialDailyLimit &&
-                dashboardData.credits.trialDailyUsed !== undefined && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">Hari ini:</span>
-                    <span className="font-medium">
-                      {formatCredits(dashboardData.credits.trialDailyUsed)} /{' '}
-                      {formatCredits(dashboardData.credits.trialDailyLimit)}
-                    </span>
-                  </div>
+              <div className="flex items-center gap-4">
+                {/* Trial daily limit */}
+                {dashboardData.credits.isTrialActive &&
+                  dashboardData.credits.trialDailyLimit &&
+                  dashboardData.credits.trialDailyUsed !== undefined && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-muted-foreground">Hari ini:</span>
+                      <span className="font-medium">
+                        {formatCredits(dashboardData.credits.trialDailyUsed)} /{' '}
+                        {formatCredits(dashboardData.credits.trialDailyLimit)}
+                      </span>
+                    </div>
+                  )}
+
+                {/* Upgrade button for users with 0 credits */}
+                {dashboardData.credits.remaining === 0 && (
+                  <Link
+                    href="/upgrade"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium text-sm"
+                  >
+                    <Crown className="h-4 w-4" />
+                    Upgrade
+                  </Link>
                 )}
+              </div>
             </div>
           </CardContent>
         </Card>

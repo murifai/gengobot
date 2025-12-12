@@ -36,6 +36,19 @@ export class CreditService {
 
     // For FREE tier users
     if (subscription.tier === SubscriptionTier.FREE) {
+      // Check if user actually has trial (trialEndDate exists)
+      // Users who re-registered after using trial won't have trialEndDate
+      if (!subscription.trialEndDate) {
+        return {
+          allowed: false,
+          reason: 'Paket Gratis tidak memiliki kredit. Silakan upgrade untuk menggunakan fitur AI.',
+          creditsRequired,
+          creditsAvailable: 0,
+          isTrialUser: false,
+          trialDaysRemaining: 0,
+        };
+      }
+
       // Check if trial is active
       if (!isTrialActive) {
         return {
@@ -587,12 +600,30 @@ export class CreditService {
 
     if (subscription.tier === SubscriptionTier.FREE) {
       const tierConfig = TIER_CONFIG[SubscriptionTier.FREE];
+
+      // Check if user actually has trial (trialEndDate exists and not expired)
+      // Users who re-registered after using trial won't have trialEndDate
+      if (!subscription.trialEndDate) {
+        // No trial - return 0 credits
+        return {
+          total: 0,
+          used: 0,
+          remaining: 0,
+          tier: subscription.tier,
+          isTrialActive: false,
+          trialDaysRemaining: 0,
+          trialDailyUsed: 0,
+          trialDailyLimit: tierConfig.trialDailyLimit,
+          periodEnd: subscription.currentPeriodEnd,
+        };
+      }
+
       const trialRemaining = tierConfig.trialCredits - subscription.trialCreditsUsed;
 
       return {
         total: tierConfig.trialCredits,
         used: subscription.trialCreditsUsed,
-        remaining: trialRemaining,
+        remaining: isTrialActive ? trialRemaining : 0,
         tier: subscription.tier,
         isTrialActive,
         trialDaysRemaining: isTrialActive ? this.getTrialDaysRemaining(subscription) : 0,
@@ -606,10 +637,18 @@ export class CreditService {
     const trialCreditsRemaining = this.getTrialCreditsRemaining(subscription);
     const hasTrialCredits = trialCreditsRemaining > 0;
 
+    // For paid users, total balance = subscription credits + trial credits remaining
+    const totalRemaining = subscription.creditsRemaining + trialCreditsRemaining;
+    const totalCredits =
+      subscription.creditsTotal +
+      (hasTrialCredits ? TIER_CONFIG[SubscriptionTier.FREE].trialCredits : 0);
+    const totalUsed =
+      subscription.creditsUsed + (hasTrialCredits ? subscription.trialCreditsUsed : 0);
+
     return {
-      total: subscription.creditsTotal,
-      used: subscription.creditsUsed,
-      remaining: subscription.creditsRemaining,
+      total: totalCredits,
+      used: totalUsed,
+      remaining: totalRemaining,
       tier: subscription.tier,
       isTrialActive: false,
       periodEnd: subscription.currentPeriodEnd,
@@ -617,6 +656,7 @@ export class CreditService {
       hasTrialCredits,
       trialCreditsRemaining: hasTrialCredits ? trialCreditsRemaining : undefined,
       trialDaysRemaining: hasTrialCredits ? this.getTrialDaysRemaining(subscription) : undefined,
+      trialEndDate: hasTrialCredits ? subscription.trialEndDate : undefined,
     };
   }
 
@@ -678,13 +718,22 @@ export class CreditService {
     description: string
   ): Promise<CreditTransaction> {
     const subscription = await this.getOrCreateSubscription(userId);
-    const newCreditsRemaining = subscription.creditsRemaining + amount;
+    const newCreditsRemaining = Math.max(0, subscription.creditsRemaining + amount);
+
+    // Update both creditsRemaining and creditsTotal (if adding credits)
+    // This ensures the total reflects all credits including adjustments
+    const updateData: { creditsRemaining: number; creditsTotal?: number } = {
+      creditsRemaining: newCreditsRemaining,
+    };
+
+    // If adding credits, also increase creditsTotal to maintain consistency
+    if (amount > 0) {
+      updateData.creditsTotal = subscription.creditsTotal + amount;
+    }
 
     await prisma.subscription.update({
       where: { userId },
-      data: {
-        creditsRemaining: Math.max(0, newCreditsRemaining),
-      },
+      data: updateData,
     });
 
     return prisma.creditTransaction.create({
@@ -692,7 +741,7 @@ export class CreditService {
         userId,
         type: CreditTransactionType.ADJUSTMENT,
         amount,
-        balance: Math.max(0, newCreditsRemaining),
+        balance: newCreditsRemaining,
         description,
       },
     });
@@ -736,10 +785,6 @@ export class CreditService {
           // Set trial end to past to indicate no trial available
           trialEnd = new Date(now);
           trialEnd.setDate(trialEnd.getDate() - 1);
-
-          console.log(
-            `[CreditService] Trial not eligible for ${user.email}: ${eligibility.reason}`
-          );
         }
       }
 

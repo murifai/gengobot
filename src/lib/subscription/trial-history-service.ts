@@ -12,8 +12,10 @@ export interface TrialEligibility {
  * Returns false if the email has already used a trial
  */
 export async function checkTrialEligibility(email: string): Promise<TrialEligibility> {
+  const normalizedEmail = email.toLowerCase();
+
   const history = await prisma.trialHistory.findUnique({
-    where: { email: email.toLowerCase() },
+    where: { email: normalizedEmail },
   });
 
   if (!history) {

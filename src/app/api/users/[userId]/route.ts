@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentSessionUser } from '@/lib/auth/session';
 import { prisma } from '@/lib/prisma';
+import { recordTrialStart } from '@/lib/subscription/trial-history-service';
 
 export async function PATCH(
   request: NextRequest,
@@ -132,11 +133,25 @@ export async function DELETE(
     // Ensure user can only delete their own account
     const dbUser = await prisma.user.findUnique({
       where: { id: userId },
-      select: { email: true },
+      select: {
+        email: true,
+        subscription: {
+          select: {
+            tier: true,
+            trialStartDate: true,
+          },
+        },
+      },
     });
 
     if (!dbUser || dbUser.email !== sessionUser.email) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Record trial history BEFORE deleting user (prevents re-registering for new trial)
+    // This ensures the email is recorded even if user deletes account
+    if (dbUser.subscription?.trialStartDate) {
+      await recordTrialStart(userId, dbUser.email);
     }
 
     // Delete user and all related data

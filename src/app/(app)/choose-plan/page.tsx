@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -17,7 +17,8 @@ interface PlanOption {
   popular?: boolean;
 }
 
-const PLANS: PlanOption[] = [
+// Default plans (fallback if API fails)
+const DEFAULT_PLANS: PlanOption[] = [
   {
     tier: SubscriptionTier.FREE,
     name: 'Gratis',
@@ -63,33 +64,133 @@ const PLANS: PlanOption[] = [
   },
 ];
 
+// Format price in Indonesian Rupiah
+function formatPrice(price: number): string {
+  if (price === 0) return 'Rp 0';
+  return `Rp ${price.toLocaleString('id-ID')}/bulan`;
+}
+
+// Helper functions for mapping API data
+function getDescriptionForTier(tier: SubscriptionTier): string {
+  switch (tier) {
+    case SubscriptionTier.FREE:
+      return 'Buat yang mau belajar hafal kosakata, kanji dan pola kalimat. Ada juga trial buat user baru coba coba fitur AI';
+    case SubscriptionTier.BASIC:
+      return 'Buat yang mulai latihan ngobrol Jepang.';
+    case SubscriptionTier.PRO:
+      return 'Buat yang serius mau ningkatin kemampuan bahasa Jepangnya.';
+    default:
+      return '';
+  }
+}
+
+function getDefaultFeaturesForTier(tier: SubscriptionTier): string[] {
+  const defaultPlan = DEFAULT_PLANS.find(p => p.tier === tier);
+  return defaultPlan?.features || [];
+}
+
+function getIconForTier(tier: SubscriptionTier): React.ReactNode {
+  switch (tier) {
+    case SubscriptionTier.FREE:
+      return <Sparkles className="h-6 w-6" />;
+    case SubscriptionTier.BASIC:
+      return <Zap className="h-6 w-6" />;
+    case SubscriptionTier.PRO:
+      return <Zap className="h-6 w-6 fill-current" />;
+    default:
+      return <Sparkles className="h-6 w-6" />;
+  }
+}
+
 export default function ChoosePlanPage() {
   const router = useRouter();
   const [selectedTier, setSelectedTier] = useState<SubscriptionTier>(SubscriptionTier.FREE);
+  const [plans, setPlans] = useState<PlanOption[]>(DEFAULT_PLANS);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [trialUsed, setTrialUsed] = useState(false);
+  const [checkingTrial, setCheckingTrial] = useState(true);
+
+  // Check trial eligibility on mount
+  useEffect(() => {
+    async function checkTrialEligibility() {
+      try {
+        const response = await fetch('/api/subscription/trial/check');
+        if (response.ok) {
+          const data = await response.json();
+          setTrialUsed(!data.eligible);
+        }
+      } catch {
+        // Assume trial available on error
+      } finally {
+        setCheckingTrial(false);
+      }
+    }
+    checkTrialEligibility();
+  }, []);
+
+  // Fetch plans from API to sync with admin settings
+  useEffect(() => {
+    async function fetchPlans() {
+      try {
+        const response = await fetch('/api/subscription/plans');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.plans && data.plans.length > 0) {
+            // Map API response to PlanOption format
+            const apiPlans: PlanOption[] = data.plans.map(
+              (plan: {
+                tier: SubscriptionTier;
+                name: string;
+                priceMonthly: number;
+                features: string[];
+              }) => ({
+                tier: plan.tier,
+                name: plan.name,
+                price: formatPrice(plan.priceMonthly),
+                description: getDescriptionForTier(plan.tier),
+                features:
+                  plan.features.length > 0 ? plan.features : getDefaultFeaturesForTier(plan.tier),
+                icon: getIconForTier(plan.tier),
+                popular: plan.tier === SubscriptionTier.BASIC,
+              })
+            );
+            setPlans(apiPlans);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch plans:', error);
+        // Keep default plans on error
+      }
+    }
+    fetchPlans();
+  }, []);
 
   const handleSelectPlan = async () => {
     setIsSubmitting(true);
 
     try {
       if (selectedTier === SubscriptionTier.FREE) {
-        // For free tier, just start trial and go to app (onboarding is optional initially)
-        const response = await fetch('/api/subscription/trial', {
-          method: 'POST',
-        });
+        if (!trialUsed) {
+          // New user - start trial with credits
+          const response = await fetch('/api/subscription/trial', {
+            method: 'POST',
+          });
 
-        if (!response.ok) {
-          const data = await response.json();
-          // If user already has subscription, just proceed to app
-          if (data.error === 'User is not eligible for trial') {
-            router.push('/app');
-            return;
+          if (!response.ok) {
+            const data = await response.json();
+            if (data.error === 'User is not eligible for trial') {
+              setTrialUsed(true);
+              // Create free subscription without trial credits
+              await fetch('/api/subscription/free', { method: 'POST' });
+            }
           }
-          throw new Error('Failed to start trial');
+        } else {
+          // Returning user - create free subscription without trial credits
+          await fetch('/api/subscription/free', { method: 'POST' });
         }
 
-        // Go to app directly, onboarding will be required when accessing main features
-        router.push('/app');
+        // Force full page reload to refresh server-side subscription check
+        window.location.href = '/app';
       } else {
         // For paid tiers, go to upgrade page with pre-selected tier
         router.push(`/app/upgrade?tier=${selectedTier}&from=choose-plan`);
@@ -109,8 +210,26 @@ export default function ChoosePlanPage() {
           <h1 className="text-3xl font-bold">Pilih Paket Anda</h1>
         </div>
 
+        {!checkingTrial && trialUsed && selectedTier === SubscriptionTier.FREE && (
+          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950/50 border-2 border-blue-200 dark:border-blue-800 rounded-base">
+            <div className="flex items-start gap-3">
+              <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-blue-900 dark:text-blue-200">
+                  Selamat datang kembali!
+                </p>
+                <p className="text-sm text-blue-800 dark:text-blue-300 mt-1">
+                  Paket Gratis tetap bisa digunakan untuk belajar kosakata, kanji, dan pola kalimat.
+                  Kredit trial hanya tersedia sekali per akun. Untuk fitur AI conversation, silakan
+                  upgrade ke paket berbayar.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid md:grid-cols-3 gap-4 mb-8">
-          {PLANS.map(plan => (
+          {plans.map(plan => (
             <Card
               key={plan.tier}
               className={`relative cursor-pointer transition-all ${
@@ -154,16 +273,23 @@ export default function ChoosePlanPage() {
         </div>
 
         <div className="text-center">
-          <Button size="lg" onClick={handleSelectPlan} disabled={isSubmitting} className="min-w-48">
-            {isSubmitting
+          <Button
+            size="lg"
+            onClick={handleSelectPlan}
+            disabled={isSubmitting || checkingTrial}
+            className="min-w-48"
+          >
+            {isSubmitting || checkingTrial
               ? 'Memproses...'
               : selectedTier === SubscriptionTier.FREE
                 ? 'Mulai dengan Gratis'
-                : `Pilih ${PLANS.find(p => p.tier === selectedTier)?.name}`}
+                : `Pilih ${plans.find(p => p.tier === selectedTier)?.name}`}
           </Button>
           <p className="text-xs text-muted-foreground mt-3">
             {selectedTier === SubscriptionTier.FREE
-              ? 'Anda bisa upgrade kapan saja'
+              ? !checkingTrial && !trialUsed
+                ? '🎁 User baru mendapat 50 kredit trial gratis selama 14 hari!'
+                : 'Anda bisa upgrade kapan saja'
               : 'Anda akan diarahkan ke halaman pembayaran'}
           </p>
         </div>

@@ -6,6 +6,7 @@ import {
   Subscription,
 } from '@prisma/client';
 import { TIER_CONFIG } from './credit-config';
+import { checkTrialEligibility, recordTrialStart } from './trial-history-service';
 
 export interface TrialStatus {
   isActive: boolean;
@@ -33,12 +34,17 @@ export class TrialService {
    * Start trial for a new user
    */
   async startTrial(userId: string): Promise<Subscription> {
-    const existingSubscription = await prisma.subscription.findUnique({
-      where: { userId },
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, subscription: { select: { id: true } } },
     });
 
-    if (existingSubscription) {
+    if (user?.subscription) {
       throw new Error('User already has a subscription');
+    }
+
+    if (!user?.email) {
+      throw new Error('User email not found');
     }
 
     const now = new Date();
@@ -68,6 +74,9 @@ export class TrialService {
         description: 'Trial credits granted - 14 day trial started',
       },
     });
+
+    // Record trial start in history (prevents re-registering to get new trial)
+    await recordTrialStart(userId, user.email);
 
     return subscription;
   }
@@ -402,19 +411,66 @@ export class TrialService {
 
   /**
    * Check if user is eligible for trial
+   * Checks both current subscription AND trial history by email
    */
   async isEligibleForTrial(userId: string): Promise<boolean> {
-    const subscription = await prisma.subscription.findUnique({
+    // First check if user already has subscription
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        email: true,
+        subscription: { select: { id: true } },
+      },
+    });
+
+    // Already has subscription - not eligible
+    if (user?.subscription) {
+      return false;
+    }
+
+    // Check trial history by email (prevents re-registering to get new trial)
+    if (user?.email) {
+      const eligibility = await checkTrialEligibility(user.email);
+      return eligibility.eligible;
+    }
+
+    // No email found (shouldn't happen) - not eligible
+    return false;
+  }
+
+  /**
+   * Create FREE subscription without trial credits
+   * Used for returning users who already used their trial
+   */
+  async createFreeSubscription(userId: string): Promise<Subscription> {
+    const existingSubscription = await prisma.subscription.findUnique({
       where: { userId },
     });
 
-    // New user - eligible for trial
-    if (!subscription) {
-      return true;
+    if (existingSubscription) {
+      return existingSubscription;
     }
 
-    // Already has subscription - not eligible
-    return false;
+    const now = new Date();
+    // Set period end far in future for free tier (no expiration)
+    const periodEnd = new Date(now);
+    periodEnd.setFullYear(periodEnd.getFullYear() + 100);
+
+    const subscription = await prisma.subscription.create({
+      data: {
+        userId,
+        tier: SubscriptionTier.FREE,
+        status: SubscriptionStatus.ACTIVE,
+        currentPeriodStart: now,
+        currentPeriodEnd: periodEnd,
+        // No trial dates - user already used trial before
+        trialStartDate: null,
+        trialEndDate: null,
+        trialDailyReset: null,
+      },
+    });
+
+    return subscription;
   }
 
   /**
