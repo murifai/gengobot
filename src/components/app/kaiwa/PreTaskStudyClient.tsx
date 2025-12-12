@@ -15,6 +15,7 @@ interface Task {
   scenario: string;
   learningObjectives: string[];
   conversationExample: string[];
+  audioExample: string | null;
 }
 
 interface Flashcard {
@@ -271,6 +272,7 @@ export default function PreTaskStudyClient({ user, taskId }: PreTaskStudyClientP
             ? task.conversationExample.join('\n')
             : task.conversationExample
         }
+        audioExample={task.audioExample}
         decks={decks}
         onSkip={handleSkip}
         onCancel={handleCancel}

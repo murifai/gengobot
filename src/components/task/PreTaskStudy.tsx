@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -46,6 +46,7 @@ interface PreTaskStudyProps {
   taskScenario?: string;
   learningObjectives?: string[];
   conversationExample?: string;
+  audioExample?: string | null;
   decks?: Deck[];
   onSkip: () => void;
   onCancel: () => void;
@@ -64,6 +65,7 @@ export default function PreTaskStudy({
   taskScenario,
   learningObjectives = [],
   conversationExample = '',
+  audioExample,
   decks = [],
   onSkip: _onSkip,
   onCancel,
@@ -71,6 +73,78 @@ export default function PreTaskStudy({
 }: PreTaskStudyProps) {
   const [currentStep, setCurrentStep] = useState<FlowStep>('scenario');
   const [currentDeckIndex, setCurrentDeckIndex] = useState<number | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioRef, setAudioRef] = useState<HTMLAudioElement | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const waveformRef = useRef<HTMLDivElement>(null);
+
+  // Generate pseudo-random waveform bars (consistent pattern)
+  const waveformBars = useMemo(() => {
+    const bars = [];
+    const barCount = 50;
+    for (let i = 0; i < barCount; i++) {
+      // Create a wave-like pattern using sine with some variation
+      const height = 20 + Math.sin(i * 0.3) * 15 + Math.sin(i * 0.7) * 10 + Math.random() * 10;
+      bars.push(Math.min(100, Math.max(15, height)));
+    }
+    return bars;
+  }, []);
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  const handlePlayPause = () => {
+    if (!audioExample) return;
+
+    if (isPlaying && audioRef) {
+      audioRef.pause();
+      setIsPlaying(false);
+    } else {
+      if (audioRef) {
+        audioRef.pause();
+      }
+      const audio = new Audio(audioExample);
+      setAudioRef(audio);
+
+      audio.onloadedmetadata = () => {
+        setDuration(audio.duration);
+      };
+
+      audio.ontimeupdate = () => {
+        setCurrentTime(audio.currentTime);
+      };
+
+      audio.onended = () => {
+        setIsPlaying(false);
+        setCurrentTime(0);
+      };
+
+      audio.onerror = () => {
+        setIsPlaying(false);
+      };
+
+      audio.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const handleWaveformClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!waveformRef.current || !audioRef || duration === 0) return;
+
+    const rect = waveformRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percent = clickX / rect.width;
+    const newTime = percent * duration;
+
+    audioRef.currentTime = newTime;
+    setCurrentTime(newTime);
+  };
 
   const handleDeckComplete = () => {
     // Check if there's another deck to study
@@ -299,6 +373,63 @@ export default function PreTaskStudy({
               </div>
             ) : (
               <p className="text-muted-foreground italic">Tidak ada contoh percakapan</p>
+            )}
+
+            {/* Audio Example Player */}
+            {audioExample && (
+              <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <p className="text-sm font-medium text-foreground mb-3">Contoh Audio Percakapan</p>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handlePlayPause}
+                    className="shrink-0 w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center hover:bg-primary/90 transition-colors"
+                    aria-label={isPlaying ? 'Pause audio' : 'Play audio'}
+                  >
+                    {isPlaying ? (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <rect x="6" y="4" width="4" height="16" />
+                        <rect x="14" y="4" width="4" height="16" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    )}
+                  </button>
+                  <div className="flex-1">
+                    {/* Waveform visualization */}
+                    <div
+                      ref={waveformRef}
+                      onClick={handleWaveformClick}
+                      className="relative h-10 flex items-center gap-0.5 cursor-pointer"
+                    >
+                      {waveformBars.map((height, index) => {
+                        const barPercent = (index / waveformBars.length) * 100;
+                        const isPlayed = barPercent <= progressPercent;
+                        return (
+                          <div
+                            key={index}
+                            className={`flex-1 rounded-full transition-colors ${
+                              isPlayed ? 'bg-primary' : 'bg-muted-foreground/30'
+                            }`}
+                            style={{ height: `${height}%` }}
+                          />
+                        );
+                      })}
+                      {/* Progress line indicator */}
+                      <div
+                        className="absolute top-0 bottom-0 w-0.5 bg-primary shadow-sm"
+                        style={{ left: `${progressPercent}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                      <span>{formatTime(currentTime)}</span>
+                      <span>{formatTime(duration)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 
