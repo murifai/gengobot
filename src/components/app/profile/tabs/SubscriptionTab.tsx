@@ -175,6 +175,9 @@ export function SubscriptionTab() {
           trialDailyUsed={balance.trialDailyUsed}
           trialDailyLimit={balance.trialDailyLimit}
           periodEnd={balance.periodEnd}
+          hasTrialCredits={balance.hasTrialCredits}
+          trialCreditsRemaining={balance.trialCreditsRemaining}
+          trialEndDate={balance.trialEndDate ?? undefined}
         />
       )}
 

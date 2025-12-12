@@ -55,13 +55,6 @@ export const authConfig: NextAuthConfig = {
   ],
   callbacks: {
     async signIn({ account, profile }) {
-      // Debug logging for production
-      console.log('[AUTH] signIn callback triggered:', {
-        provider: account?.provider,
-        hasProfile: !!profile,
-        email: profile?.email,
-      });
-
       // Only allow Google OAuth
       if (account?.provider === 'google' && profile?.email) {
         try {
@@ -74,11 +67,6 @@ export const authConfig: NextAuthConfig = {
           // Check if user exists
           const existingUser = await prisma.user.findUnique({
             where: { email: profile.email },
-          });
-
-          console.log('[AUTH] User lookup:', {
-            email: profile.email,
-            exists: !!existingUser,
           });
 
           if (!existingUser) {
@@ -94,7 +82,6 @@ export const authConfig: NextAuthConfig = {
                 onboardingCompleted: false,
               },
             });
-            console.log('[AUTH] New user created:', profile.email);
           } else {
             // Update existing user info
             await prisma.user.update({
@@ -107,7 +94,6 @@ export const authConfig: NextAuthConfig = {
                 emailVerified: new Date(),
               },
             });
-            console.log('[AUTH] User updated:', profile.email);
           }
 
           return true;
@@ -121,7 +107,6 @@ export const authConfig: NextAuthConfig = {
         }
       }
 
-      console.log('[AUTH] signIn rejected - not Google or no email');
       return false;
     },
     async jwt({ token, account, profile }) {
@@ -148,7 +133,6 @@ export const authConfig: NextAuthConfig = {
             token.picture = dbUser.image;
             token.onboardingCompleted = dbUser.onboardingCompleted;
           }
-          console.log('[AUTH] JWT token populated for:', profile.email);
         } catch (error) {
           console.error('[AUTH] Error in JWT callback:', error);
         }

@@ -48,11 +48,23 @@ For EACH learning objective, determine:
 2. Confidence score (0-100)
 3. Evidence (which messages show completion)
 
+# Detection Guidelines (BE LENIENT):
+- Mark as completed if the user DISCUSSED, ATTEMPTED, or DEMONSTRATED the objective topic
+- The user does NOT need to perfectly execute - attempts and discussions count
+- If the conversation topic relates to the objective, consider it completed
+- Examples of completion:
+  * User asked about or mentioned the topic → completed (confidence 70-85)
+  * User attempted to use relevant vocabulary/grammar → completed (confidence 80-90)
+  * User successfully demonstrated the skill → completed (confidence 90-100)
+  * AI explained/taught about the topic to user → completed (confidence 75-85)
+- Only mark as pending if the topic was NEVER touched in conversation
+- Give benefit of doubt to the learner - language learning is about practice, not perfection
+
 Important:
-- Mark as completed ONLY if user successfully demonstrated the objective
-- Consider both content and context
-- User must have actually performed the action, not just asked about it
-- Lower confidence if uncertain
+- Be generous in detection - the goal is to encourage learning
+- Consider partial attempts as progress toward completion
+- If uncertain, lean toward marking as completed with lower confidence (60-75)
+- Focus on whether the learning topic was engaged with, not just perfectly executed
 
 Response Format (JSON):
 {

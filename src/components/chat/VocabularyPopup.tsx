@@ -26,17 +26,17 @@ interface VocabData {
 function getJlptColor(level: string | null): string {
   switch (level) {
     case 'N5':
-      return 'bg-green-500 text-white';
+      return 'bg-green-600 dark:bg-green-500 text-white';
     case 'N4':
-      return 'bg-blue-500 text-white';
+      return 'bg-blue-600 dark:bg-blue-500 text-white';
     case 'N3':
-      return 'bg-yellow-500 text-black';
+      return 'bg-yellow-600 dark:bg-yellow-500 text-white';
     case 'N2':
-      return 'bg-orange-500 text-white';
+      return 'bg-orange-600 dark:bg-orange-500 text-white';
     case 'N1':
-      return 'bg-red-500 text-white';
+      return 'bg-red-600 dark:bg-red-500 text-white';
     default:
-      return 'bg-gray-500 text-white';
+      return 'bg-muted-foreground text-white';
   }
 }
 
@@ -145,7 +145,7 @@ export function VocabularyPopup({ word, position, onClose }: VocabularyPopupProp
             <div className="flex items-center gap-1 shrink-0">
               <button
                 onClick={playAudio}
-                className="p-1.5 hover:bg-secondary-background rounded-base transition-colors"
+                className="p-1.5 hover:bg-muted rounded-base transition-colors"
                 title="Putar audio"
               >
                 <Volume2 className="h-4 w-4" />

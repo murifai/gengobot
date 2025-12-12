@@ -89,7 +89,7 @@ export function ClickableJapanese({ text, className }: ClickableJapaneseProps) {
             <span
               key={part.key}
               onClick={e => handleWordClick(part.text, e)}
-              className="cursor-pointer hover:bg-main/20 hover:underline decoration-main/50 rounded px-0.5 transition-colors font-japanese"
+              className="cursor-pointer hover:bg-primary/30 dark:hover:bg-primary/40 hover:underline decoration-primary/70 rounded px-0.5 transition-colors font-japanese"
               title="Klik untuk lihat arti"
             >
               {part.text}

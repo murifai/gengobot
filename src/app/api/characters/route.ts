@@ -21,13 +21,18 @@ export async function GET(request: NextRequest) {
     // If userId is explicitly provided, use it; otherwise get from session
     let userId = userIdParam;
     if (!userId) {
-      const sessionUser = await getCurrentSessionUser();
-      if (sessionUser?.email) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: sessionUser.email },
-          select: { id: true },
-        });
-        userId = dbUser?.id || null;
+      try {
+        const sessionUser = await getCurrentSessionUser();
+        if (sessionUser?.email) {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: sessionUser.email },
+            select: { id: true },
+          });
+          userId = dbUser?.id || null;
+        }
+      } catch (sessionError) {
+        // Session error - continue without user context
+        console.warn('Session error in characters API:', sessionError);
       }
     }
 

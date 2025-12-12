@@ -515,19 +515,34 @@ export default function useWebRTCAudioSession(
           // Extract usage data from response
           const usage = msg.response?.usage;
           if (usage) {
-            // Accumulate token usage
-            if (usage.input_tokens) {
+            // Get audio tokens from token details (OpenAI Realtime API format)
+            const inputAudioTokens = usage.input_token_details?.audio_tokens || 0;
+            const outputAudioTokens = usage.output_token_details?.audio_tokens || 0;
+            const inputTextTokens = usage.input_token_details?.text_tokens || 0;
+            const outputTextTokens = usage.output_token_details?.text_tokens || 0;
+
+            // Accumulate audio tokens
+            if (inputAudioTokens > 0) {
+              audioInputTokensRef.current += inputAudioTokens;
+            }
+            if (outputAudioTokens > 0) {
+              audioOutputTokensRef.current += outputAudioTokens;
+            }
+
+            // Accumulate text tokens
+            // If detailed breakdown not available, use total tokens
+            if (inputTextTokens > 0) {
+              textInputTokensRef.current += inputTextTokens;
+            } else if (usage.input_tokens && !inputAudioTokens) {
+              // Fallback: if no audio tokens, all input must be text
               textInputTokensRef.current += usage.input_tokens;
             }
-            if (usage.output_tokens) {
+
+            if (outputTextTokens > 0) {
+              textOutputTokensRef.current += outputTextTokens;
+            } else if (usage.output_tokens && !outputAudioTokens) {
+              // Fallback: if no audio tokens, all output must be text
               textOutputTokensRef.current += usage.output_tokens;
-            }
-            // Audio tokens might be in different fields depending on API version
-            if (usage.input_token_details?.audio_tokens) {
-              audioInputTokensRef.current += usage.input_token_details.audio_tokens;
-            }
-            if (usage.output_token_details?.audio_tokens) {
-              audioOutputTokensRef.current += usage.output_token_details.audio_tokens;
             }
 
             console.log('[WebRTC] Usage accumulated:', {
@@ -535,6 +550,7 @@ export default function useWebRTCAudioSession(
               audioOutput: audioOutputTokensRef.current,
               textInput: textInputTokensRef.current,
               textOutput: textOutputTokensRef.current,
+              rawUsage: usage,
             });
           }
           break;

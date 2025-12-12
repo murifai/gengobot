@@ -81,8 +81,8 @@ model TaskAttempt {
   completionDuration        Int?                // seconds
   completionSuggestedAt     DateTime?
 
-  user User @relation(fields: [userId], references: [id])
-  task Task @relation(fields: [taskId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([taskId])
@@ -285,7 +285,7 @@ model Character {
   isUserCreated      Boolean @default(true)
 
   userId             String?
-  user               User?               @relation(fields: [userId], references: [id])
+  user               User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
   conversations      Conversation[]
   freeConversations  FreeConversation[]
 
@@ -304,9 +304,9 @@ model Conversation {
   updatedAt   DateTime @updatedAt
 
   userId    String
-  user      User       @relation(fields: [userId], references: [id])
-  character Character? @relation(fields: [characterId], references: [id])
-  task      Task?      @relation(fields: [taskId], references: [id])
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  character Character? @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  task      Task?      @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([type])
@@ -323,7 +323,7 @@ model AdminLog {
   details    Json?
   createdAt  DateTime @default(now())
 
-  admin User @relation(fields: [adminId], references: [id])
+  admin User @relation(fields: [adminId], references: [id], onDelete: Cascade)
 
   @@index([adminId])
   @@index([actionType])

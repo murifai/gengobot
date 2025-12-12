@@ -26,8 +26,8 @@ export function MessageLimitWarning({
     <div
       className={`animate-slide-down mb-4 rounded-base border-2 shadow-shadow ${
         isWarning
-          ? 'bg-yellow-50 dark:bg-yellow-900/20 border-border'
-          : 'bg-red-50 dark:bg-red-900/20 border-border'
+          ? 'bg-yellow-50 dark:bg-yellow-950/50 border-yellow-200 dark:border-yellow-800'
+          : 'bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800'
       }`}
     >
       <div className="flex items-start gap-3 p-4">
@@ -44,14 +44,14 @@ export function MessageLimitWarning({
         <div className="flex-1 min-w-0">
           <h4
             className={`font-semibold text-sm mb-1 ${
-              isWarning ? 'text-yellow-900 dark:text-yellow-100' : 'text-red-900 dark:text-red-100'
+              isWarning ? 'text-yellow-900 dark:text-yellow-200' : 'text-red-900 dark:text-red-200'
             }`}
           >
             {isCritical ? 'Message Limit Reached' : 'Approaching Message Limit'}
           </h4>
           <p
             className={`text-sm ${
-              isWarning ? 'text-yellow-800 dark:text-yellow-200' : 'text-red-800 dark:text-red-200'
+              isWarning ? 'text-yellow-800 dark:text-yellow-300' : 'text-red-800 dark:text-red-300'
             }`}
           >
             {isCritical ? (
@@ -81,7 +81,9 @@ export function MessageLimitWarning({
             </div>
             <span
               className={`text-xs font-mono font-semibold ${
-                isWarning ? 'text-yellow-700' : 'text-red-700'
+                isWarning
+                  ? 'text-yellow-700 dark:text-yellow-300'
+                  : 'text-red-700 dark:text-red-300'
               }`}
             >
               {totalMessages}/{maxMessages}

@@ -103,8 +103,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { userId, taskId, forceNew = false } = body;
 
-    console.log('[Task Attempt POST] Request:', { userId, taskId, forceNew });
-
     // Validate required fields
     if (!userId || !taskId) {
       console.error('[Task Attempt POST] Missing required fields:', { userId, taskId });
@@ -116,24 +114,15 @@ export async function POST(request: NextRequest) {
       where: { id: userId },
     });
 
-    console.log('[Task Attempt POST] User lookup:', user ? 'found' : 'not found');
-
     if (!user) {
       console.error('[Task Attempt POST] User not found:', userId);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    console.log('[Task Attempt POST] Found user:', { id: user.id, email: user.email });
-
     // Verify task exists and is active
     const task = await prisma.task.findUnique({
       where: { id: taskId },
     });
-
-    console.log(
-      '[Task Attempt POST] Task lookup:',
-      task ? `found (active: ${task.isActive})` : 'not found'
-    );
 
     if (!task) {
       console.error('[Task Attempt POST] Task not found:', taskId);
@@ -155,13 +144,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      console.log(
-        '[Task Attempt POST] Existing attempt:',
-        existingAttempt ? `found (${existingAttempt.id})` : 'not found'
-      );
-
       if (existingAttempt) {
-        console.log('[Task Attempt POST] Resuming existing attempt:', existingAttempt.id);
         // Return existing attempt instead of creating new one
         return NextResponse.json({
           attempt: existingAttempt,
@@ -170,12 +153,8 @@ export async function POST(request: NextRequest) {
         });
       }
     } else {
-      console.log(
-        '[Task Attempt POST] forceNew=true, marking old incomplete attempts as abandoned'
-      );
-
       // Mark any existing incomplete attempts as completed (abandoned)
-      const abandonedCount = await prisma.taskAttempt.updateMany({
+      await prisma.taskAttempt.updateMany({
         where: {
           userId: user.id,
           taskId,
@@ -187,15 +166,7 @@ export async function POST(request: NextRequest) {
           // The conversation history remains intact for statistics
         },
       });
-
-      console.log(
-        '[Task Attempt POST] Marked',
-        abandonedCount.count,
-        'old attempt(s) as abandoned'
-      );
     }
-
-    console.log('[Task Attempt POST] Creating new attempt...');
 
     // Create new task attempt
     const attempt = await prisma.taskAttempt.create({
@@ -248,8 +219,6 @@ export async function POST(request: NextRequest) {
         currentTaskId: taskId,
       },
     });
-
-    console.log('[Task Attempt POST] Success - created attempt:', attempt.id);
 
     return NextResponse.json({
       attempt,

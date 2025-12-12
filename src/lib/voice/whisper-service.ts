@@ -76,31 +76,25 @@ export class WhisperService {
 
   /**
    * Transcribe with Japanese-specific optimizations
-   * Includes context hints for better accuracy in learning scenarios
+   * NOTE: We intentionally DO NOT provide context hints or expected phrases
+   * because Whisper may use them to "correct" user speech, which prevents
+   * natural feedback on actual pronunciation/grammar errors.
+   * For language learning, we want to capture exactly what the user said.
    */
   async transcribeJapanese(
     audioFile: File | Buffer,
-    context?: {
+    _context?: {
       taskScenario?: string;
       expectedPhrases?: string[];
       userLevel?: string;
     }
   ): Promise<TranscriptionResult> {
-    // Build context prompt for better accuracy
-    let prompt = 'Japanese conversation. ';
-
-    if (context?.taskScenario) {
-      prompt += `Context: ${context.taskScenario}. `;
-    }
-
-    if (context?.expectedPhrases && context.expectedPhrases.length > 0) {
-      prompt += `Expected phrases: ${context.expectedPhrases.join(', ')}. `;
-    }
-
+    // Do NOT provide context hints - we want raw transcription of what user actually said
+    // This allows the AI tutor to detect and provide feedback on actual errors
     return this.transcribe(audioFile, {
       language: 'ja',
-      prompt: prompt.trim(),
-      temperature: 0, // Deterministic for language learning
+      // No prompt - capture user speech exactly as spoken without correction
+      temperature: 0, // Deterministic for consistent results
       responseFormat: 'verbose_json',
     });
   }

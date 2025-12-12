@@ -139,7 +139,17 @@ export function calculateCreditsFromUsage(usage: TokenUsage): CreditCalculationR
   }
 
   // Convert USD to credits (round up to ensure we always cover costs)
-  const credits = Math.ceil(totalUsdCost / CREDIT_CONVERSION_RATE);
+  // Ensure minimum 1 credit if there was ANY usage (even if cost rounds to 0)
+  const hasAnyUsage =
+    (usage.inputTokens && usage.inputTokens > 0) ||
+    (usage.outputTokens && usage.outputTokens > 0) ||
+    (usage.audioDurationSeconds && usage.audioDurationSeconds > 0) ||
+    (usage.audioInputTokens && usage.audioInputTokens > 0) ||
+    (usage.audioOutputTokens && usage.audioOutputTokens > 0) ||
+    (usage.characterCount && usage.characterCount > 0);
+
+  const calculatedCredits = Math.ceil(totalUsdCost / CREDIT_CONVERSION_RATE);
+  const credits = hasAnyUsage ? Math.max(1, calculatedCredits) : calculatedCredits;
 
   return { credits, usdCost: totalUsdCost, breakdown };
 }

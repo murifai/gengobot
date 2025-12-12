@@ -223,14 +223,9 @@ IMPORTANT:
           let audioData: string | undefined;
           let audioType: string | undefined;
 
-          // Track TTS credit deduction
-          let ttsCreditsDeducted = 0;
-          let ttsUsdCost = 0;
-
           // Only generate TTS if user sent a voice message
           if (isVoiceMessage) {
             try {
-              console.log('[Streaming] Generating TTS for response (voice message received)...');
               // Cast task to access voice/speakingSpeed fields added in schema migration
               const taskWithVoice = attempt.task as typeof attempt.task & {
                 voice?: string;
@@ -252,7 +247,7 @@ IMPORTANT:
                 audioType = 'audio/mpeg';
 
                 // Deduct credits for TTS usage
-                const ttsResult = await creditService.deductCreditsFromUsage(
+                await creditService.deductCreditsFromUsage(
                   attempt.userId,
                   {
                     model: 'gpt-4o-mini-tts',
@@ -262,23 +257,10 @@ IMPORTANT:
                   'task_attempt_tts',
                   'TTS synthesis for voice response'
                 );
-                ttsCreditsDeducted = ttsResult.credits;
-                ttsUsdCost = ttsResult.usdCost;
               }
-
-              console.log('[Streaming] TTS result:', {
-                success: synthesis.success,
-                hasAudioData: !!audioData,
-                characterCount: fullResponse.length,
-                ttsCreditsDeducted,
-                ttsUsdCost,
-                error: synthesis.error,
-              });
             } catch (ttsError) {
-              console.error('[Streaming] TTS generation failed (non-blocking):', ttsError);
+              console.error('[Streaming] TTS generation failed:', ttsError);
             }
-          } else {
-            console.log('[Streaming] Skipping TTS (text message received)');
           }
 
           const assistantMessage = {
@@ -311,7 +293,7 @@ IMPORTANT:
           // Deduct credits based on actual token usage (usage-based billing)
           // For voice messages, force deduct text credits even for unlimited text tiers
           // This ensures voice chat uses credits while text-only chat remains unlimited
-          const creditResult = await creditService.deductCreditsFromUsage(
+          await creditService.deductCreditsFromUsage(
             attempt.userId,
             {
               model: MODELS.RESPONSE,
@@ -323,16 +305,6 @@ IMPORTANT:
             isVoiceMessage ? 'Voice chat text generation' : 'Task chat message',
             isVoiceMessage // forceDeduct: true for voice messages
           );
-
-          console.log('[Task Stream] Credit deduction:', {
-            attemptId,
-            tokensUsed: { input: inputTokens, output: outputTokens },
-            textCreditsDeducted: creditResult.credits,
-            textUsdCost: creditResult.usdCost,
-            ttsCreditsDeducted,
-            ttsUsdCost,
-            totalCreditsDeducted: creditResult.credits + ttsCreditsDeducted,
-          });
 
           // Send completion event with audio data (base64)
           const doneData = JSON.stringify({
