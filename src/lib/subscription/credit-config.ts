@@ -278,6 +278,7 @@ export interface CreditBalance {
   // For paid users who upgraded from FREE and still have trial credits
   hasTrialCredits?: boolean;
   trialCreditsRemaining?: number;
+  trialEndDate?: Date | null; // When trial credits expire
 }
 
 export interface HistoryOptions {
