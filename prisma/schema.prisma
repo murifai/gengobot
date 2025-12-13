@@ -114,7 +114,7 @@ model TaskSubcategory {
   @@index([categoryId])
 }
 
-// User model - Student and admin accounts
+// User model - Student accounts (regular users only)
 model User {
   id                      String    @id @default(cuid())
   email                   String    @unique
@@ -123,7 +123,6 @@ model User {
   password                String? // Hashed password for credentials auth
   image                   String?
   proficiency             String    @default("N5") // N1-N5 JLPT levels
-  isAdmin                 Boolean   @default(false)
   preferredTaskCategories Json? // Array of preferred task types
   completedTasks          Json? // Array of completed task IDs
   currentTaskId           String? // Currently active task
@@ -156,7 +155,6 @@ model User {
   characters         Character[]
   conversations      Conversation[]
   taskAttempts       TaskAttempt[]
-  adminLogs          AdminLog[]
   decks              Deck[]
   studySessions      StudySession[]
   freeConversations  FreeConversation[]
@@ -172,7 +170,6 @@ model User {
   extensionToken     ExtensionToken?
 
   @@index([email])
-  @@index([isAdmin])
 }
 
 // Admin model - Separate admin authentication (email/password)
@@ -191,6 +188,10 @@ model Admin {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Relations
+  decks     Deck[]
+  adminLogs AdminLog[]
 
   @@index([email])
   @@index([role])
@@ -323,7 +324,7 @@ model AdminLog {
   details    Json?
   createdAt  DateTime @default(now())
 
-  admin User @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  admin Admin @relation(fields: [adminId], references: [id], onDelete: Cascade)
 
   @@index([adminId])
   @@index([actionType])
@@ -347,14 +348,16 @@ model Deck {
   studyCount   Int    @default(0) // Number of times studied
   averageScore Float? // Average performance across all studies
 
-  // Ownership
-  createdBy  String
-  isActive   Boolean  @default(true)
-  isTaskDeck Boolean  @default(false) // Deck intended for task prerequisites
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  // Ownership - either created by User OR Admin (one must be set)
+  createdBy      String? // User ID (optional if created by admin)
+  createdByAdmin String? // Admin ID (optional if created by user)
+  isActive       Boolean  @default(true)
+  isTaskDeck     Boolean  @default(false) // Deck intended for task prerequisites
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  creator       User              @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  creator       User?             @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  adminCreator  Admin?            @relation(fields: [createdByAdmin], references: [id], onDelete: Cascade)
   flashcards    Flashcard[]
   studySessions StudySession[]
   taskDecks     TaskDeck[]
@@ -362,6 +365,7 @@ model Deck {
   studyingUsers UserStudyingDeck[]
 
   @@index([createdBy])
+  @@index([createdByAdmin])
   @@index([category])
   @@index([difficulty])
   @@index([isActive])

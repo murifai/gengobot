@@ -39,8 +39,9 @@ export async function GET(
       return NextResponse.json({ error: 'Deck not found' }, { status: 404 });
     }
 
-    // Check permissions: owner, admin, or public deck
-    if (deck.createdBy !== dbUser.id && !dbUser.isAdmin && !deck.isPublic) {
+    // Check permissions: owner or public deck
+    // Note: Admin operations use admin session via admin panel
+    if (deck.createdBy !== dbUser.id && !deck.isPublic) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

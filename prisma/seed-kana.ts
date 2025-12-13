@@ -327,18 +327,15 @@ const katakanaData = [
 async function seedKana() {
   console.log('🌱 Starting Kana seed...');
 
-  // Find or create a system admin user for creating system decks
-  const systemUser = await prisma.user.findFirst({
-    where: { isAdmin: true },
-  });
+  // Find the first admin from the Admin table
+  const admin = await prisma.admin.findFirst();
 
-  if (!systemUser) {
-    console.log('⚠️  No admin user found. Please run this seed after creating an admin user.');
+  if (!admin) {
+    console.log('⚠️  No admin found. Please run this seed after creating an admin.');
     return;
   }
 
-  const systemUserId = systemUser.id;
-  console.log(`📋 Using admin user: ${systemUser.email}`);
+  console.log(`📋 Using admin: ${admin.email}`);
 
   // Check if Hiragana deck already exists
   let hiraganaDeck = await prisma.deck.findFirst({
@@ -358,7 +355,7 @@ async function seedKana() {
         category: 'Hiragana',
         difficulty: 'N5',
         isPublic: true,
-        createdBy: systemUserId,
+        createdByAdmin: admin.id,
         totalCards: hiraganaData.length,
       },
     });
@@ -397,7 +394,7 @@ async function seedKana() {
         category: 'Katakana',
         difficulty: 'N5',
         isPublic: true,
-        createdBy: systemUserId,
+        createdByAdmin: admin.id,
         totalCards: katakanaData.length,
       },
     });

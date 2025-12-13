@@ -1,25 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentSessionUser } from '@/lib/auth/session';
+import { getAdminSession } from '@/lib/auth/admin-auth';
 import { parseExcelFile } from '@/lib/export/deckExport';
 import { ImportCardData } from '@/types/deck';
 
 // POST /api/decks/import - Import deck from Excel file
 export async function POST(request: NextRequest) {
   try {
+    // Check for admin session first (admin panel), then user session
+    const adminSession = await getAdminSession();
     const sessionUser = await getCurrentSessionUser();
 
-    if (!sessionUser) {
+    if (!sessionUser && !adminSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const dbUser = await prisma.user.findUnique({
-      where: { email: sessionUser.email! },
-    });
-
-    if (!dbUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+    // Determine if this is an admin operation
+    const isAdminOperation = !!adminSession;
 
     // Parse multipart form data
     const formData = await request.formData();
@@ -34,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     // Parse boolean parameters
     // For admins: default to true, for users: default to false for isPublic
-    const isPublic = isPublicParam !== null ? isPublicParam !== 'false' : dbUser.isAdmin;
+    const isPublic = isPublicParam !== null ? isPublicParam !== 'false' : isAdminOperation;
     const isActive = isActiveParam !== 'false'; // Default to true
     const isTaskDeck = isTaskDeckParam === 'true';
 
@@ -65,19 +63,35 @@ export async function POST(request: NextRequest) {
 
     // Create deck and flashcards in a transaction
     const result = await prisma.$transaction(async tx => {
-      // Create deck
+      // Build deck data based on who is creating it
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const deckData: any = {
+        name,
+        description: description || null,
+        category: category || null,
+        difficulty: difficulty || null,
+        totalCards: cards.length,
+        isPublic,
+        isActive,
+        isTaskDeck,
+      };
+
+      if (isAdminOperation) {
+        // Admin creating deck - use createdByAdmin
+        deckData.createdByAdmin = adminSession.id;
+      } else {
+        // User creating deck - use createdBy
+        const dbUser = await tx.user.findUnique({
+          where: { email: sessionUser!.email! },
+        });
+        if (!dbUser) {
+          throw new Error('User not found');
+        }
+        deckData.createdBy = dbUser.id;
+      }
+
       const deck = await tx.deck.create({
-        data: {
-          name,
-          description: description || null,
-          category: category || null,
-          difficulty: difficulty || null,
-          totalCards: cards.length,
-          createdBy: dbUser.id,
-          isPublic,
-          isActive,
-          isTaskDeck,
-        },
+        data: deckData,
       });
 
       // Create flashcards using createMany for better performance
@@ -124,11 +138,11 @@ export async function POST(request: NextRequest) {
       return { deck };
     });
 
-    // Log admin action if user is admin
-    if (dbUser.isAdmin) {
+    // Log admin action if admin operation
+    if (isAdminOperation) {
       await prisma.adminLog.create({
         data: {
-          adminId: dbUser.id,
+          adminId: adminSession.id,
           actionType: 'import_deck',
           entityType: 'deck',
           entityId: result.deck.id,

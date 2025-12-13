@@ -110,7 +110,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Deck not found' }, { status: 404 });
     }
 
-    if (deck.createdBy !== dbUser.id && !dbUser.isAdmin) {
+    // Check permissions: owner only
+    // Note: Admin operations use admin session via admin panel
+    if (deck.createdBy !== dbUser.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

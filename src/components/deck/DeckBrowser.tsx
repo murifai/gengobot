@@ -126,6 +126,7 @@ export default function DeckBrowser() {
       setError(null);
 
       const params = new URLSearchParams({
+        isPublic: 'true', // Only fetch public decks for public tab
         ...(searchQuery && { search: searchQuery }),
         ...(categoryFilter && { category: categoryFilter }),
         ...(difficultyFilter && { difficulty: difficultyFilter }),

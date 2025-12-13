@@ -13,11 +13,24 @@ import {
   Copy,
   Loader2,
   Layers,
+  CheckSquare,
+  Square,
+  Globe,
+  Lock,
+  MoreHorizontal,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Deck } from '@/types/deck';
 import { ImportConfirmationModal } from '@/components/admin/ImportConfirmationModal';
 
@@ -32,6 +45,7 @@ interface DeckWithDetails extends Deck {
   _count?: {
     flashcards: number;
   };
+  isTaskDeck?: boolean;
 }
 
 interface BulkImportResult {
@@ -50,6 +64,10 @@ export default function AdminDecksPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [filterTaskDeck, setFilterTaskDeck] = useState<string>('all'); // all, task, regular
+  const [filterVisibility, setFilterVisibility] = useState<string>('all'); // all, public, private
+  const [selectedDecks, setSelectedDecks] = useState<Set<string>>(new Set());
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResults, setImportResults] = useState<{
     success: boolean;
@@ -316,8 +334,117 @@ export default function AdminDecksPage() {
       (deck.description && deck.description.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesDifficulty = filterDifficulty === 'all' || deck.difficulty === filterDifficulty;
     const matchesCategory = filterCategory === 'all' || deck.category === filterCategory;
-    return matchesSearch && matchesDifficulty && matchesCategory;
+    const matchesTaskDeck =
+      filterTaskDeck === 'all' ||
+      (filterTaskDeck === 'task' && deck.isTaskDeck) ||
+      (filterTaskDeck === 'regular' && !deck.isTaskDeck);
+    const matchesVisibility =
+      filterVisibility === 'all' ||
+      (filterVisibility === 'public' && deck.isPublic) ||
+      (filterVisibility === 'private' && !deck.isPublic);
+    return (
+      matchesSearch && matchesDifficulty && matchesCategory && matchesTaskDeck && matchesVisibility
+    );
   });
+
+  // Bulk action handlers
+  const handleSelectAll = () => {
+    if (selectedDecks.size === filteredDecks.length) {
+      setSelectedDecks(new Set());
+    } else {
+      setSelectedDecks(new Set(filteredDecks.map(d => d.id)));
+    }
+  };
+
+  const handleSelectDeck = (deckId: string) => {
+    const newSelected = new Set(selectedDecks);
+    if (newSelected.has(deckId)) {
+      newSelected.delete(deckId);
+    } else {
+      newSelected.add(deckId);
+    }
+    setSelectedDecks(newSelected);
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedDecks.size === 0) return;
+
+    const confirmDelete = window.confirm(
+      `⚠️ PERINGATAN: Hapus ${selectedDecks.size} deck?\n\n` +
+        'Ini akan menghapus secara permanen:\n' +
+        '• Semua deck yang dipilih\n' +
+        '• Semua flashcard di deck tersebut\n' +
+        '• Semua sesi belajar untuk deck tersebut\n\n' +
+        'Aksi ini TIDAK DAPAT dibatalkan!\n\n' +
+        'Klik OK untuk konfirmasi.'
+    );
+
+    if (!confirmDelete) return;
+
+    setBulkActionLoading(true);
+    try {
+      const deletePromises = Array.from(selectedDecks).map(deckId =>
+        fetch(`/api/decks/${deckId}`, { method: 'DELETE' })
+      );
+      await Promise.all(deletePromises);
+      alert(`${selectedDecks.size} deck berhasil dihapus`);
+      setSelectedDecks(new Set());
+      fetchDecks();
+    } catch (error) {
+      console.error('Error deleting decks:', error);
+      alert('Gagal menghapus beberapa deck');
+    } finally {
+      setBulkActionLoading(false);
+    }
+  };
+
+  const handleBulkToggleActive = async (active: boolean) => {
+    if (selectedDecks.size === 0) return;
+
+    setBulkActionLoading(true);
+    try {
+      const updatePromises = Array.from(selectedDecks).map(deckId =>
+        fetch(`/api/decks/${deckId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isActive: active }),
+        })
+      );
+      await Promise.all(updatePromises);
+      alert(`${selectedDecks.size} deck berhasil di${active ? 'aktifkan' : 'nonaktifkan'}`);
+      setSelectedDecks(new Set());
+      fetchDecks();
+    } catch (error) {
+      console.error('Error updating decks:', error);
+      alert('Gagal mengupdate beberapa deck');
+    } finally {
+      setBulkActionLoading(false);
+    }
+  };
+
+  const handleBulkTogglePublic = async (isPublic: boolean) => {
+    if (selectedDecks.size === 0) return;
+
+    setBulkActionLoading(true);
+    try {
+      const updatePromises = Array.from(selectedDecks).map(deckId =>
+        fetch(`/api/decks/${deckId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isPublic }),
+        })
+      );
+      await Promise.all(updatePromises);
+      alert(`${selectedDecks.size} deck berhasil diubah ke ${isPublic ? 'publik' : 'privat'}`);
+      setSelectedDecks(new Set());
+      fetchDecks();
+    } catch (error) {
+      console.error('Error updating decks:', error);
+      alert('Gagal mengupdate beberapa deck');
+    } finally {
+      setBulkActionLoading(false);
+    }
+  };
 
   const categories = Array.from(
     new Set(decks.map(d => d.category).filter((c): c is string => Boolean(c)))
@@ -549,9 +676,10 @@ export default function AdminDecksPage() {
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2">
-            <div className="flex flex-wrap gap-2">
-              <span className="text-sm text-muted-foreground self-center">Level:</span>
+          <div className="flex flex-wrap gap-4">
+            {/* Level Filter */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-muted-foreground">Level:</span>
               <Button
                 variant={filterDifficulty === 'all' ? 'default' : 'outline'}
                 size="sm"
@@ -571,9 +699,64 @@ export default function AdminDecksPage() {
               ))}
             </div>
 
+            {/* Tipe Deck Filter */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-muted-foreground">Tipe:</span>
+              <Button
+                variant={filterTaskDeck === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterTaskDeck('all')}
+              >
+                Semua
+              </Button>
+              <Button
+                variant={filterTaskDeck === 'task' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterTaskDeck('task')}
+              >
+                Roleplay
+              </Button>
+              <Button
+                variant={filterTaskDeck === 'regular' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterTaskDeck('regular')}
+              >
+                Regular
+              </Button>
+            </div>
+
+            {/* Visibilitas Filter */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-muted-foreground">Visibilitas:</span>
+              <Button
+                variant={filterVisibility === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterVisibility('all')}
+              >
+                Semua
+              </Button>
+              <Button
+                variant={filterVisibility === 'public' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterVisibility('public')}
+              >
+                <Globe className="h-3 w-3 mr-1" />
+                Publik
+              </Button>
+              <Button
+                variant={filterVisibility === 'private' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterVisibility('private')}
+              >
+                <Lock className="h-3 w-3 mr-1" />
+                Privat
+              </Button>
+            </div>
+
+            {/* Category Filter */}
             {categories.length > 0 && (
-              <div className="flex flex-wrap gap-2 ml-4">
-                <span className="text-sm text-muted-foreground self-center">Kategori:</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-muted-foreground">Kategori:</span>
                 <Button
                   variant={filterCategory === 'all' ? 'default' : 'outline'}
                   size="sm"
@@ -600,10 +783,61 @@ export default function AdminDecksPage() {
       {/* Decks List */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Layers className="h-5 w-5" />
-            Daftar Dek ({filteredDecks.length})
-          </CardTitle>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <CardTitle className="flex items-center gap-2">
+              <Layers className="h-5 w-5" />
+              Daftar Dek ({filteredDecks.length})
+            </CardTitle>
+
+            {/* Bulk Actions */}
+            {selectedDecks.size > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">{selectedDecks.size} dipilih</span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" disabled={bulkActionLoading}>
+                      {bulkActionLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <MoreHorizontal className="h-4 w-4 mr-2" />
+                      )}
+                      Bulk Action
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleBulkToggleActive(true)}>
+                      <CheckSquare className="h-4 w-4 mr-2" />
+                      Aktifkan Semua
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleBulkToggleActive(false)}>
+                      <Square className="h-4 w-4 mr-2" />
+                      Nonaktifkan Semua
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => handleBulkTogglePublic(true)}>
+                      <Globe className="h-4 w-4 mr-2" />
+                      Jadikan Publik
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleBulkTogglePublic(false)}>
+                      <Lock className="h-4 w-4 mr-2" />
+                      Jadikan Privat
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleBulkDelete}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Hapus Semua
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedDecks(new Set())}>
+                  Batal
+                </Button>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {filteredDecks.length === 0 ? (
@@ -616,13 +850,28 @@ export default function AdminDecksPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
+                    <th className="text-left py-3 px-2 sm:px-4 font-medium w-10">
+                      <Checkbox
+                        checked={
+                          selectedDecks.size === filteredDecks.length && filteredDecks.length > 0
+                        }
+                        onCheckedChange={handleSelectAll}
+                        aria-label="Pilih semua"
+                      />
+                    </th>
                     <th className="text-left py-3 px-2 sm:px-4 font-medium">Dek</th>
+                    <th className="text-left py-3 px-2 sm:px-4 font-medium hidden sm:table-cell">
+                      Tipe
+                    </th>
                     <th className="text-left py-3 px-2 sm:px-4 font-medium hidden sm:table-cell">
                       Kategori
                     </th>
                     <th className="text-left py-3 px-2 sm:px-4 font-medium">Level</th>
                     <th className="text-left py-3 px-2 sm:px-4 font-medium hidden md:table-cell">
                       Kartu
+                    </th>
+                    <th className="text-left py-3 px-2 sm:px-4 font-medium hidden md:table-cell">
+                      Visibilitas
                     </th>
                     <th className="text-left py-3 px-2 sm:px-4 font-medium hidden lg:table-cell">
                       Status
@@ -632,7 +881,17 @@ export default function AdminDecksPage() {
                 </thead>
                 <tbody>
                   {filteredDecks.map(deck => (
-                    <tr key={deck.id} className="border-b last:border-0">
+                    <tr
+                      key={deck.id}
+                      className="border-b last:border-0 hover:bg-muted/50 transition-colors"
+                    >
+                      <td className="py-3 px-2 sm:px-4">
+                        <Checkbox
+                          checked={selectedDecks.has(deck.id)}
+                          onCheckedChange={() => handleSelectDeck(deck.id)}
+                          aria-label={`Pilih ${deck.name}`}
+                        />
+                      </td>
                       <td className="py-3 px-2 sm:px-4">
                         <div>
                           <p className="font-medium truncate max-w-[150px] sm:max-w-none">
@@ -644,6 +903,17 @@ export default function AdminDecksPage() {
                             </p>
                           )}
                         </div>
+                      </td>
+                      <td className="py-3 px-2 sm:px-4 hidden sm:table-cell">
+                        {deck.isTaskDeck ? (
+                          <Badge className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
+                            Roleplay
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs">
+                            Regular
+                          </Badge>
+                        )}
                       </td>
                       <td className="py-3 px-2 sm:px-4 hidden sm:table-cell">
                         {deck.category ? (
@@ -672,6 +942,19 @@ export default function AdminDecksPage() {
                         )}
                       </td>
                       <td className="py-3 px-2 sm:px-4 hidden md:table-cell">{deck.totalCards}</td>
+                      <td className="py-3 px-2 sm:px-4 hidden md:table-cell">
+                        {deck.isPublic ? (
+                          <Badge className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                            <Globe className="h-3 w-3 mr-1" />
+                            Publik
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs">
+                            <Lock className="h-3 w-3 mr-1" />
+                            Privat
+                          </Badge>
+                        )}
+                      </td>
                       <td className="py-3 px-2 sm:px-4 hidden lg:table-cell">
                         <Badge
                           variant={deck.isActive ? 'success' : 'secondary'}
@@ -685,16 +968,16 @@ export default function AdminDecksPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-8 w-8 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/30 dark:hover:text-blue-400 transition-colors"
                             onClick={() => router.push(`/admin/dek/${deck.id}`)}
-                            title="View"
+                            title="Lihat"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-8 w-8 hover:bg-amber-100 hover:text-amber-600 dark:hover:bg-amber-900/30 dark:hover:text-amber-400 transition-colors"
                             onClick={() => router.push(`/admin/dek/${deck.id}/edit`)}
                             title="Edit"
                           >
@@ -703,16 +986,16 @@ export default function AdminDecksPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 hidden sm:inline-flex"
+                            className="h-8 w-8 hidden sm:inline-flex hover:bg-purple-100 hover:text-purple-600 dark:hover:bg-purple-900/30 dark:hover:text-purple-400 transition-colors"
                             onClick={() => handleDuplicate(deck.id, deck.name)}
-                            title="Duplicate"
+                            title="Duplikasi"
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 hidden sm:inline-flex"
+                            className="h-8 w-8 hidden sm:inline-flex hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/30 dark:hover:text-green-400 transition-colors"
                             onClick={() => handleExport(deck.id, deck.name)}
                             title="Export"
                           >
@@ -721,11 +1004,11 @@ export default function AdminDecksPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-8 w-8 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400 transition-colors"
                             onClick={() => handleDelete(deck.id, deck.name)}
-                            title="Delete"
+                            title="Hapus"
                           >
-                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </td>

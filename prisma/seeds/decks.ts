@@ -2684,27 +2684,21 @@ export const decksData = [
 export async function seedDecks() {
   console.log('Seeding public/system decks...');
 
-  // Find admin user for deck ownership
-  const adminUser = await prisma.user.findFirst({
-    where: { isAdmin: true },
-  });
+  // Find admin for deck ownership
+  const admin = await prisma.admin.findFirst();
 
-  if (!adminUser) {
-    console.log('⚠️ No admin user found. Please create an admin first.');
+  if (!admin) {
+    console.log('⚠️ No admin found. Please create an admin first.');
     return;
   }
 
   for (const deckData of decksData) {
     const { flashcards, creatorEmail, ...deck } = deckData;
 
-    // Find creator or use admin
-    let creator = await prisma.user.findUnique({
-      where: { email: creatorEmail },
-    });
-
-    if (!creator) {
-      creator = adminUser;
-    }
+    // Find creator user or use admin
+    const creator = creatorEmail
+      ? await prisma.user.findUnique({ where: { email: creatorEmail } })
+      : null;
 
     const created = await prisma.deck.upsert({
       where: { id: deck.id },
@@ -2725,7 +2719,8 @@ export async function seedDecks() {
         difficulty: deck.difficulty,
         isPublic: deck.isPublic,
         totalCards: deck.totalCards,
-        createdBy: creator.id,
+        // Use createdBy if there's a user creator, otherwise use createdByAdmin
+        ...(creator ? { createdBy: creator.id } : { createdByAdmin: admin.id }),
         isActive: true,
       },
     });

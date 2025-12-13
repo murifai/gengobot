@@ -37,12 +37,7 @@ export async function isAdmin() {
 /**
  * Create a new user with hashed password
  */
-export async function createUser(data: {
-  email: string;
-  password: string;
-  name?: string;
-  isAdmin?: boolean;
-}) {
+export async function createUser(data: { email: string; password: string; name?: string }) {
   const hashedPassword = await bcrypt.hash(data.password, 10);
 
   const user = await prisma.user.create({
@@ -50,7 +45,6 @@ export async function createUser(data: {
       email: data.email,
       password: hashedPassword,
       name: data.name,
-      isAdmin: data.isAdmin || false,
     },
   });
 

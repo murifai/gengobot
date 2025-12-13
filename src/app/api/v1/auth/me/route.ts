@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
       id: true,
       email: true,
       name: true,
-      isAdmin: true,
       image: true,
       createdAt: true,
     },
@@ -30,11 +29,16 @@ export async function GET(request: NextRequest) {
     return unauthorizedResponse('User not found');
   }
 
+  // Check if user is an admin by looking up in Admin table
+  const admin = await prisma.admin.findUnique({
+    where: { email: user.email },
+  });
+
   return NextResponse.json(
     {
       user: {
         ...user,
-        role: user.isAdmin ? 'ADMIN' : 'USER',
+        role: admin ? 'ADMIN' : 'USER',
       },
     },
     { headers: corsHeaders(request) }

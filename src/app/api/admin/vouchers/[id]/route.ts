@@ -19,13 +19,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check admin role
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { isAdmin: true },
+    // Check admin role by looking up in Admin table
+    const admin = await prisma.admin.findUnique({
+      where: { email: session.user.email! },
     });
 
-    if (!user?.isAdmin) {
+    if (!admin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -57,13 +56,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check admin role
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { isAdmin: true },
+    // Check admin role by looking up in Admin table
+    const admin = await prisma.admin.findUnique({
+      where: { email: session.user.email! },
     });
 
-    if (!user?.isAdmin) {
+    if (!admin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -102,13 +100,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check admin role
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { isAdmin: true },
+    // Check admin role by looking up in Admin table
+    const admin = await prisma.admin.findUnique({
+      where: { email: session.user.email! },
     });
 
-    if (!user?.isAdmin) {
+    if (!admin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

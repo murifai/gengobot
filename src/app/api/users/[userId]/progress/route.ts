@@ -18,19 +18,19 @@ export async function GET(
     // Verify user can access this data
     const dbUser = await prisma.user.findUnique({
       where: { id: userId },
-      select: { email: true, isAdmin: true },
+      select: { email: true },
     });
 
     if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const requestingUser = await prisma.user.findUnique({
+    // Check if requesting user is an admin by looking up in Admin table
+    const isRequestingAdmin = await prisma.admin.findUnique({
       where: { email: sessionUser.email! },
-      select: { isAdmin: true, email: true },
     });
 
-    if (!requestingUser?.isAdmin && dbUser.email !== sessionUser.email) {
+    if (!isRequestingAdmin && dbUser.email !== sessionUser.email) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

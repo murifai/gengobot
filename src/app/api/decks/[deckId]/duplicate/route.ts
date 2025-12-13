@@ -38,8 +38,9 @@ export async function POST(
       return NextResponse.json({ error: 'Deck not found' }, { status: 404 });
     }
 
-    // Check permissions: owner, admin, or public deck
-    if (originalDeck.createdBy !== dbUser.id && !dbUser.isAdmin && !originalDeck.isPublic) {
+    // Check permissions: owner or public deck
+    // Note: Admin operations use admin session via admin panel
+    if (originalDeck.createdBy !== dbUser.id && !originalDeck.isPublic) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -94,23 +95,7 @@ export async function POST(
       return deck;
     });
 
-    // Log admin action if user is admin
-    if (dbUser.isAdmin) {
-      await prisma.adminLog.create({
-        data: {
-          adminId: dbUser.id,
-          actionType: 'duplicate_deck',
-          entityType: 'deck',
-          entityId: newDeck.id,
-          details: {
-            originalDeckId: deckId,
-            originalDeckName: originalDeck.name,
-            newDeckName: newName,
-            cardsCopied: originalDeck.flashcards.length,
-          },
-        },
-      });
-    }
+    // Note: Admin logging is handled via admin panel with admin session
 
     // Fetch the complete new deck with cards
     const completeDeck = await prisma.deck.findUnique({

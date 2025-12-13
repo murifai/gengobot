@@ -81,7 +81,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         studyCount: deck.studyCount,
         averageScore: deck.averageScore,
         createdAt: deck.createdAt,
-        creatorName: deck.creator.nickname || deck.creator.name || 'Anonymous',
+        creatorName: deck.creator?.nickname || deck.creator?.name || 'Anonymous',
         previewCards: deck.flashcards,
       },
     });

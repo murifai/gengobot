@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth/auth';
 import { prisma } from '@/lib/prisma';
 
 /**
- * Check if the current user is an admin
+ * Check if the current user is an admin by checking the Admin table
  */
 export async function isAdmin(): Promise<boolean> {
   const session = await auth();
@@ -11,25 +11,23 @@ export async function isAdmin(): Promise<boolean> {
     return false;
   }
 
-  // Check admin status in database
-  const dbUser = await prisma.user.findUnique({
+  // Check if user exists in Admin table
+  const admin = await prisma.admin.findUnique({
     where: { email: session.user.email },
-    select: { isAdmin: true },
   });
 
-  return dbUser?.isAdmin ?? false;
+  return !!admin;
 }
 
 /**
- * Check if a specific user ID is an admin
+ * Check if a specific email is an admin
  */
-export async function isUserAdmin(userId: string): Promise<boolean> {
-  const dbUser = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { isAdmin: true },
+export async function isEmailAdmin(email: string): Promise<boolean> {
+  const admin = await prisma.admin.findUnique({
+    where: { email },
   });
 
-  return dbUser?.isAdmin ?? false;
+  return !!admin;
 }
 
 /**
@@ -48,26 +46,21 @@ export async function getCurrentUserWithRole() {
       id: true,
       email: true,
       name: true,
-      isAdmin: true,
       proficiency: true,
     },
   });
 
-  return dbUser;
-}
-
-/**
- * Set admin status for a user (only callable by existing admins)
- */
-export async function setAdminStatus(userId: string, adminStatus: boolean) {
-  const currentIsAdmin = await isAdmin();
-
-  if (!currentIsAdmin) {
-    throw new Error('Only admins can modify admin status');
+  if (!dbUser) {
+    return null;
   }
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { isAdmin: adminStatus },
+  // Check if this user is also an admin
+  const admin = await prisma.admin.findUnique({
+    where: { email: session.user.email },
   });
+
+  return {
+    ...dbUser,
+    isAdmin: !!admin,
+  };
 }

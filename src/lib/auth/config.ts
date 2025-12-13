@@ -78,7 +78,6 @@ export const authConfig: NextAuthConfig = {
                 fullName: profile.name || null, // Also store in fullName for profile display
                 image: profileImage,
                 emailVerified: new Date(),
-                isAdmin: false,
                 onboardingCompleted: false,
               },
             });
@@ -117,7 +116,6 @@ export const authConfig: NextAuthConfig = {
             where: { email: profile.email },
             select: {
               id: true,
-              isAdmin: true,
               email: true,
               name: true,
               image: true,
@@ -125,9 +123,14 @@ export const authConfig: NextAuthConfig = {
             },
           });
 
+          // Check if user is an admin by looking up in Admin table
+          const admin = await prisma.admin.findUnique({
+            where: { email: profile.email },
+          });
+
           if (dbUser) {
             token.id = dbUser.id;
-            token.isAdmin = dbUser.isAdmin;
+            token.isAdmin = !!admin;
             token.email = dbUser.email;
             token.name = dbUser.name;
             token.picture = dbUser.image;

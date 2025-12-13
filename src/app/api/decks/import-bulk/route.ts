@@ -23,37 +23,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 401 });
     }
 
-    // Get admin's associated user account or use admin ID
+    // Verify admin exists
     const admin = await prisma.admin.findUnique({
       where: { id: adminSession.id },
     });
 
     if (!admin) {
       return NextResponse.json({ error: 'Admin not found' }, { status: 404 });
-    }
-
-    // Find or create a system user for admin-created decks
-    let systemUser = await prisma.user.findFirst({
-      where: { email: admin.email },
-    });
-
-    if (!systemUser) {
-      // Use a default system user for admin imports
-      systemUser = await prisma.user.findFirst({
-        where: { isAdmin: true },
-      });
-    }
-
-    if (!systemUser) {
-      // Create a system user for admin imports if none exists
-      systemUser = await prisma.user.create({
-        data: {
-          email: admin.email,
-          name: admin.name,
-          isAdmin: true,
-          onboardingCompleted: true,
-        },
-      });
     }
 
     // Parse multipart form data
@@ -110,7 +86,7 @@ export async function POST(request: NextRequest) {
               category: category || null,
               difficulty: difficulty || null,
               totalCards: cards.length,
-              createdBy: systemUser.id,
+              createdByAdmin: adminSession.id,
               isPublic,
               isActive,
               isTaskDeck,
@@ -186,10 +162,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Log admin action (AdminLog references User, not Admin)
+    // Log admin action
     await prisma.adminLog.create({
       data: {
-        adminId: systemUser.id,
+        adminId: adminSession.id,
         actionType: 'bulk_import_decks',
         entityType: 'deck',
         entityId: 'bulk',
@@ -198,7 +174,7 @@ export async function POST(request: NextRequest) {
           successfulImports: results.filter(r => r.success).length,
           failedImports: results.filter(r => !r.success).length,
           totalCardsImported: results.reduce((sum, r) => sum + r.cardsImported, 0),
-          performedByAdmin: admin.email,
+          adminEmail: admin.email,
         },
       },
     });

@@ -74,8 +74,9 @@ export async function PUT(
       return NextResponse.json({ error: 'Flashcard not found' }, { status: 404 });
     }
 
-    // Check permissions
-    if (flashcard.deck.createdBy !== dbUser.id && !dbUser.isAdmin) {
+    // Check permissions: owner only
+    // Note: Admin operations use admin session via admin panel
+    if (flashcard.deck.createdBy !== dbUser.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -174,8 +175,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Flashcard not found' }, { status: 404 });
     }
 
-    // Check permissions
-    if (flashcard.deck.createdBy !== dbUser.id && !dbUser.isAdmin) {
+    // Check permissions: owner only
+    // Note: Admin operations use admin session via admin panel
+    if (flashcard.deck.createdBy !== dbUser.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

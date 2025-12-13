@@ -25,7 +25,6 @@ export async function POST(request: NextRequest) {
         id: true,
         email: true,
         password: true,
-        isAdmin: true,
         name: true,
       },
     });
@@ -45,8 +44,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Map isAdmin to role for JWT payload
-    const role = user.isAdmin ? 'ADMIN' : 'USER';
+    // Check if user is an admin by looking up in Admin table
+    const admin = await prisma.admin.findUnique({
+      where: { email },
+    });
+    const role = admin ? 'ADMIN' : 'USER';
 
     const payload = {
       userId: user.id,
