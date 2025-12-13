@@ -181,7 +181,7 @@ export default function DeckLearningWithStats({
           <div className="mt-8 flex gap-4 justify-center flex-wrap">
             <Link
               href={`/app/drill/${deck.id}`}
-              className="px-8 py-4 font-bold text-lg bg-secondary text-white rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+              className="px-8 py-4 font-bold text-lg bg-secondary text-secondary-foreground rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
             >
               Coba Lagi
             </Link>

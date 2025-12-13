@@ -62,6 +62,9 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
 
+    console.log('getAdminSession - cookie name:', ADMIN_SESSION_COOKIE);
+    console.log('getAdminSession - sessionToken exists:', !!sessionToken);
+
     if (!sessionToken) {
       return null;
     }

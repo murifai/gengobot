@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Deck } from '@/types/deck';
+import { ImportConfirmationModal } from '@/components/admin/ImportConfirmationModal';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +32,15 @@ interface DeckWithDetails extends Deck {
   _count?: {
     flashcards: number;
   };
+}
+
+interface BulkImportResult {
+  fileName: string;
+  deckName: string;
+  success: boolean;
+  deckId?: string;
+  cardsImported: number;
+  errors: Array<{ row: number; message: string }>;
 }
 
 export default function AdminDecksPage() {
@@ -47,7 +57,15 @@ export default function AdminDecksPage() {
     cardsImported: number;
     errors: Array<{ row: number; message: string }>;
   } | null>(null);
+  const [bulkImportResults, setBulkImportResults] = useState<{
+    summary: { total: number; successful: number; failed: number; totalCardsImported: number };
+    results: BulkImportResult[];
+  } | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [isBulkImport, setIsBulkImport] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bulkFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchDecks();
@@ -56,8 +74,8 @@ export default function AdminDecksPage() {
   const fetchDecks = async () => {
     try {
       setLoading(true);
-      // Filter for admin-created decks only (isPublic=true indicates admin/system decks)
-      const response = await fetch('/api/decks?limit=100&isPublic=true');
+      // Admin can see all decks (no isPublic filter)
+      const response = await fetch('/api/decks?limit=100');
       if (response.ok) {
         const data = await response.json();
         setDecks(data.decks || []);
@@ -171,42 +189,124 @@ export default function AdminDecksPage() {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleBulkImportClick = () => {
+    bulkFileInputRef.current?.click();
+  };
 
-    const deckName = window.prompt('Enter a name for the imported deck:');
-    if (!deckName) return;
+  const handleBulkFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
+    // Store files and show modal
+    setPendingFiles(Array.from(files));
+    setIsBulkImport(true);
+    setShowImportModal(true);
+
+    // Reset file input
+    if (bulkFileInputRef.current) {
+      bulkFileInputRef.current.value = '';
+    }
+  };
+
+  const handleImportConfirm = async (settings: {
+    category: string;
+    difficulty: string;
+    isPublic: boolean;
+    isActive: boolean;
+    isTaskDeck: boolean;
+  }) => {
     setImporting(true);
+    setBulkImportResults(null);
     setImportResults(null);
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('name', deckName);
 
-      const response = await fetch('/api/decks/import', {
-        method: 'POST',
-        body: formData,
-      });
+      if (isBulkImport) {
+        // Bulk import
+        for (const file of pendingFiles) {
+          formData.append('files', file);
+        }
+        if (settings.category) formData.append('category', settings.category);
+        if (settings.difficulty) formData.append('difficulty', settings.difficulty);
+        // If isTaskDeck is true, force isPublic to true so deck shows in task selector
+        const isPublic = settings.isTaskDeck ? true : settings.isPublic;
+        formData.append('isPublic', String(isPublic));
+        formData.append('isActive', String(settings.isActive));
+        formData.append('isTaskDeck', String(settings.isTaskDeck));
 
-      const data = await response.json();
+        const response = await fetch('/api/decks/import-bulk', {
+          method: 'POST',
+          body: formData,
+        });
 
-      if (response.ok) {
-        setImportResults(data);
-        fetchDecks();
+        const data = await response.json();
+
+        if (response.ok) {
+          setBulkImportResults(data);
+          fetchDecks();
+          setShowImportModal(false);
+        } else {
+          alert(`Bulk import failed: ${data.error}`);
+        }
       } else {
-        alert(`Import failed: ${data.error}`);
+        // Single import
+        const file = pendingFiles[0];
+        const deckName = file.name.replace(/\.(xlsx|xls)$/i, '');
+
+        formData.append('file', file);
+        formData.append('name', deckName);
+        if (settings.category) formData.append('category', settings.category);
+        if (settings.difficulty) formData.append('difficulty', settings.difficulty);
+        // If isTaskDeck is true, force isPublic to true so deck shows in task selector
+        const isPublic = settings.isTaskDeck ? true : settings.isPublic;
+        formData.append('isPublic', String(isPublic));
+        formData.append('isActive', String(settings.isActive));
+        formData.append('isTaskDeck', String(settings.isTaskDeck));
+
+        const response = await fetch('/api/decks/import', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setImportResults(data);
+          fetchDecks();
+          setShowImportModal(false);
+        } else {
+          alert(`Import failed: ${data.error}`);
+        }
       }
     } catch (error) {
-      console.error('Error importing deck:', error);
-      alert('Failed to import deck');
+      console.error('Error importing decks:', error);
+      alert('Failed to import decks');
     } finally {
       setImporting(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      setPendingFiles([]);
+    }
+  };
+
+  const handleImportModalClose = () => {
+    if (!importing) {
+      setShowImportModal(false);
+      setPendingFiles([]);
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Store file and show modal
+    setPendingFiles([file]);
+    setIsBulkImport(false);
+    setShowImportModal(true);
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -323,11 +423,28 @@ export default function AdminDecksPage() {
                 <Upload className="h-4 w-4 mr-2" />
                 {importing ? 'Importing...' : 'Import'}
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBulkImportClick}
+                disabled={importing}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {importing ? 'Importing...' : 'Bulk Import'}
+              </Button>
               <input
                 ref={fileInputRef}
                 type="file"
                 accept=".xlsx,.xls"
                 onChange={handleFileChange}
+                className="hidden"
+              />
+              <input
+                ref={bulkFileInputRef}
+                type="file"
+                accept=".xlsx,.xls"
+                multiple
+                onChange={handleBulkFileChange}
                 className="hidden"
               />
               <Button size="sm" onClick={() => router.push('/admin/dek/new')}>
@@ -361,6 +478,70 @@ export default function AdminDecksPage() {
               </div>
               <button
                 onClick={() => setImportResults(null)}
+                className="mt-2 text-xs text-secondary hover:underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+
+          {/* Bulk Import Results */}
+          {bulkImportResults && (
+            <div className="mb-4 p-4 bg-secondary/10 rounded-lg border border-secondary/30">
+              <h3 className="font-semibold text-secondary mb-2">Bulk Import Results</h3>
+              <div className="text-sm text-foreground space-y-1">
+                <div className="flex gap-4 mb-2">
+                  <p>
+                    Total: <span className="font-semibold">{bulkImportResults.summary.total}</span>
+                  </p>
+                  <p className="text-tertiary-green">
+                    Success:{' '}
+                    <span className="font-semibold">{bulkImportResults.summary.successful}</span>
+                  </p>
+                  {bulkImportResults.summary.failed > 0 && (
+                    <p className="text-primary">
+                      Failed:{' '}
+                      <span className="font-semibold">{bulkImportResults.summary.failed}</span>
+                    </p>
+                  )}
+                  <p>
+                    Cards:{' '}
+                    <span className="font-semibold">
+                      {bulkImportResults.summary.totalCardsImported}
+                    </span>
+                  </p>
+                </div>
+                <div className="mt-2 max-h-60 overflow-y-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-1 px-2">File</th>
+                        <th className="text-left py-1 px-2">Deck Name</th>
+                        <th className="text-left py-1 px-2">Status</th>
+                        <th className="text-left py-1 px-2">Cards</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bulkImportResults.results.map((result, idx) => (
+                        <tr key={idx} className="border-b last:border-0">
+                          <td className="py-1 px-2 truncate max-w-[150px]">{result.fileName}</td>
+                          <td className="py-1 px-2">{result.deckName}</td>
+                          <td className="py-1 px-2">
+                            {result.success ? (
+                              <span className="text-tertiary-green">Success</span>
+                            ) : (
+                              <span className="text-primary">Failed</span>
+                            )}
+                          </td>
+                          <td className="py-1 px-2">{result.cardsImported}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <button
+                onClick={() => setBulkImportResults(null)}
                 className="mt-2 text-xs text-secondary hover:underline"
               >
                 Dismiss
@@ -556,6 +737,16 @@ export default function AdminDecksPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Import Confirmation Modal */}
+      <ImportConfirmationModal
+        open={showImportModal}
+        onClose={handleImportModalClose}
+        onConfirm={handleImportConfirm}
+        files={pendingFiles}
+        isBulk={isBulkImport}
+        importing={importing}
+      />
     </div>
   );
 }

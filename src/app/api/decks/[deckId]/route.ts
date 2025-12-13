@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentSessionUser } from '@/lib/auth/session';
+import { getAdminSession } from '@/lib/auth/admin-auth';
 
 // GET /api/decks/[deckId] - Get a specific deck
 export async function GET(
@@ -159,15 +160,35 @@ export async function DELETE(
   try {
     const { deckId } = await params;
 
+    // Check for admin session FIRST (admin panel takes priority)
+    const adminSession = await getAdminSession();
+    // Then check for user session
     const sessionUser = await getCurrentSessionUser();
 
-    if (!sessionUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let dbUser = null;
+    let isAdminPanelRequest = false;
+
+    // Admin session takes priority for permission checking
+    if (adminSession) {
+      isAdminPanelRequest = true;
+      // Find associated user or system user for logging
+      dbUser = await prisma.user.findFirst({
+        where: { email: adminSession.email },
+      });
+      if (!dbUser) {
+        dbUser = await prisma.user.findFirst({
+          where: { isAdmin: true },
+        });
+      }
+    } else if (sessionUser) {
+      dbUser = await prisma.user.findUnique({
+        where: { email: sessionUser.email! },
+      });
     }
 
-    const dbUser = await prisma.user.findUnique({
-      where: { email: sessionUser.email! },
-    });
+    if (!sessionUser && !adminSession) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -181,8 +202,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Deck not found' }, { status: 404 });
     }
 
-    // Check permissions: owner or admin
-    if (deck.createdBy !== dbUser.id && !dbUser.isAdmin) {
+    // Check permissions: owner, admin user, or admin panel
+    if (deck.createdBy !== dbUser.id && !dbUser.isAdmin && !isAdminPanelRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -191,8 +212,8 @@ export async function DELETE(
       where: { id: deckId },
     });
 
-    // Log admin action if user is admin
-    if (dbUser.isAdmin) {
+    // Log admin action
+    if (dbUser.isAdmin || isAdminPanelRequest) {
       await prisma.adminLog.create({
         data: {
           adminId: dbUser.id,
@@ -201,6 +222,7 @@ export async function DELETE(
           entityId: deckId,
           details: {
             deckName: deck.name,
+            deletedByAdmin: isAdminPanelRequest ? adminSession?.email : undefined,
           },
         },
       });

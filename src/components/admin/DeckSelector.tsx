@@ -52,7 +52,8 @@ export default function DeckSelector({ selectedDeckIds, onChange }: DeckSelector
   const fetchDecks = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/decks?limit=100&isPublic=true');
+      // Fetch only task decks (decks marked for task prerequisites)
+      const response = await fetch('/api/decks?limit=100&isTaskDeck=true');
       if (response.ok) {
         const data = await response.json();
         const decksWithCount = data.decks.map((deck: Deck) => ({

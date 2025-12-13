@@ -28,6 +28,15 @@ export async function POST(request: NextRequest) {
     const description = formData.get('description') as string | null;
     const category = formData.get('category') as string | null;
     const difficulty = formData.get('difficulty') as string | null;
+    const isPublicParam = formData.get('isPublic') as string | null;
+    const isActiveParam = formData.get('isActive') as string | null;
+    const isTaskDeckParam = formData.get('isTaskDeck') as string | null;
+
+    // Parse boolean parameters
+    // For admins: default to true, for users: default to false for isPublic
+    const isPublic = isPublicParam !== null ? isPublicParam !== 'false' : dbUser.isAdmin;
+    const isActive = isActiveParam !== 'false'; // Default to true
+    const isTaskDeck = isTaskDeckParam === 'true';
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -65,6 +74,9 @@ export async function POST(request: NextRequest) {
           difficulty: difficulty || null,
           totalCards: cards.length,
           createdBy: dbUser.id,
+          isPublic,
+          isActive,
+          isTaskDeck,
         },
       });
 

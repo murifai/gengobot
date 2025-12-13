@@ -1,23 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentSessionUser } from '@/lib/auth/session';
+import { getAdminSession } from '@/lib/auth/admin-auth';
 
 // GET /api/decks - List decks with pagination and filters
 export async function GET(request: NextRequest) {
   try {
+    // Check for admin session first (admin panel), then user session
+    const adminSession = await getAdminSession();
     const sessionUser = await getCurrentSessionUser();
 
-    if (!sessionUser) {
+    if (!sessionUser && !adminSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const dbUser = await prisma.user.findUnique({
-      where: { email: sessionUser.email! },
-    });
+    let dbUser = null;
+
+    if (adminSession) {
+      // Admin session - find associated user or system admin user
+      dbUser = await prisma.user.findFirst({
+        where: { email: adminSession.email },
+      });
+      if (!dbUser) {
+        dbUser = await prisma.user.findFirst({
+          where: { isAdmin: true },
+        });
+      }
+    } else if (sessionUser) {
+      dbUser = await prisma.user.findUnique({
+        where: { email: sessionUser.email! },
+      });
+    }
 
     if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+
+    // Admin session users are treated as admin
+    const isAdmin = dbUser.isAdmin || !!adminSession;
 
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
@@ -26,6 +46,7 @@ export async function GET(request: NextRequest) {
     const difficulty = searchParams.get('difficulty');
     const search = searchParams.get('search');
     const isPublic = searchParams.get('isPublic');
+    const isTaskDeck = searchParams.get('isTaskDeck');
     const myDecks = searchParams.get('myDecks') === 'true';
 
     // Build filter conditions
@@ -43,9 +64,13 @@ export async function GET(request: NextRequest) {
       where.isPublic = isPublic === 'true';
     }
 
+    if (isTaskDeck !== null && isTaskDeck !== undefined) {
+      where.isTaskDeck = isTaskDeck === 'true';
+    }
+
     if (myDecks) {
       where.createdBy = dbUser.id;
-    } else if (!dbUser.isAdmin) {
+    } else if (!isAdmin) {
       // Non-admin users can only see their own decks and public decks
       where.OR = [{ createdBy: dbUser.id }, { isPublic: true }];
     }

@@ -15,6 +15,11 @@ export function AppLayoutClient({ children }: { children: React.ReactNode }) {
     pathname?.includes('/chat') ||
     (pathname?.includes('/kaiwa/roleplay/') && pathname?.includes('/attempt/'));
 
+  // Check if we're in a roleplay task route (pre-task study with prerequisite decks)
+  // Match /kaiwa/roleplay/[taskId] but not /kaiwa/roleplay/[taskId]/attempt/[attemptId]
+  const isRoleplayTaskRoute =
+    pathname?.includes('/kaiwa/roleplay/') && !pathname?.includes('/attempt/');
+
   // Check if we're in a drill route (when studying flashcards)
   // Exclude deck management pages (/decks/ and /my-decks) from hiding the nav
   const isDrillRoute =
@@ -22,11 +27,17 @@ export function AppLayoutClient({ children }: { children: React.ReactNode }) {
     !pathname?.includes('/decks/') &&
     !pathname?.includes('/my-decks');
 
-  // Hide bottom nav in onboarding, choose-plan, chat, and drill routes
-  const showBottomNav = !isOnboardingRoute && !isChoosePlanRoute && !isChatRoute && !isDrillRoute;
+  // Hide bottom nav in onboarding, choose-plan, chat, drill, and roleplay task routes
+  const showBottomNav =
+    !isOnboardingRoute &&
+    !isChoosePlanRoute &&
+    !isChatRoute &&
+    !isDrillRoute &&
+    !isRoleplayTaskRoute;
 
   // Full-screen routes don't need container padding
-  const isFullScreenRoute = isOnboardingRoute || isChoosePlanRoute || isChatRoute || isDrillRoute;
+  const isFullScreenRoute =
+    isOnboardingRoute || isChoosePlanRoute || isChatRoute || isDrillRoute || isRoleplayTaskRoute;
 
   return (
     <div className="min-h-screen bg-background">

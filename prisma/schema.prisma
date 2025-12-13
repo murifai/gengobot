@@ -348,10 +348,11 @@ model Deck {
   averageScore Float? // Average performance across all studies
 
   // Ownership
-  createdBy String
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdBy  String
+  isActive   Boolean  @default(true)
+  isTaskDeck Boolean  @default(false) // Deck intended for task prerequisites
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   creator       User              @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   flashcards    Flashcard[]

@@ -1,11 +1,20 @@
 'use client';
 
 import { useState, useRef, useMemo } from 'react';
-import { X } from 'lucide-react';
+import { X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import DeckReview from '@/components/deck/DeckReview';
+import PrerequisiteDeckLearning from '@/components/task/PrerequisiteDeckLearning';
+
+interface DeckResult {
+  deckId: string;
+  deckName: string;
+  totalCards: number;
+  hafalCount: number;
+  belumHafalCount: number;
+  hafalPercentage: number;
+}
 
 interface Flashcard {
   id: string;
@@ -73,6 +82,7 @@ export default function PreTaskStudy({
 }: PreTaskStudyProps) {
   const [currentStep, setCurrentStep] = useState<FlowStep>('scenario');
   const [currentDeckIndex, setCurrentDeckIndex] = useState<number | null>(null);
+  const [deckResults, setDeckResults] = useState<DeckResult[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioRef, setAudioRef] = useState<HTMLAudioElement | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
@@ -146,15 +156,24 @@ export default function PreTaskStudy({
     setCurrentTime(newTime);
   };
 
-  const handleDeckComplete = () => {
-    // Check if there's another deck to study
-    if (currentDeckIndex !== null && currentDeckIndex < decks.length - 1) {
-      // Move to next deck
-      setCurrentDeckIndex(currentDeckIndex + 1);
-    } else {
-      // All decks completed, move to success criteria
-      setCurrentStep('success-criteria');
-      setCurrentDeckIndex(null);
+  const handleDeckComplete = (hafalCount: number, belumHafalCount: number) => {
+    // Save results for current deck
+    if (currentDeckIndex !== null) {
+      const currentDeck = decks[currentDeckIndex];
+      const totalCards = currentDeck.flashcards.length;
+      const hafalPercentage = totalCards > 0 ? Math.round((hafalCount / totalCards) * 100) : 0;
+
+      setDeckResults(prev => [
+        ...prev.filter(r => r.deckId !== currentDeck.id),
+        {
+          deckId: currentDeck.id,
+          deckName: currentDeck.name,
+          totalCards,
+          hafalCount,
+          belumHafalCount,
+          hafalPercentage,
+        },
+      ]);
     }
   };
 
@@ -341,8 +360,32 @@ export default function PreTaskStudy({
       return null;
     }
 
+    const handleContinueToTask = () => {
+      // Check if there's another deck to study
+      if (currentDeckIndex < decks.length - 1) {
+        // Move to next deck
+        setCurrentDeckIndex(currentDeckIndex + 1);
+      } else {
+        // All decks completed, move to success criteria
+        setCurrentStep('success-criteria');
+        setCurrentDeckIndex(null);
+      }
+    };
+
+    const handleRelearn = () => {
+      // Just stay on the same deck (the component handles the reset)
+    };
+
     return (
-      <DeckReview deck={currentDeck} onComplete={handleDeckComplete} onExit={handleDeckExit} />
+      <PrerequisiteDeckLearning
+        deck={currentDeck}
+        deckIndex={currentDeckIndex}
+        totalDecks={decks.length}
+        onComplete={handleDeckComplete}
+        onExit={handleDeckExit}
+        onContinueToTask={handleContinueToTask}
+        onRelearn={handleRelearn}
+      />
     );
   }
 
@@ -364,6 +407,51 @@ export default function PreTaskStudy({
             </Badge>
             <h1 className="text-3xl font-bold text-foreground mb-2">{taskTitle}</h1>
           </div>
+
+          {/* Deck Learning Results */}
+          {deckResults.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold text-foreground mb-4">Hasil Belajar</h2>
+              <div className="space-y-3">
+                {deckResults.map(result => (
+                  <div key={result.deckId} className="p-4 rounded-lg border border-border bg-card">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-medium text-foreground">{result.deckName}</h3>
+                      <span
+                        className={`text-lg font-bold ${
+                          result.hafalPercentage >= 80
+                            ? 'text-chart-3'
+                            : result.hafalPercentage >= 40
+                              ? 'text-yellow-500'
+                              : 'text-primary'
+                        }`}
+                      >
+                        {result.hafalPercentage}%
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Check className="w-4 h-4 text-chart-3" />
+                        <span>Hafal: {result.hafalCount}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <X className="w-4 h-4 text-primary" />
+                        <span>Belum: {result.belumHafalCount}</span>
+                      </div>
+                      <span>• {result.totalCards} kartu</span>
+                    </div>
+                    {/* Progress bar */}
+                    <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-chart-3 transition-all"
+                        style={{ width: `${result.hafalPercentage}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="mb-8">
             <h2 className="text-lg font-semibold text-foreground mb-4">Contoh Percakapan</h2>
