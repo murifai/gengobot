@@ -50,7 +50,7 @@ export default function NewVoucherPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/admin/subskripsi/voucher', {
+      const response = await fetch('/api/admin/vouchers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

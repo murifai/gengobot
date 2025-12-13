@@ -74,7 +74,7 @@ export default function EditVoucherPage() {
   useEffect(() => {
     const fetchVoucher = async () => {
       try {
-        const response = await fetch(`/api/admin/subskripsi/voucher/${voucherId}`);
+        const response = await fetch(`/api/admin/vouchers/${voucherId}`);
         const data = await response.json();
 
         if (!response.ok) {
@@ -116,7 +116,7 @@ export default function EditVoucherPage() {
     setError(null);
 
     try {
-      const response = await fetch(`/api/admin/subskripsi/voucher/${voucherId}`, {
+      const response = await fetch(`/api/admin/vouchers/${voucherId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

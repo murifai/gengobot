@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth/auth';
-import { prisma } from '@/lib/prisma';
+import { getAdminSession } from '@/lib/auth/admin-auth';
+import { hasPermission } from '@/lib/auth/admin-rbac';
 import { voucherAdminService } from '@/lib/admin';
 import { VoucherType } from '@prisma/client';
 
@@ -10,18 +10,13 @@ import { VoucherType } from '@prisma/client';
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
+    const session = await getAdminSession();
 
-    if (!session?.user?.id) {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check admin role by looking up in Admin table
-    const admin = await prisma.admin.findUnique({
-      where: { email: session.user.email! },
-    });
-
-    if (!admin) {
+    if (!hasPermission(session.role, 'vouchers.view')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -55,18 +50,13 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
+    const session = await getAdminSession();
 
-    if (!session?.user?.id) {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check admin role by looking up in Admin table
-    const admin = await prisma.admin.findUnique({
-      where: { email: session.user.email! },
-    });
-
-    if (!admin) {
+    if (!hasPermission(session.role, 'vouchers.manage')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -75,7 +65,7 @@ export async function POST(request: NextRequest) {
     // Convert date strings to Date objects
     const voucherData = {
       ...body,
-      createdBy: session.user.id,
+      createdBy: session.id,
       startDate: body.startDate ? new Date(body.startDate) : undefined,
       endDate: body.endDate ? new Date(body.endDate) : undefined,
     };

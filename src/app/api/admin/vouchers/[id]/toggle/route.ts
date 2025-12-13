@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth/auth';
-import { prisma } from '@/lib/prisma';
+import { getAdminSession } from '@/lib/auth/admin-auth';
+import { hasPermission } from '@/lib/auth/admin-rbac';
 import { voucherAdminService } from '@/lib/admin';
 
 interface RouteParams {
@@ -13,18 +13,13 @@ interface RouteParams {
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
-    const session = await auth();
+    const session = await getAdminSession();
 
-    if (!session?.user?.id) {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check admin role by looking up in Admin table
-    const admin = await prisma.admin.findUnique({
-      where: { email: session.user.email! },
-    });
-
-    if (!admin) {
+    if (!hasPermission(session.role, 'vouchers.manage')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
