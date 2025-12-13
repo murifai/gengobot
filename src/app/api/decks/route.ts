@@ -26,6 +26,17 @@ export async function GET(request: NextRequest) {
           where: { isAdmin: true },
         });
       }
+      if (!dbUser) {
+        // Create a system user for admin operations if none exists
+        dbUser = await prisma.user.create({
+          data: {
+            email: adminSession.email,
+            name: adminSession.name,
+            isAdmin: true,
+            onboardingCompleted: true,
+          },
+        });
+      }
     } else if (sessionUser) {
       dbUser = await prisma.user.findUnique({
         where: { email: sessionUser.email! },

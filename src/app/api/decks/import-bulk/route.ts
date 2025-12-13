@@ -45,7 +45,15 @@ export async function POST(request: NextRequest) {
     }
 
     if (!systemUser) {
-      return NextResponse.json({ error: 'No system user found for imports' }, { status: 500 });
+      // Create a system user for admin imports if none exists
+      systemUser = await prisma.user.create({
+        data: {
+          email: admin.email,
+          name: admin.name,
+          isAdmin: true,
+          onboardingCompleted: true,
+        },
+      });
     }
 
     // Parse multipart form data
