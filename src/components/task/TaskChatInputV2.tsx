@@ -42,12 +42,26 @@ export function TaskChatInputV2({
     }
   }, [inputValue, inputMode]);
 
+  // Track previous loading state for auto-focus after streaming
+  const prevLoadingRef = useRef(loading);
+  useEffect(() => {
+    // Auto-focus when streaming finishes (loading: true -> false)
+    if (prevLoadingRef.current && !loading && inputMode === 'text' && !disabled) {
+      textareaRef.current?.focus();
+    }
+    prevLoadingRef.current = loading;
+  }, [loading, inputMode, disabled]);
+
   // Handle form submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim() && !disabled && !loading) {
       onSend(inputValue.trim());
       setInputValue('');
+      // Refocus textarea after sending message
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 0);
     }
   };
 

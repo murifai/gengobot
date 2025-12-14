@@ -208,9 +208,9 @@ export default function AppDashboard() {
               <Sparkles className="inline-block ml-2 h-6 w-6 text-yellow-500" />
             </h1>
             <p className="text-muted-foreground">
-              {dashboardData.greeting.timeOfDay === 'morning' && 'Semangat belajar hari ini!'}
-              {dashboardData.greeting.timeOfDay === 'afternoon' && 'Lanjutkan belajarmu!'}
-              {dashboardData.greeting.timeOfDay === 'evening' && 'Malam yang produktif!'}
+              {dashboardData.greeting.timeOfDay === 'morning' && 'Ayo Drill lagi!'}
+              {dashboardData.greeting.timeOfDay === 'afternoon' && 'Semangat!'}
+              {dashboardData.greeting.timeOfDay === 'evening' && 'Ayo ngobrol lagi!'}
             </p>
           </div>
         ) : (

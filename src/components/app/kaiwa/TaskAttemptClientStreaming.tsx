@@ -443,10 +443,10 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
       isStreaming={isStreaming}
       onSendMessage={sendMessage}
       onVoiceRecording={handleVoiceRecording}
-      placeholder="Type your message in Japanese..."
+      placeholder="Tulis pesan kamu dalam bahasa Jepang..."
       disabled={attempt.isCompleted}
       enableVoice={!attempt.isCompleted}
-      emptyStateMessage="Start your conversation to practice the task scenario!"
+      emptyStateMessage="Kirim pesan untuk memulai scenario"
       error={streamingError}
       onClearError={clearStreamingError}
       attemptId={attemptId}
