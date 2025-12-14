@@ -249,9 +249,12 @@ export function TaskChatInputV2({
                   'disabled:opacity-50 disabled:cursor-not-allowed',
                   'select-none text-white font-medium'
                 )}
+                style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
               >
-                <Mic className="w-5 h-5" />
-                <span className="text-sm">Tap untuk bicara (atau tekan spasi)</span>
+                <Mic className="w-5 h-5 pointer-events-none" />
+                <span className="text-sm pointer-events-none">
+                  Tap untuk bicara (atau tekan spasi)
+                </span>
               </button>
               {/* Text Input Button for non-recording state */}
               <Button

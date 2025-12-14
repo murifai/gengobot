@@ -941,11 +941,14 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
                   setWasIdleStopped(false);
                   handleStartStopClick();
                 }}
-                className="w-full h-12 text-lg font-semibold"
+                className="w-full h-12 text-lg font-semibold select-none"
+                style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
                 variant="default"
               >
-                <Mic className="mr-2 h-5 w-5" />
-                {wasIdleStopped ? 'Lanjutkan Session' : 'Mulai Session'}
+                <Mic className="mr-2 h-5 w-5 pointer-events-none" />
+                <span className="pointer-events-none">
+                  {wasIdleStopped ? 'Lanjutkan Session' : 'Mulai Session'}
+                </span>
               </Button>
             ) : (
               <div className="space-y-2">
@@ -954,19 +957,23 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
                   onMouseUp={stopPushToTalk}
                   onTouchStart={startPushToTalk}
                   onTouchEnd={stopPushToTalk}
-                  className="w-full h-16 text-lg font-semibold"
+                  className="w-full h-16 text-lg font-semibold select-none"
+                  style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
                   variant={isPushToTalkActive ? 'destructive' : 'default'}
                 >
-                  <Mic className="mr-2 h-6 w-6" />
-                  {isPushToTalkActive ? 'Merekam...' : 'Tahan untuk Bicara (atau Space)'}
+                  <Mic className="mr-2 h-6 w-6 pointer-events-none" />
+                  <span className="pointer-events-none">
+                    {isPushToTalkActive ? 'Merekam...' : 'Tahan untuk Bicara (atau Space)'}
+                  </span>
                 </Button>
                 <Button
                   onClick={handleStartStopClick}
-                  className="w-full"
+                  className="w-full select-none"
+                  style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
                   variant="outline"
                   size="sm"
                 >
-                  Akhiri Session
+                  <span className="pointer-events-none">Akhiri Session</span>
                 </Button>
               </div>
             )}
