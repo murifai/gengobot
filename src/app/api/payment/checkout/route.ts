@@ -84,6 +84,8 @@ export async function POST(request: NextRequest) {
         originalAmount: result.originalAmount,
         discountAmount: result.discountAmount,
         finalAmount: result.finalAmount,
+        bypassPayment: result.bypassPayment,
+        subscriptionActivated: result.subscriptionActivated,
       },
       tierChange: {
         changeType: tierValidation.changeType,

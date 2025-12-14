@@ -214,4 +214,7 @@ export interface CheckoutResult {
   discountAmount?: number;
   finalAmount?: number;
   discountPercent?: number; // Persentase diskon durasi (0-100)
+  // For 100% discount vouchers - bypass payment gateway
+  bypassPayment?: boolean;
+  subscriptionActivated?: boolean;
 }

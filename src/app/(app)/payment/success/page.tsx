@@ -133,7 +133,7 @@ export default function PaymentSuccessPage() {
         <div className="space-y-2">
           <h1 className="text-2xl font-bold">Pembayaran Berhasil!</h1>
           <p className="text-muted-foreground">
-            Terima kasih! Langganan Anda telah aktif dan kredit sudah ditambahkan ke akun Anda.
+            Terima kasih! Langganan Anda telah aktif dan kredit AI sudah ditambahkan ke akun Anda.
           </p>
           {orderId && (
             <p className="text-xs text-muted-foreground font-mono">Order ID: {orderId}</p>

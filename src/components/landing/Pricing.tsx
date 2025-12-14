@@ -11,17 +11,17 @@ import Link from 'next/link';
 // Generate default features based on plan data from API
 const getDefaultFeatures = (tier: string, credits: number): string[] => {
   if (tier === 'FREE') {
-    return ['50 kredit trial', '7 hari trial', 'Limit 10 kredit/hari', '3 karakter custom'];
+    return ['50 kredit AI trial', '7 hari trial', 'Limit 10 kredit AI/hari', '3 karakter custom'];
   } else if (tier === 'BASIC') {
     return [
-      `${credits.toLocaleString('id-ID')} kredit/bulan`,
+      `${credits.toLocaleString('id-ID')} kredit AI/bulan`,
       'Chat text unlimited',
       '10 karakter custom',
       'Akses semua fitur dasar',
     ];
   } else if (tier === 'PRO') {
     return [
-      `${credits.toLocaleString('id-ID')} kredit/bulan`,
+      `${credits.toLocaleString('id-ID')} kredit AI/bulan`,
       'Chat text unlimited',
       'Karakter custom unlimited',
       'Realtime voice enabled',

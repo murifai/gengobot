@@ -48,9 +48,9 @@ export function UsageWarning({
       case 'depleted':
         return {
           icon: XCircle,
-          title: 'Kredit Habis',
+          title: 'Kredit AI Habis',
           message:
-            'Kredit Anda telah habis. Upgrade sekarang untuk melanjutkan menggunakan fitur voice.',
+            'Kredit AI Anda telah habis. Upgrade sekarang untuk melanjutkan menggunakan fitur voice.',
           bgColor: 'bg-destructive/10 border-destructive/20',
           textColor: 'text-destructive',
           iconColor: 'text-destructive',
@@ -59,8 +59,8 @@ export function UsageWarning({
       case 'critical':
         return {
           icon: AlertTriangle,
-          title: 'Kredit Hampir Habis',
-          message: `Sisa ${formatCredits(remaining)} kredit (${Math.round(100 - usagePercentage)}%). Pertimbangkan untuk upgrade.`,
+          title: 'Kredit AI Hampir Habis',
+          message: `Sisa ${formatCredits(remaining)} kredit AI (${Math.round(100 - usagePercentage)}%). Pertimbangkan untuk upgrade.`,
           bgColor: 'bg-tertiary-yellow/10 border-tertiary-yellow/20',
           textColor: 'text-tertiary-yellow',
           iconColor: 'text-tertiary-yellow',
@@ -69,8 +69,8 @@ export function UsageWarning({
       case 'low':
         return {
           icon: Zap,
-          title: 'Kredit Menipis',
-          message: `Anda telah menggunakan ${Math.round(usagePercentage)}% kredit. Sisa ${formatCredits(remaining)} kredit.`,
+          title: 'Kredit AI Menipis',
+          message: `Anda telah menggunakan ${Math.round(usagePercentage)}% kredit AI. Sisa ${formatCredits(remaining)} kredit AI.`,
           bgColor: 'bg-muted border-border',
           textColor: 'text-muted-foreground',
           iconColor: 'text-primary',
@@ -133,11 +133,11 @@ export function UsageWarningBanner({
   const getMessage = () => {
     switch (level) {
       case 'depleted':
-        return 'Kredit Anda telah habis. Upgrade untuk melanjutkan.';
+        return 'Kredit AI Anda telah habis. Upgrade untuk melanjutkan.';
       case 'critical':
-        return `Sisa ${formatCredits(remaining)} kredit. Upgrade sekarang.`;
+        return `Sisa ${formatCredits(remaining)} kredit AI. Upgrade sekarang.`;
       case 'low':
-        return `${Math.round(usagePercentage)}% kredit digunakan.`;
+        return `${Math.round(usagePercentage)}% kredit AI digunakan.`;
     }
   };
 
@@ -190,7 +190,7 @@ export function UsageWarningInline({
   return (
     <div className={cn('flex items-center gap-2 text-sm text-destructive', className)}>
       <XCircle className="h-4 w-4" />
-      <span>Kredit tidak cukup untuk {featureName}</span>
+      <span>Kredit AI tidak cukup untuk {featureName}</span>
     </div>
   );
 }

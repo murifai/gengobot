@@ -25,7 +25,7 @@ const DEFAULT_PLANS: PlanOption[] = [
     price: 'Rp 0',
     description: 'Mulai belajar dengan fitur dasar',
     features: [
-      'Trial 14 hari dengan 50 kredit',
+      'Trial 14 hari dengan 50 kredit AI',
       'Akses materi dasar',
       'Latihan percakapan terbatas',
       'Karakter AI bawaan',
@@ -38,7 +38,7 @@ const DEFAULT_PLANS: PlanOption[] = [
     price: 'Rp 49.000/bulan',
     description: 'Untuk pembelajar serius',
     features: [
-      '500 kredit per bulan',
+      '500 kredit AI per bulan',
       'Akses semua materi',
       'Latihan percakapan lebih banyak',
       'Buat 3 karakter custom',
@@ -53,7 +53,7 @@ const DEFAULT_PLANS: PlanOption[] = [
     price: 'Rp 99.000/bulan',
     description: 'Akses penuh tanpa batas',
     features: [
-      '2000 kredit per bulan',
+      '2000 kredit AI per bulan',
       'Semua fitur Basic',
       'Karakter custom unlimited',
       'Voice chat realtime',
@@ -220,8 +220,8 @@ export default function ChoosePlanPage() {
                 </p>
                 <p className="text-sm text-blue-800 dark:text-blue-300 mt-1">
                   Paket Gratis tetap bisa digunakan untuk belajar kosakata, kanji, dan pola kalimat.
-                  Kredit trial hanya tersedia sekali per akun. Untuk fitur AI conversation, silakan
-                  upgrade ke paket berbayar.
+                  Kredit AI trial hanya tersedia sekali per akun. Untuk fitur AI conversation,
+                  silakan upgrade ke paket berbayar.
                 </p>
               </div>
             </div>
@@ -288,7 +288,7 @@ export default function ChoosePlanPage() {
           <p className="text-xs text-muted-foreground mt-3">
             {selectedTier === SubscriptionTier.FREE
               ? !checkingTrial && !trialUsed
-                ? '🎁 User baru mendapat 50 kredit trial gratis selama 14 hari!'
+                ? '🎁 User baru mendapat 50 kredit AI trial gratis selama 14 hari!'
                 : 'Anda bisa upgrade kapan saja'
               : 'Anda akan diarahkan ke halaman pembayaran'}
           </p>

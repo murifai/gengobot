@@ -370,7 +370,7 @@ export default function SubscriptionSettingsPage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Coins className="h-4 w-4" />
-                  Kredit per Bulan
+                  Kredit AI per Bulan
                 </div>
                 <Input
                   type="number"
@@ -379,7 +379,7 @@ export default function SubscriptionSettingsPage() {
                   onChange={e => updateTier(tier.name, 'credits', parseInt(e.target.value) || 0)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  {tier.credits.toLocaleString('id-ID')} kredit/bulan
+                  {tier.credits.toLocaleString('id-ID')} kredit AI/bulan
                 </p>
               </div>
 
@@ -454,7 +454,7 @@ export default function SubscriptionSettingsPage() {
                   <th className="text-center py-3 px-4 font-medium">Diskon 3 Bln</th>
                   <th className="text-center py-3 px-4 font-medium">Diskon 6 Bln</th>
                   <th className="text-center py-3 px-4 font-medium">Diskon 12 Bln</th>
-                  <th className="text-right py-3 px-4 font-medium">Kredit</th>
+                  <th className="text-right py-3 px-4 font-medium">Kredit AI</th>
                   <th className="text-center py-3 px-4 font-medium">Status</th>
                 </tr>
               </thead>

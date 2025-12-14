@@ -21,6 +21,7 @@ import {
   History,
   ChevronLeft,
 } from 'lucide-react';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import useWebRTCAudioSession from '@/hooks/use-webrtc';
 import { Tool } from '@/types/conversation';
 import { motion } from 'framer-motion';
@@ -673,23 +674,23 @@ export default function FreeConversationClient({ user }: FreeConversationClientP
                             </>
                           )}
                         </Button>
-                        <Button
-                          onClick={() => handleCharacterSelect(character, 'realtime')}
-                          disabled={loading && selectedCharacter?.id === character.id}
-                          size="sm"
-                          className="w-full gap-1"
-                        >
-                          {loading &&
-                          selectedCharacter?.id === character.id &&
-                          chatMode === 'realtime' ? (
-                            <div className="h-3 w-3 animate-spin rounded-full border-2 border-solid border-white border-r-transparent"></div>
-                          ) : (
-                            <>
-                              <Mic className="h-3 w-3" />
-                              Realtime
-                            </>
-                          )}
-                        </Button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="w-full">
+                              <Button
+                                disabled={true}
+                                size="sm"
+                                className="w-full gap-1 opacity-50 cursor-not-allowed"
+                              >
+                                <Mic className="h-3 w-3" />
+                                Realtime
+                              </Button>
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Fitur sedang dalam pengembangan</p>
+                          </TooltipContent>
+                        </Tooltip>
                       </div>
                     </div>
                   );

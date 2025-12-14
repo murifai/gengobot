@@ -142,6 +142,31 @@ export class MidtransService {
     const timestamp = Date.now().toString(36); // Base36 for shorter timestamp
     const orderId = `GNG-${shortUserId}-${tierInitial}${durationMonths}-${timestamp}`;
 
+    // Handle 100% discount voucher - bypass payment gateway
+    if (finalAmount === 0) {
+      console.log('[MidtransService] 100% discount detected, bypassing payment gateway');
+
+      // Directly activate subscription without payment
+      await this.activateFreeSubscription(userId, tier, durationMonths, orderId, {
+        originalAmount: priceDetails.originalTotal,
+        discountAmount,
+        voucherCode,
+        changeType: checkoutData.changeType,
+        scheduledForNextPeriod: checkoutData.scheduledForNextPeriod,
+      });
+
+      return {
+        success: true,
+        orderId,
+        originalAmount: priceDetails.originalTotal,
+        discountAmount,
+        finalAmount: 0,
+        discountPercent: priceDetails.discountPercent,
+        bypassPayment: true,
+        subscriptionActivated: true,
+      };
+    }
+
     // Create transaction request
     const transactionRequest: CreateSnapTransactionRequest = {
       transaction_details: {
@@ -466,6 +491,186 @@ export class MidtransService {
   }
 
   // Private methods
+
+  /**
+   * Activate subscription for 100% discount vouchers (bypass payment gateway)
+   */
+  private async activateFreeSubscription(
+    userId: string,
+    tier: SubscriptionTier,
+    durationMonths: number,
+    orderId: string,
+    metadata: {
+      originalAmount: number;
+      discountAmount: number;
+      voucherCode?: string;
+      changeType?: string;
+      scheduledForNextPeriod?: boolean;
+    }
+  ): Promise<void> {
+    const now = new Date();
+    const periodEnd = new Date(now);
+    periodEnd.setMonth(periodEnd.getMonth() + durationMonths);
+
+    // Get tier config for credits
+    const tierConfig = TIER_CONFIG[tier];
+    const monthlyCredits = tierConfig.monthlyCredits;
+    const totalCredits = monthlyCredits * durationMonths;
+
+    const isDowngrade = metadata.changeType === 'downgrade' && metadata.scheduledForNextPeriod;
+
+    // Get existing subscription
+    const existingSubscription = await prisma.subscription.findUnique({
+      where: { userId },
+    });
+
+    if (isDowngrade && existingSubscription) {
+      // Schedule downgrade for current period end
+      await prisma.subscription.update({
+        where: { userId },
+        data: {
+          scheduledTier: tier,
+          scheduledTierStartAt: existingSubscription.currentPeriodEnd,
+          scheduledDurationMonths: durationMonths,
+        },
+      });
+
+      // Record the free subscription grant (scheduled)
+      await prisma.creditTransaction.create({
+        data: {
+          userId,
+          type: CreditTransactionType.ADJUSTMENT,
+          amount: 0,
+          balance: existingSubscription.creditsRemaining,
+          description: `Voucher 100% - Downgrade ke ${tier} - ${durationMonths} bulan (aktif ${existingSubscription.currentPeriodEnd.toLocaleDateString('id-ID')})`,
+          metadata: {
+            tier,
+            durationMonths,
+            amountPaid: 0,
+            voucherCode: metadata.voucherCode,
+            scheduledFor: existingSubscription.currentPeriodEnd.toISOString(),
+            isScheduledDowngrade: true,
+            isFreeVoucher: true,
+          },
+        },
+      });
+
+      console.log(
+        `[MidtransService] Free voucher downgrade scheduled for user ${userId}: ${tier} starting ${existingSubscription.currentPeriodEnd}`
+      );
+    } else if (existingSubscription) {
+      // Immediate activation for upgrades/same tier
+      const carryOverCredits =
+        existingSubscription.tier !== SubscriptionTier.FREE
+          ? existingSubscription.creditsRemaining
+          : 0;
+      const finalTotalCredits = totalCredits + carryOverCredits;
+
+      await prisma.subscription.update({
+        where: { userId },
+        data: {
+          tier,
+          status: SubscriptionStatus.ACTIVE,
+          currentPeriodStart: now,
+          currentPeriodEnd: periodEnd,
+          creditsTotal: finalTotalCredits,
+          creditsUsed: 0,
+          creditsRemaining: finalTotalCredits,
+          scheduledTier: null,
+          scheduledTierStartAt: null,
+          scheduledDurationMonths: null,
+        },
+      });
+
+      await prisma.creditTransaction.create({
+        data: {
+          userId,
+          type: CreditTransactionType.GRANT,
+          amount: totalCredits,
+          balance: finalTotalCredits,
+          description: `Voucher 100% - ${tier} subscription - ${durationMonths} bulan`,
+          metadata: {
+            tier,
+            durationMonths,
+            amountPaid: 0,
+            voucherCode: metadata.voucherCode,
+            carryOverCredits: carryOverCredits > 0 ? carryOverCredits : undefined,
+            isFreeVoucher: true,
+          },
+        },
+      });
+
+      // Record upgrade in trial history if from FREE
+      if (existingSubscription.tier === SubscriptionTier.FREE) {
+        await recordTrialUpgrade(userId);
+      }
+    } else {
+      // New subscription
+      await prisma.subscription.create({
+        data: {
+          userId,
+          tier,
+          status: SubscriptionStatus.ACTIVE,
+          currentPeriodStart: now,
+          currentPeriodEnd: periodEnd,
+          creditsTotal: totalCredits,
+          creditsUsed: 0,
+          creditsRemaining: totalCredits,
+        },
+      });
+
+      await prisma.creditTransaction.create({
+        data: {
+          userId,
+          type: CreditTransactionType.GRANT,
+          amount: totalCredits,
+          balance: totalCredits,
+          description: `Voucher 100% - ${tier} subscription - ${durationMonths} bulan`,
+          metadata: {
+            tier,
+            durationMonths,
+            amountPaid: 0,
+            voucherCode: metadata.voucherCode,
+            isFreeVoucher: true,
+          },
+        },
+      });
+    }
+
+    // Store as completed payment record for history
+    await prisma.pendingPayment.create({
+      data: {
+        userId,
+        externalId: orderId,
+        invoiceId: `FREE-${orderId}`,
+        tier,
+        durationMonths,
+        amount: 0,
+        status: 'PAID',
+        paidAt: now,
+        paymentMethod: 'VOUCHER_100',
+        paymentChannel: 'voucher',
+        invoiceUrl: '',
+        expiresAt: now,
+        metadata: {
+          originalAmount: metadata.originalAmount,
+          discountAmount: metadata.discountAmount,
+          voucherCode: metadata.voucherCode,
+          isFreeVoucher: true,
+        },
+      },
+    });
+
+    // Send success notification
+    await notifyPaymentStatus(userId, 'success', {
+      amount: 'Rp 0 (Voucher 100%)',
+      tier: tier.charAt(0).toUpperCase() + tier.slice(1).toLowerCase(),
+    });
+
+    console.log(
+      `[MidtransService] Free voucher subscription activated for user ${userId}: ${tier} x ${durationMonths} months`
+    );
+  }
 
   private async storePendingPayment(
     userId: string,

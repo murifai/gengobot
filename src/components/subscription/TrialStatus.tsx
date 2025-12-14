@@ -198,7 +198,7 @@ export function TrialExpired({
           <h3 className="font-semibold">Trial Telah Berakhir</h3>
           <p className="text-sm text-muted-foreground">
             Upgrade ke premium untuk melanjutkan menggunakan fitur voice dan mendapatkan lebih
-            banyak kredit.
+            banyak kredit AI.
           </p>
         </div>
         {onUpgrade && (

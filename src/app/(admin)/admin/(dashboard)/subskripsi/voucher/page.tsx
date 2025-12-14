@@ -149,7 +149,7 @@ export default function VouchersPage() {
       case 'FIXED_AMOUNT':
         return 'Nominal';
       case 'BONUS_CREDITS':
-        return 'Bonus Kredit';
+        return 'Bonus Kredit AI';
       case 'TRIAL_EXTENSION':
         return 'Perpanjangan Trial';
       case 'TIER_UPGRADE':
@@ -166,7 +166,7 @@ export default function VouchersPage() {
       case 'FIXED_AMOUNT':
         return formatCurrency(value);
       case 'BONUS_CREDITS':
-        return `${value.toLocaleString()} kredit`;
+        return `${value.toLocaleString()} kredit AI`;
       case 'TRIAL_EXTENSION':
         return `${value} hari`;
       case 'TIER_UPGRADE':
@@ -211,7 +211,7 @@ export default function VouchersPage() {
                 <SelectItem value="all">Semua Tipe</SelectItem>
                 <SelectItem value="PERCENTAGE">Persentase</SelectItem>
                 <SelectItem value="FIXED_AMOUNT">Nominal</SelectItem>
-                <SelectItem value="BONUS_CREDITS">Bonus Kredit</SelectItem>
+                <SelectItem value="BONUS_CREDITS">Bonus Kredit AI</SelectItem>
                 <SelectItem value="TRIAL_EXTENSION">Perpanjangan Trial</SelectItem>
                 <SelectItem value="TIER_UPGRADE">Upgrade Tier</SelectItem>
               </SelectContent>

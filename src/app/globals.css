@@ -187,6 +187,18 @@
   --sidebar-border: #27272a;
   --sidebar-ring: #f2727d;
 
+  /* Neobrutalism card type colors - Dark Mode (darker versions) */
+  --card-hiragana: #8B5A6B;
+  --card-hiragana-back: #3D2A30;
+  --card-katakana: #4A7A8A;
+  --card-katakana-back: #2A3D45;
+  --card-kanji: #8A8555;
+  --card-kanji-back: #3D3A25;
+  --card-vocabulary: #4A7A55;
+  --card-vocabulary-back: #2A3D30;
+  --card-grammar: #4A8A8F;
+  --card-grammar-back: #2A4548;
+
   /* Neobrutalism Core - Dark Mode */
   --main: var(--primary);
   --main-foreground: var(--primary-foreground);

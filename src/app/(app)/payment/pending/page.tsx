@@ -26,7 +26,7 @@ export default function PaymentPendingPage() {
 
           <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
             <p>
-              Setelah pembayaran berhasil, langganan Anda akan langsung aktif dan kredit akan
+              Setelah pembayaran berhasil, langganan Anda akan langsung aktif dan kredit AI akan
               ditambahkan ke akun.
             </p>
           </div>

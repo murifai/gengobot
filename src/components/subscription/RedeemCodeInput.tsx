@@ -133,8 +133,8 @@ export function RedeemCodeInput({ onSuccess, disabled = false, className }: Rede
                 <p className="font-medium">{result.message}</p>
                 {result.details?.creditsAdded && (
                   <p className="text-xs opacity-80 mt-1">
-                    +{result.details.creditsAdded.toLocaleString('id-ID')} kredit telah ditambahkan
-                    ke akun Anda.
+                    +{result.details.creditsAdded.toLocaleString('id-ID')} kredit AI telah
+                    ditambahkan ke akun Anda.
                   </p>
                 )}
                 {result.details?.daysExtended && (

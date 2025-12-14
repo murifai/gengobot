@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 
 export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
 
   useEffect(() => {
     setMounted(true);
@@ -21,7 +21,8 @@ export function ThemeToggle() {
     );
   }
 
-  const isDark = theme === 'dark';
+  // Use resolvedTheme to get actual displayed theme (handles 'system' correctly)
+  const isDark = resolvedTheme === 'dark';
 
   const toggleTheme = () => {
     setTheme(isDark ? 'light' : 'dark');

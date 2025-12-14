@@ -5,20 +5,18 @@ import { useRouter } from 'next/navigation';
 import {
   ChevronLeft,
   CreditCard,
-  BarChart3,
   ArrowUpCircle,
   AlertCircle,
   XCircle,
   RefreshCw,
   Loader2,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Separator } from '@/components/ui/separator';
 import { CreditBalance } from '@/components/subscription/CreditBalance';
 import { PaymentHistory } from '@/components/payment/PaymentHistory';
-import { CreditUsageChart } from '@/components/subscription/CreditUsageChart';
 import { useSubscription } from '@/hooks/useSubscription';
 import { SubscriptionTier } from '@prisma/client';
 import { TIER_PRICING } from '@/lib/subscription/credit-config';
@@ -58,7 +56,7 @@ export default function BillingPage() {
   const handleCancelSubscription = async () => {
     if (
       !confirm(
-        'Apakah Anda yakin ingin membatalkan langganan? Anda masih dapat menggunakan kredit hingga akhir periode.'
+        'Apakah Anda yakin ingin membatalkan langganan? Anda masih dapat menggunakan kredit AI hingga akhir periode.'
       )
     ) {
       return;
@@ -262,7 +260,7 @@ export default function BillingPage() {
                       <p className="text-sm text-muted-foreground">
                         Langganan akan berakhir pada{' '}
                         <strong>{formatDate(cancellationStatus.cancelDate)}</strong>. Anda masih
-                        dapat menggunakan kredit hingga tanggal tersebut.
+                        dapat menggunakan kredit AI hingga tanggal tersebut.
                       </p>
                     </div>
                   </div>
@@ -359,20 +357,6 @@ export default function BillingPage() {
             trialEndDate={balance.trialEndDate ?? undefined}
           />
         )}
-
-        {/* Credit Usage Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <BarChart3 className="h-5 w-5" />
-              Penggunaan Kredit (30 Hari Terakhir)
-            </CardTitle>
-            <CardDescription>Lihat pola penggunaan kredit harian kamu</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CreditUsageChart />
-          </CardContent>
-        </Card>
 
         {/* Payment History */}
         <PaymentHistory />

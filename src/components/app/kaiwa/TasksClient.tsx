@@ -40,6 +40,7 @@ export default function TasksClient({}: TasksClientProps) {
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('Semua');
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isSubcategoryOpen, setIsSubcategoryOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(true);
 
   useEffect(() => {
     fetchTasks();
@@ -126,116 +127,130 @@ export default function TasksClient({}: TasksClientProps) {
 
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Filter Section - Neo Brutalism Style */}
-        <div className="mb-6 bg-card border-2 border-border rounded-base p-4 shadow-shadow">
-          <h2 className="text-lg font-bold text-foreground mb-4">Filter</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Difficulty Filter */}
-            <div>
-              <label className="block text-sm font-bold text-foreground mb-2">Level</label>
-              <div className="flex flex-wrap gap-2">
-                {difficulties.map(difficulty => (
-                  <button
-                    key={difficulty}
-                    onClick={() => setSelectedDifficulty(difficulty)}
-                    className={`px-4 py-2 rounded-base text-sm font-bold border-2 border-border transition-all ${
-                      selectedDifficulty === difficulty
-                        ? 'bg-primary text-primary-foreground shadow-shadow translate-x-boxShadowX translate-y-boxShadowY'
-                        : 'bg-card text-foreground hover:bg-muted shadow-shadow hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none'
-                    }`}
-                  >
-                    {displayValue(difficulty)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Category Filter - Dropdown */}
-            <div>
-              <label className="block text-sm font-bold text-foreground mb-2">Kategori</label>
-              <div className="relative">
-                <button
-                  onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-                  className={`w-full px-4 py-2 rounded-base text-sm font-bold border-2 border-border transition-all flex items-center justify-between ${
-                    selectedCategory !== 'Semua'
-                      ? 'bg-primary text-primary-foreground shadow-shadow translate-x-boxShadowX translate-y-boxShadowY'
-                      : 'bg-card text-foreground hover:bg-muted shadow-shadow'
-                  }`}
-                >
-                  <span>{displayValue(selectedCategory)}</span>
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`}
-                  />
-                </button>
-                {isCategoryOpen && (
-                  <div className="absolute z-10 mt-2 w-full bg-card border-2 border-border rounded-base shadow-shadow max-h-60 overflow-auto">
-                    {categories.map(category => (
+        <div className="mb-6 bg-card border-2 border-border rounded-base shadow-shadow">
+          <button
+            onClick={() => setIsFilterOpen(!isFilterOpen)}
+            className="w-full p-4 flex items-center justify-between"
+          >
+            <h2 className="text-lg font-bold text-foreground">Filter</h2>
+            <ChevronDown
+              className={`w-5 h-5 text-foreground transition-transform ${isFilterOpen ? 'rotate-180' : ''}`}
+            />
+          </button>
+          {isFilterOpen && (
+            <div className="px-4 pb-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Difficulty Filter */}
+                <div>
+                  <label className="block text-sm font-bold text-foreground mb-2">Level</label>
+                  <div className="flex flex-wrap gap-2">
+                    {difficulties.map(difficulty => (
                       <button
-                        key={category}
-                        onClick={() => {
-                          setSelectedCategory(category);
-                          setIsCategoryOpen(false);
-                        }}
-                        className={`w-full px-4 py-2 text-sm font-bold text-left transition-colors border-b border-border last:border-b-0 ${
-                          selectedCategory === category
-                            ? 'bg-primary text-primary-foreground'
-                            : 'text-foreground hover:bg-muted'
+                        key={difficulty}
+                        onClick={() => setSelectedDifficulty(difficulty)}
+                        className={`px-4 py-2 rounded-base text-sm font-bold border-2 border-border transition-all ${
+                          selectedDifficulty === difficulty
+                            ? 'bg-primary text-primary-foreground shadow-shadow translate-x-boxShadowX translate-y-boxShadowY'
+                            : 'bg-card text-foreground hover:bg-muted shadow-shadow hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none'
                         }`}
                       >
-                        {displayValue(category)}
+                        {displayValue(difficulty)}
                       </button>
                     ))}
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
 
-            {/* Subcategory Filter - Dropdown */}
-            <div>
-              <label className="block text-sm font-bold text-foreground mb-2">Subkategori</label>
-              <div className="relative">
-                <button
-                  onClick={() => setIsSubcategoryOpen(!isSubcategoryOpen)}
-                  className={`w-full px-4 py-2 rounded-base text-sm font-bold border-2 border-border transition-all flex items-center justify-between ${
-                    selectedSubcategory !== 'Semua'
-                      ? 'bg-primary text-primary-foreground shadow-shadow translate-x-boxShadowX translate-y-boxShadowY'
-                      : 'bg-card text-foreground hover:bg-muted shadow-shadow'
-                  }`}
-                >
-                  <span>{displayValue(selectedSubcategory)}</span>
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform ${isSubcategoryOpen ? 'rotate-180' : ''}`}
-                  />
-                </button>
-                {isSubcategoryOpen && (
-                  <div className="absolute z-10 mt-2 w-full bg-card border-2 border-border rounded-base shadow-shadow max-h-60 overflow-auto">
-                    {subcategories.map(subcategory => (
-                      <button
-                        key={subcategory}
-                        onClick={() => {
-                          setSelectedSubcategory(subcategory);
-                          setIsSubcategoryOpen(false);
-                        }}
-                        className={`w-full px-4 py-2 text-sm font-bold text-left transition-colors border-b border-border last:border-b-0 ${
-                          selectedSubcategory === subcategory
-                            ? 'bg-primary text-primary-foreground'
-                            : 'text-foreground hover:bg-muted'
-                        }`}
-                      >
-                        {displayValue(subcategory)}
-                      </button>
-                    ))}
+                {/* Category Filter - Dropdown */}
+                <div>
+                  <label className="block text-sm font-bold text-foreground mb-2">Kategori</label>
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+                      className={`w-full px-4 py-2 rounded-base text-sm font-bold border-2 border-border transition-all flex items-center justify-between ${
+                        selectedCategory !== 'Semua'
+                          ? 'bg-primary text-primary-foreground shadow-shadow translate-x-boxShadowX translate-y-boxShadowY'
+                          : 'bg-card text-foreground hover:bg-muted shadow-shadow'
+                      }`}
+                    >
+                      <span>{displayValue(selectedCategory)}</span>
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+                    {isCategoryOpen && (
+                      <div className="absolute z-10 mt-2 w-full bg-card border-2 border-border rounded-base shadow-shadow max-h-60 overflow-auto">
+                        {categories.map(category => (
+                          <button
+                            key={category}
+                            onClick={() => {
+                              setSelectedCategory(category);
+                              setIsCategoryOpen(false);
+                            }}
+                            className={`w-full px-4 py-2 text-sm font-bold text-left transition-colors border-b border-border last:border-b-0 ${
+                              selectedCategory === category
+                                ? 'bg-primary text-primary-foreground'
+                                : 'text-foreground hover:bg-muted'
+                            }`}
+                          >
+                            {displayValue(category)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
+
+                {/* Subcategory Filter - Dropdown */}
+                <div>
+                  <label className="block text-sm font-bold text-foreground mb-2">
+                    Subkategori
+                  </label>
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsSubcategoryOpen(!isSubcategoryOpen)}
+                      className={`w-full px-4 py-2 rounded-base text-sm font-bold border-2 border-border transition-all flex items-center justify-between ${
+                        selectedSubcategory !== 'Semua'
+                          ? 'bg-primary text-primary-foreground shadow-shadow translate-x-boxShadowX translate-y-boxShadowY'
+                          : 'bg-card text-foreground hover:bg-muted shadow-shadow'
+                      }`}
+                    >
+                      <span>{displayValue(selectedSubcategory)}</span>
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform ${isSubcategoryOpen ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+                    {isSubcategoryOpen && (
+                      <div className="absolute z-10 mt-2 w-full bg-card border-2 border-border rounded-base shadow-shadow max-h-60 overflow-auto">
+                        {subcategories.map(subcategory => (
+                          <button
+                            key={subcategory}
+                            onClick={() => {
+                              setSelectedSubcategory(subcategory);
+                              setIsSubcategoryOpen(false);
+                            }}
+                            className={`w-full px-4 py-2 text-sm font-bold text-left transition-colors border-b border-border last:border-b-0 ${
+                              selectedSubcategory === subcategory
+                                ? 'bg-primary text-primary-foreground'
+                                : 'text-foreground hover:bg-muted'
+                            }`}
+                          >
+                            {displayValue(subcategory)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          {(selectedDifficulty !== 'Semua' ||
-            selectedCategory !== 'Semua' ||
-            selectedSubcategory !== 'Semua') && (
-            <div className="mt-4">
-              <p className="text-sm text-muted-foreground">
-                Menampilkan {filteredTasks.length} dari {tasks.length} task
-              </p>
+              {(selectedDifficulty !== 'Semua' ||
+                selectedCategory !== 'Semua' ||
+                selectedSubcategory !== 'Semua') && (
+                <div className="mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Menampilkan {filteredTasks.length} dari {tasks.length} task
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>

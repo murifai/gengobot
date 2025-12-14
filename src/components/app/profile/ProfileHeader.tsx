@@ -6,12 +6,37 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Calendar, Mail, Pencil } from 'lucide-react';
 import { UserProfile } from './ProfilePage';
+import { useSubscription } from '@/hooks/useSubscription';
+import { SubscriptionTier } from '@prisma/client';
 
 interface ProfileHeaderProps {
   user: UserProfile;
 }
 
 export function ProfileHeader({ user }: ProfileHeaderProps) {
+  const { tier, isLoading: isLoadingSubscription } = useSubscription();
+
+  const getTierLabel = () => {
+    switch (tier) {
+      case SubscriptionTier.PRO:
+        return 'Pro';
+      case SubscriptionTier.BASIC:
+        return 'Basic';
+      default:
+        return 'Free';
+    }
+  };
+
+  const getTierBadgeVariant = (): 'default' | 'primary' | 'secondary' => {
+    switch (tier) {
+      case SubscriptionTier.PRO:
+        return 'primary';
+      case SubscriptionTier.BASIC:
+        return 'secondary';
+      default:
+        return 'default';
+    }
+  };
   // Display full name first, fallback to Google account name
   const displayName = user.fullName || user.name || 'User';
   const initials = displayName
@@ -38,9 +63,11 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
       <div className="flex-1">
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-2xl font-bold">{displayName}</h1>
-          <Badge variant={user.subscriptionPlan === 'premium' ? 'default' : 'secondary'}>
-            {user.subscriptionPlan === 'premium' ? 'Premium' : 'Free'}
-          </Badge>
+          {isLoadingSubscription ? (
+            <Badge variant="secondary">...</Badge>
+          ) : (
+            <Badge variant={getTierBadgeVariant()}>{getTierLabel()}</Badge>
+          )}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 text-sm text-muted-foreground">

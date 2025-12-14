@@ -108,7 +108,7 @@ export default function NewVoucherPage() {
       case 'FIXED_AMOUNT':
         return 'Nominal Diskon (Rp)';
       case 'BONUS_CREDITS':
-        return 'Jumlah Kredit Bonus';
+        return 'Jumlah Kredit AI Bonus';
       case 'TRIAL_EXTENSION':
         return 'Jumlah Hari Perpanjangan';
       case 'TIER_UPGRADE':
@@ -194,7 +194,7 @@ export default function NewVoucherPage() {
                     <SelectContent>
                       <SelectItem value="PERCENTAGE">Persentase</SelectItem>
                       <SelectItem value="FIXED_AMOUNT">Nominal Tetap</SelectItem>
-                      <SelectItem value="BONUS_CREDITS">Bonus Kredit</SelectItem>
+                      <SelectItem value="BONUS_CREDITS">Bonus Kredit AI</SelectItem>
                       <SelectItem value="TRIAL_EXTENSION">Perpanjangan Trial</SelectItem>
                       <SelectItem value="TIER_UPGRADE">Upgrade Tier</SelectItem>
                     </SelectContent>

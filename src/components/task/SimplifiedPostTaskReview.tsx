@@ -107,7 +107,7 @@ export function SimplifiedPostTaskReview({
           </h2>
 
           {/* Summary */}
-          <div className="flex items-center gap-3 mb-4 p-3 bg-white/50 border-2 border-border rounded-base">
+          <div className="flex items-center gap-3 mb-4 p-3 bg-card/50 border-2 border-border rounded-base">
             <div className="text-2xl font-bold text-foreground">
               {assessment.objectivesAchieved}/{assessment.totalObjectives}
             </div>
@@ -120,7 +120,7 @@ export function SimplifiedPostTaskReview({
               {completedObjectives.map((objective, index) => (
                 <div
                   key={index}
-                  className="bg-white border-2 border-border rounded-base p-4 shadow-xs"
+                  className="bg-card border-2 border-border rounded-base p-4 shadow-xs"
                 >
                   <div className="flex items-start gap-3">
                     <CheckCircle2 className="h-5 w-5 text-[var(--tertiary-green)] shrink-0 mt-0.5" />
@@ -152,7 +152,7 @@ export function SimplifiedPostTaskReview({
               {incompleteObjectives.map((objective, index) => (
                 <div
                   key={index}
-                  className="bg-white/70 border-2 border-dashed border-border rounded-base p-4"
+                  className="bg-card/70 border-2 border-dashed border-border rounded-base p-4"
                 >
                   <div className="flex items-start gap-3">
                     <Circle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
@@ -226,7 +226,7 @@ export function SimplifiedPostTaskReview({
                 </p>
                 {assessment.grammarPoint.examples &&
                   assessment.grammarPoint.examples.length > 0 && (
-                    <div className="bg-white border-2 border-border rounded-base p-4 space-y-2">
+                    <div className="bg-card border-2 border-border rounded-base p-4 space-y-2">
                       {assessment.grammarPoint.examples.map((example, index) => (
                         <div key={index} className="text-sm">
                           <code className="font-japanese text-foreground font-medium">
@@ -246,14 +246,14 @@ export function SimplifiedPostTaskReview({
         {assessment.tips && assessment.tips.length > 0 && (
           <section className="bg-[var(--card-kanji)] border-3 border-border rounded-base shadow-shadow p-6">
             <h2 className="text-lg font-bold text-foreground mb-4 pb-3 border-b-2 border-border flex items-center gap-2">
-              <span className="bg-white p-1.5 rounded-base border-2 border-border">
+              <span className="bg-card p-1.5 rounded-base border-2 border-border">
                 <Lightbulb className="h-5 w-5" />
               </span>
               Tips Berbicara Lebih Natural
             </h2>
             <div className="space-y-4">
               {assessment.tips.map((tip, index) => (
-                <div key={index} className="bg-white border-2 border-border rounded-base p-4">
+                <div key={index} className="bg-card border-2 border-border rounded-base p-4">
                   <div className="text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wide">
                     Situasi: {tip.situation}
                   </div>
@@ -271,14 +271,14 @@ export function SimplifiedPostTaskReview({
         {assessment.conversationHighlights && assessment.conversationHighlights.length > 0 && (
           <section className="bg-[var(--card-katakana)] border-3 border-border rounded-base shadow-shadow p-6">
             <h2 className="text-lg font-bold text-foreground mb-4 pb-3 border-b-2 border-border flex items-center gap-2">
-              <span className="bg-white p-1.5 rounded-base border-2 border-border">
+              <span className="bg-card p-1.5 rounded-base border-2 border-border">
                 <MessageCircle className="h-5 w-5" />
               </span>
               Poin Penting Percakapan
             </h2>
             <div className="space-y-4">
               {assessment.conversationHighlights.map((highlight, index) => (
-                <div key={index} className="bg-white border-2 border-border rounded-base p-4">
+                <div key={index} className="bg-card border-2 border-border rounded-base p-4">
                   {/* Conversation exchanges */}
                   <div className="space-y-2 mb-3">
                     {highlight.exchanges.map((exchange, exIndex) => (
@@ -312,7 +312,7 @@ export function SimplifiedPostTaskReview({
         {assessment.taskRecommendations && assessment.taskRecommendations.length > 0 && (
           <section className="bg-[var(--card-hiragana)] border-3 border-border rounded-base shadow-shadow p-6">
             <h2 className="text-lg font-bold text-foreground mb-4 pb-3 border-b-2 border-border flex items-center gap-2">
-              <span className="bg-white p-1.5 rounded-base border-2 border-border">
+              <span className="bg-card p-1.5 rounded-base border-2 border-border">
                 <ArrowRight className="h-5 w-5" />
               </span>
               Rekomendasi Tema Percakapan Selanjutnya
@@ -321,7 +321,7 @@ export function SimplifiedPostTaskReview({
               {assessment.taskRecommendations.map((rec, index) => (
                 <div
                   key={index}
-                  className="bg-white border-2 border-border rounded-base p-4 flex items-start gap-3"
+                  className="bg-card border-2 border-border rounded-base p-4 flex items-start gap-3"
                 >
                   <span className="shrink-0 w-8 h-8 rounded-base bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center border-2 border-border">
                     {index + 1}

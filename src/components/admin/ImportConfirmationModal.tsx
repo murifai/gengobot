@@ -33,11 +33,11 @@ const CATEGORIES = [
 
 const DIFFICULTIES = [
   { value: '', label: 'Tidak ada level' },
-  { value: 'N5', label: 'N5 - Pemula' },
-  { value: 'N4', label: 'N4 - Dasar' },
-  { value: 'N3', label: 'N3 - Menengah' },
-  { value: 'N2', label: 'N2 - Mahir' },
-  { value: 'N1', label: 'N1 - Ahli' },
+  { value: 'N5', label: 'JLPT N5' },
+  { value: 'N4', label: 'JLPT N4' },
+  { value: 'N3', label: 'JLPT N3' },
+  { value: 'N2', label: 'JLPT N2' },
+  { value: 'N1', label: 'JLPT N1' },
 ];
 
 export function ImportConfirmationModal({

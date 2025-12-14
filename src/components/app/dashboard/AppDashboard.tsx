@@ -232,7 +232,7 @@ export default function AppDashboard() {
                     <span className="text-2xl font-bold">
                       {formatCredits(dashboardData.credits.remaining)}
                     </span>
-                    <span className="text-muted-foreground">kredit tersisa</span>
+                    <span className="text-muted-foreground">kredit AI tersisa</span>
                     {dashboardData.credits.isTrialActive && (
                       <Badge variant="warning" size="sm">
                         Trial: {dashboardData.credits.trialDaysRemaining} hari

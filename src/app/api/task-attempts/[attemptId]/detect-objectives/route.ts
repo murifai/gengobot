@@ -77,6 +77,10 @@ export async function POST(
       currentObjectives = initializeObjectives(attempt.task.learningObjectives);
     }
 
+    // Count only user messages for progress tracking
+    const userMessageCount = updatedHistory.filter(msg => msg.role === 'user').length;
+    console.log('[detect-objectives] User message count:', userMessageCount);
+
     // Call OpenAI for objective detection
     console.log('[detect-objectives] Calling OpenAI for detection...');
     const response = await openai.chat.completions.create({
@@ -85,7 +89,7 @@ export async function POST(
         {
           role: 'system',
           content:
-            'You are an objective completion detector for Japanese language learning. Respond only with valid JSON.',
+            'You are an objective completion detector for Japanese language learning. CRITICAL: Only count USER messages as evidence of objective completion. AI/ASSISTANT messages do NOT count. Respond only with valid JSON.',
         },
         {
           role: 'user',
@@ -105,6 +109,7 @@ export async function POST(
       objectivesCount: result.objectives?.length,
       allCompleted: result.allCompleted,
       confidence: result.overallConfidence,
+      userMessageCount,
     });
 
     // Update attempt with new objective status
@@ -134,6 +139,7 @@ export async function POST(
       newlyCompleted,
       allCompleted: result.allCompleted || false,
       confidence: result.overallConfidence || 0,
+      userMessageCount,
     });
   } catch (error) {
     console.error('[detect-objectives] Error:', error);

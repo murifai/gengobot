@@ -11,11 +11,11 @@ interface PersonalTabProps {
 
 export function PersonalTab({ user }: PersonalTabProps) {
   const proficiencyLabels: Record<string, string> = {
-    N5: 'N5 - Pemula',
-    N4: 'N4 - Dasar',
-    N3: 'N3 - Menengah',
-    N2: 'N2 - Mahir',
-    N1: 'N1 - Expert',
+    N5: 'JLPT N5',
+    N4: 'JLPT N4',
+    N3: 'JLPT N3',
+    N2: 'JLPT N2',
+    N1: 'JLPT N1',
   };
 
   return (

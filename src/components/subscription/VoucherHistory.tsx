@@ -106,7 +106,7 @@ export function VoucherHistory({ className }: VoucherHistoryProps) {
       case VoucherType.FIXED_AMOUNT:
         return formatCurrency(value);
       case VoucherType.BONUS_CREDITS:
-        return `${value.toLocaleString('id-ID')} kredit`;
+        return `${value.toLocaleString('id-ID')} kredit AI`;
       case VoucherType.TRIAL_EXTENSION:
         return `${value} hari`;
       case VoucherType.TIER_UPGRADE:

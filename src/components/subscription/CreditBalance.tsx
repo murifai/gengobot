@@ -74,7 +74,7 @@ export function CreditBalance({
       <div className={cn('flex items-center gap-2', className)}>
         <Zap className="h-4 w-4 text-primary" />
         <span className="text-sm font-medium">{formatCredits(remaining)}</span>
-        <span className="text-xs text-muted-foreground">kredit</span>
+        <span className="text-xs text-muted-foreground">kredit AI</span>
       </div>
     );
   }
@@ -99,7 +99,7 @@ export function CreditBalance({
         <div className="space-y-1">
           <div className="flex items-baseline justify-between">
             <span className="text-3xl font-bold">{formatCredits(remaining)}</span>
-            <span className="text-sm text-muted-foreground">total kredit tersedia</span>
+            <span className="text-sm text-muted-foreground">total kredit AI tersedia</span>
           </div>
         </div>
 
@@ -108,7 +108,7 @@ export function CreditBalance({
             {/* Subscription Credits Bar */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-foreground">Kredit Langganan</span>
+                <span className="font-medium text-foreground">Kredit AI Langganan</span>
                 <span className="text-muted-foreground">
                   {formatCredits(subRemaining)} / {formatCredits(subTotal)}
                 </span>
@@ -126,7 +126,7 @@ export function CreditBalance({
                 <div className="flex items-center gap-1.5">
                   <Gift className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                   <span className="font-medium text-amber-800 dark:text-amber-200">
-                    Kredit Trial
+                    Kredit AI Trial
                   </span>
                 </div>
                 <span className="text-amber-700 dark:text-amber-300">
@@ -139,7 +139,7 @@ export function CreditBalance({
                 className="h-1.5 bg-amber-200 dark:bg-amber-900 [&>div]:bg-amber-500"
               />
               <div className="flex items-center justify-between text-xs text-amber-600 dark:text-amber-400">
-                <span>Sisa kredit dari masa trial (digunakan lebih dulu)</span>
+                <span>Sisa kredit AI dari masa trial (digunakan lebih dulu)</span>
                 {trialEndDate && (
                   <span className="font-medium">
                     Kadaluarsa:{' '}
@@ -157,7 +157,7 @@ export function CreditBalance({
           /* Single bar for FREE tier or users without trial credits */
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">dari {formatCredits(total)} kredit</span>
+              <span className="text-muted-foreground">dari {formatCredits(total)} kredit AI</span>
             </div>
             <Progress value={used} max={total} className="h-2" />
             <div className="flex justify-between text-xs text-muted-foreground">

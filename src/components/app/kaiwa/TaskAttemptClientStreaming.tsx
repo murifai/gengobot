@@ -86,6 +86,7 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
     updateObjectives,
     incrementMessageCount: _incrementMessageCount,
     dismissCompletionSuggestion,
+    resetProgress,
   } = useTaskFeedbackProgress(
     attemptId,
     attempt?.task?.maxMessages || 30,
@@ -262,6 +263,7 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
       const data = await response.json();
       setAttempt(data.attempt);
       resetMessages(); // Clear streaming messages without page reload
+      resetProgress(); // Reset learning objectives progress
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reset chat');
     }
@@ -347,22 +349,9 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
               const taskId = recommendation.taskId;
 
               if (taskId) {
-                // Create attempt with the known taskId
-                const attemptResponse = await fetch('/api/task-attempts', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    userId: attempt.userId,
-                    taskId,
-                    forceNew: true,
-                  }),
-                });
-
-                if (attemptResponse.ok) {
-                  const { attempt: newAttempt } = await attemptResponse.json();
-                  router.push(`/app/kaiwa/roleplay/${taskId}/attempt/${newAttempt.id}`);
-                  return;
-                }
+                // Navigate to pretask page - let PreTaskStudyClient handle attempt creation
+                router.push(`/app/kaiwa/roleplay/${taskId}`);
+                return;
               }
 
               // Fallback: redirect to roleplay page with category filter
@@ -375,7 +364,7 @@ export default function TaskAttemptClientStreaming({ attemptId }: TaskAttemptCli
               );
             } catch (error) {
               console.error('Error starting recommended task:', error);
-              router.push('/kaiwa/roleplay');
+              router.push('/app/kaiwa/roleplay');
             }
           }}
         />

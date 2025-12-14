@@ -109,6 +109,36 @@ export default function StudyDeckPage({ params }: { params: Promise<{ deckId: st
     router.push('/drill');
   };
 
+  const handleRetry = async () => {
+    // Start a fresh new session by forcing new session creation
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch('/api/app/drill-sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deckId, forceNew: true }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to start new study session');
+      }
+
+      const data = await response.json();
+      setSessionId(data.sessionId);
+      setDeck(data.deck);
+      setInitialCardIndex(0);
+      setInitialReviewedCardIds([]);
+      setInitialHafalCount(0);
+      setInitialBelumHafalCount(0);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -141,6 +171,7 @@ export default function StudyDeckPage({ params }: { params: Promise<{ deckId: st
 
   return (
     <DeckLearningWithStats
+      key={sessionId}
       deck={deck}
       sessionId={sessionId}
       initialCardIndex={initialCardIndex}
@@ -149,6 +180,7 @@ export default function StudyDeckPage({ params }: { params: Promise<{ deckId: st
       initialBelumHafalCount={initialBelumHafalCount}
       onComplete={handleComplete}
       onExit={handleExit}
+      onRetry={handleRetry}
     />
   );
 }

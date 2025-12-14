@@ -41,7 +41,8 @@ export class CreditService {
       if (!subscription.trialEndDate) {
         return {
           allowed: false,
-          reason: 'Paket Gratis tidak memiliki kredit. Silakan upgrade untuk menggunakan fitur AI.',
+          reason:
+            'Paket Gratis tidak memiliki kredit AI. Silakan upgrade untuk menggunakan fitur AI.',
           creditsRequired,
           creditsAvailable: 0,
           isTrialUser: false,

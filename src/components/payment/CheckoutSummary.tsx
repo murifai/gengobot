@@ -97,6 +97,12 @@ export function CheckoutSummary({
 
       onCheckout?.();
 
+      // Handle 100% voucher - subscription already activated, redirect to success
+      if (data.pricing?.bypassPayment && data.pricing?.subscriptionActivated) {
+        window.location.href = '/app/payment/success?voucher=100';
+        return;
+      }
+
       // Redirect to payment page directly
       window.location.href = data.transaction.redirectUrl;
     } catch (err) {

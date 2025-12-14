@@ -113,7 +113,7 @@ export function CreditUsageChart({ className, days = 30 }: CreditUsageChartProps
                 boxShadow: '4px 4px 0px hsl(var(--border))',
               }}
               formatter={(value: number, name: string) => [
-                value.toLocaleString() + ' kredit',
+                value.toLocaleString() + ' kredit AI',
                 name === 'kaiwa' ? 'Kaiwa' : 'Drill',
               ]}
               labelFormatter={label => `Tanggal: ${label}`}

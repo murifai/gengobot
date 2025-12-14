@@ -45,13 +45,13 @@ export function UpgradePrompt({
     switch (context) {
       case 'credits_low':
         return {
-          title: 'Kredit Menipis',
-          message: 'Upgrade untuk mendapatkan lebih banyak kredit setiap bulan.',
+          title: 'Kredit AI Menipis',
+          message: 'Upgrade untuk mendapatkan lebih banyak kredit AI setiap bulan.',
           icon: Zap,
         };
       case 'credits_depleted':
         return {
-          title: 'Kredit Habis',
+          title: 'Kredit AI Habis',
           message: 'Upgrade sekarang untuk melanjutkan menggunakan fitur voice.',
           icon: Zap,
         };
@@ -125,7 +125,7 @@ export function UpgradePrompt({
           <ul className="space-y-2 text-sm">
             <li className="flex items-center gap-2">
               <Zap className="h-4 w-4 text-primary" />
-              <span>{tierConfig.monthlyCredits.toLocaleString('id-ID')} kredit/bulan</span>
+              <span>{tierConfig.monthlyCredits.toLocaleString('id-ID')} kredit AI/bulan</span>
             </li>
             <li className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4 text-primary" />

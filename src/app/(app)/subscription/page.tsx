@@ -244,7 +244,7 @@ export default function SubscriptionPage() {
                   <CardTitle className="text-base">Redeem Voucher</CardTitle>
                 </div>
                 <CardDescription>
-                  Punya kode promo atau voucher? Tukarkan di sini untuk mendapatkan kredit.
+                  Punya kode promo atau voucher? Tukarkan di sini untuk mendapatkan kredit AI.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -297,7 +297,7 @@ export default function SubscriptionPage() {
                             : 'Upgrade ke Pro'}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Dapatkan lebih banyak kredit dan fitur premium
+                          Dapatkan lebih banyak kredit AI dan fitur premium
                         </p>
                       </div>
                       <Button size="sm" onClick={() => handleUpgrade()}>

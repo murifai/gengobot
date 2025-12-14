@@ -97,12 +97,12 @@ export function PricingCard({
     const features: string[] = [];
 
     if (tier === SubscriptionTier.FREE) {
-      features.push(`${config.trialCredits.toLocaleString()} kredit trial`);
+      features.push(`${config.trialCredits.toLocaleString()} kredit AI trial`);
       features.push(`${config.trialDays} hari trial`);
-      features.push(`Limit ${config.trialDailyLimit} kredit/hari`);
+      features.push(`Limit ${config.trialDailyLimit} kredit AI/hari`);
       features.push(`${config.customCharacters} karakter custom`);
     } else {
-      features.push(`${credits.toLocaleString()} kredit/bulan`);
+      features.push(`${credits.toLocaleString()} kredit AI/bulan`);
       if (config.textUnlimited) {
         features.push('Chat text unlimited');
       }

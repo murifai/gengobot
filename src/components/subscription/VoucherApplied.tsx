@@ -63,7 +63,7 @@ export function VoucherApplied({
       case VoucherType.FIXED_AMOUNT:
         return `Diskon ${formatCurrency(value)}`;
       case VoucherType.BONUS_CREDITS:
-        return `+${value.toLocaleString('id-ID')} kredit bonus`;
+        return `+${value.toLocaleString('id-ID')} kredit AI bonus`;
       case VoucherType.TRIAL_EXTENSION:
         return `+${value} hari trial`;
       case VoucherType.TIER_UPGRADE:

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import FlashcardNeo from './FlashcardNeo';
 import DeckStatistics from './DeckStatistics';
 
@@ -62,6 +61,7 @@ interface DeckLearningWithStatsProps {
   initialBelumHafalCount?: number;
   onComplete: () => void;
   onExit: () => void;
+  onRetry?: () => void;
 }
 
 type ViewMode = 'learning' | 'completed';
@@ -99,6 +99,7 @@ export default function DeckLearningWithStats({
   initialBelumHafalCount = 0,
   onComplete,
   onExit,
+  onRetry,
 }: DeckLearningWithStatsProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('learning');
   const [hafalPercentage, setHafalPercentage] = useState<number>(0);
@@ -179,12 +180,12 @@ export default function DeckLearningWithStats({
 
           {/* Action Buttons */}
           <div className="mt-8 flex gap-4 justify-center flex-wrap">
-            <Link
-              href={`/app/drill/${deck.id}`}
+            <button
+              onClick={onRetry}
               className="px-8 py-4 font-bold text-lg bg-secondary text-secondary-foreground rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
             >
               Coba Lagi
-            </Link>
+            </button>
             <button
               onClick={onComplete}
               className="px-8 py-4 font-bold text-lg bg-primary text-primary-foreground rounded-base border-2 border-border shadow-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"

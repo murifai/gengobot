@@ -108,7 +108,7 @@ export function AccountSecurityTab({ user }: AccountSecurityTabProps) {
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Saldo Kredit</span>
+              <span className="text-sm text-muted-foreground">Saldo Kredit AI</span>
               <span className="text-sm font-semibold">
                 {balance ? formatNumber(balance.remaining) : '—'}
               </span>

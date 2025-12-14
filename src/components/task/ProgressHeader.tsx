@@ -1,15 +1,22 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { CheckCircle2, Circle } from 'lucide-react';
+import { CheckCircle2, Circle, Sparkles } from 'lucide-react';
 import { TaskFeedbackProgress } from '@/hooks/useTaskFeedbackProgress';
 
 interface ProgressHeaderProps {
   progress: TaskFeedbackProgress;
+  onComplete?: () => void;
 }
 
-export function ProgressHeader({ progress }: ProgressHeaderProps) {
-  const { objectives, completedObjectivesCount, totalObjectivesCount } = progress;
+export function ProgressHeader({ progress, onComplete }: ProgressHeaderProps) {
+  const {
+    objectives,
+    completedObjectivesCount,
+    totalObjectivesCount,
+    allObjectivesCompleted,
+    totalMessages,
+  } = progress;
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -92,10 +99,28 @@ export function ProgressHeader({ progress }: ProgressHeaderProps) {
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
-          <div className="mt-1">
+          <div className="mt-1 flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
               {completedObjectivesCount} of {totalObjectivesCount} completed
             </span>
+
+            {/* Completion Notice - shown when all objectives completed */}
+            {allObjectivesCompleted && totalMessages > 0 && (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
+                  <Sparkles className="w-4 h-4" />
+                  <span>Semua objective selesai!</span>
+                </div>
+                {onComplete && (
+                  <button
+                    onClick={onComplete}
+                    className="text-xs font-semibold px-3 py-1 bg-primary text-primary-foreground rounded-base border border-border hover:opacity-90 transition-opacity"
+                  >
+                    Selesaikan Roleplay
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

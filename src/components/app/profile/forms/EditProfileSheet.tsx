@@ -129,11 +129,11 @@ export function EditProfileSheet({ user, open, onOpenChange, onSave }: EditProfi
                 <SelectValue placeholder="Pilih level" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="N5">N5 - Pemula</SelectItem>
-                <SelectItem value="N4">N4 - Dasar</SelectItem>
-                <SelectItem value="N3">N3 - Menengah</SelectItem>
-                <SelectItem value="N2">N2 - Mahir</SelectItem>
-                <SelectItem value="N1">N1 - Expert</SelectItem>
+                <SelectItem value="N5">JLPT N5</SelectItem>
+                <SelectItem value="N4">JLPT N4</SelectItem>
+                <SelectItem value="N3">JLPT N3</SelectItem>
+                <SelectItem value="N2">JLPT N2</SelectItem>
+                <SelectItem value="N1">JLPT N1</SelectItem>
               </SelectContent>
             </Select>
           </div>

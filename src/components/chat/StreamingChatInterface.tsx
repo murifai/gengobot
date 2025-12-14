@@ -358,7 +358,7 @@ export default function StreamingChatInterface({
         </div>
 
         {/* Progress Header Bar (Phase 5 - Task Feedback System) */}
-        {taskProgress && <ProgressHeader progress={taskProgress} />}
+        {taskProgress && <ProgressHeader progress={taskProgress} onComplete={onCompleteTask} />}
 
         {/* Error Banner */}
         {error && (

@@ -174,7 +174,7 @@ export default function EditVoucherPage() {
       case 'FIXED_AMOUNT':
         return 'Nominal Diskon (Rp)';
       case 'BONUS_CREDITS':
-        return 'Jumlah Kredit Bonus';
+        return 'Jumlah Kredit AI Bonus';
       case 'TRIAL_EXTENSION':
         return 'Jumlah Hari Perpanjangan';
       case 'TIER_UPGRADE':
@@ -265,7 +265,7 @@ export default function EditVoucherPage() {
                 <p className="text-lg font-medium">
                   {formData.type === 'PERCENTAGE' && `${formData.value}%`}
                   {formData.type === 'FIXED_AMOUNT' && formatCurrency(formData.value)}
-                  {formData.type === 'BONUS_CREDITS' && `${formData.value} kredit`}
+                  {formData.type === 'BONUS_CREDITS' && `${formData.value} kredit AI`}
                   {formData.type === 'TRIAL_EXTENSION' && `${formData.value} hari`}
                   {formData.type === 'TIER_UPGRADE' && 'Upgrade'}
                 </p>
@@ -325,7 +325,7 @@ export default function EditVoucherPage() {
                     <SelectContent>
                       <SelectItem value="PERCENTAGE">Persentase</SelectItem>
                       <SelectItem value="FIXED_AMOUNT">Nominal Tetap</SelectItem>
-                      <SelectItem value="BONUS_CREDITS">Bonus Kredit</SelectItem>
+                      <SelectItem value="BONUS_CREDITS">Bonus Kredit AI</SelectItem>
                       <SelectItem value="TRIAL_EXTENSION">Perpanjangan Trial</SelectItem>
                       <SelectItem value="TIER_UPGRADE">Upgrade Tier</SelectItem>
                     </SelectContent>

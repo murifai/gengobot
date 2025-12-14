@@ -26,7 +26,7 @@ export function generateObjectiveDetectionPrompt(
 ): string {
   const objectives = task.learningObjectives as string[];
 
-  return `You are evaluating a Japanese language learning conversation to detect if learning objectives have been completed.
+  return `You are evaluating a Japanese language learning conversation to detect if learning objectives have been completed BY THE USER.
 
 # Task Information
 - Title: ${task.title}
@@ -42,29 +42,39 @@ ${conversationHistory
   .map(msg => `${msg.role.toUpperCase()}: ${msg.content}`)
   .join('\n')}
 
+# CRITICAL: Only Count USER Messages
+IMPORTANT: You MUST only evaluate USER messages when determining objective completion.
+- ASSISTANT/AI messages do NOT count as completion
+- The USER must personally demonstrate, attempt, or discuss the objective
+- If only the AI mentioned/explained a topic but the user never engaged with it, mark as PENDING
+
 # Your Task:
 For EACH learning objective, determine:
-1. Has it been completed in the conversation? (yes/no)
+1. Has it been completed BY THE USER in the conversation? (yes/no)
 2. Confidence score (0-100)
-3. Evidence (which messages show completion)
+3. Evidence (only cite USER messages as evidence of completion)
 
-# Detection Guidelines (BE LENIENT):
-- Mark as completed if the user DISCUSSED, ATTEMPTED, or DEMONSTRATED the objective topic
+# Detection Guidelines (BE LENIENT - BUT ONLY FOR USER ACTIONS):
+- Mark as completed if the USER DISCUSSED, ATTEMPTED, or DEMONSTRATED the objective topic
 - The user does NOT need to perfectly execute - attempts and discussions count
-- If the conversation topic relates to the objective, consider it completed
-- Examples of completion:
+- If the USER's messages relate to the objective, consider it completed
+- Examples of USER completion:
   * User asked about or mentioned the topic → completed (confidence 70-85)
   * User attempted to use relevant vocabulary/grammar → completed (confidence 80-90)
   * User successfully demonstrated the skill → completed (confidence 90-100)
-  * AI explained/taught about the topic to user → completed (confidence 75-85)
-- Only mark as pending if the topic was NEVER touched in conversation
-- Give benefit of doubt to the learner - language learning is about practice, not perfection
+  * User responded to AI's question about the topic → completed (confidence 75-85)
+- Examples that DO NOT count as completion:
+  * AI explained the topic but user never responded about it → PENDING
+  * AI demonstrated vocabulary/grammar but user didn't use it → PENDING
+  * AI asked about topic but user's response was unrelated → PENDING
+- Only mark as pending if the USER never engaged with the topic
+- Give benefit of doubt to the learner - but the learner MUST have participated
 
 Important:
-- Be generous in detection - the goal is to encourage learning
-- Consider partial attempts as progress toward completion
-- If uncertain, lean toward marking as completed with lower confidence (60-75)
-- Focus on whether the learning topic was engaged with, not just perfectly executed
+- Be generous in detection - but ONLY for USER messages
+- Consider partial attempts by the USER as progress toward completion
+- If uncertain whether USER engaged, lean toward marking as completed with lower confidence (60-75)
+- Focus on whether the USER engaged with the learning topic, not the AI
 
 Response Format (JSON):
 {
