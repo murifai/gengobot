@@ -136,6 +136,7 @@ export async function GET(
           selectedAnswer: answer.selectedAnswer,
           correctAnswer: answer.question.correctAnswer,
           isCorrect: answer.selectedAnswer === answer.question.correctAnswer,
+          explanation: null, // Explanation field not implemented yet
           passage: answer.question.passage
             ? {
                 id: answer.question.passage.id,

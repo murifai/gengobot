@@ -17,7 +17,7 @@ const navItems: NavItem[] = [
   { label: 'Dasbor', href: '/', icon: LayoutDashboard },
   { label: 'Drill', href: '/drill', icon: BookOpen },
   { label: 'Kaiwa', href: '/kaiwa', icon: MessageSquare },
-  { label: 'Ujian', href: '/ujian', icon: GraduationCap },
+  { label: 'JLPT', href: '/jlpt', icon: GraduationCap },
   { label: 'Profile', href: '/profile', icon: User },
 ];
 

@@ -1,12 +1,16 @@
-import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
+'use client';
 
-export const metadata = {
-  title: 'JLPT Tryout - Pilih Level',
-  description: 'Select JLPT level for online practice test',
-};
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ChevronLeft } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/Button';
 
 export default function TryoutPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
   const levels = [
     {
       level: 'N5',
@@ -40,6 +44,34 @@ export default function TryoutPage() {
     },
   ];
 
+  const handleStartTest = async (level: string) => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/jlpt/tryout/start', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ level }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to start test');
+      }
+
+      const data = await response.json();
+
+      // Redirect to test page
+      router.push(`/jlpt/tryout/${data.attemptId}`);
+    } catch (error) {
+      console.error('Error starting test:', error);
+      toast.error(error instanceof Error ? error.message : 'テストの開始に失敗しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="bg-card border-b-2 border-border px-4 py-4">
@@ -58,38 +90,28 @@ export default function TryoutPage() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8 text-center">
           <p className="text-muted-foreground">
-            Pilih level JLPT yang ingin kamu latih. Tes akan dimulai setelah kamu mengkonfirmasi
-            pilihan level.
+            Pilih level JLPT yang ingin kamu latih. Tes akan dimulai setelah kamu memilih level.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {levels.map(({ level, title, description, color }) => (
-            <button
+            <Button
               key={level}
-              disabled
-              className="group p-6 rounded-base border-2 border-border bg-card hover:shadow-lg transition-all duration-200 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed text-left"
+              onClick={() => handleStartTest(level)}
+              disabled={loading}
+              className="group h-auto p-6 rounded-base border-2 border-border bg-card hover:shadow-lg transition-all duration-200 hover:scale-[1.02] text-left flex flex-col items-start"
+              variant="outline"
             >
               <div
                 className={`w-12 h-12 rounded-base ${color} mb-4 flex items-center justify-center text-white font-bold text-xl`}
               >
                 {level}
               </div>
-              <h3 className="text-xl font-bold mb-1">{title}</h3>
+              <h3 className="text-xl font-bold mb-1 text-foreground">{title}</h3>
               <p className="text-sm text-muted-foreground">{description}</p>
-              <div className="mt-4 text-xs text-muted-foreground italic">
-                Coming soon in Phase 2
-              </div>
-            </button>
+            </Button>
           ))}
-        </div>
-
-        <div className="mt-8 p-4 rounded-base border-2 border-primary/20 bg-primary/5">
-          <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">Note:</strong> Tryout online akan tersedia di Phase
-            2 pengembangan. Sementara waktu, kamu bisa menggunakan Kalkulator Offline untuk
-            menghitung nilai dari buku latihan.
-          </p>
         </div>
       </div>
     </div>

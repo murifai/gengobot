@@ -4,6 +4,8 @@ import { Flag } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import type { QuestionWithDetails, JLPTAnswerChoice } from '@/lib/jlpt/types';
+import { JLPTAudioPlayer } from './JLPTAudioPlayer';
+import { ImageViewer } from './ImageViewer';
 
 interface QuestionCardProps {
   question: QuestionWithDetails;
@@ -15,6 +17,34 @@ interface QuestionCardProps {
   onSelectAnswer: (choiceNumber: number) => void;
   onToggleFlag: () => void;
   className?: string;
+  maxAudioReplays?: number;
+}
+
+// Helper function to render cloze text with underlined blanks
+function renderClozeText(text: string, blankPosition: string): React.ReactNode {
+  // Split by underscores which typically mark blanks in JLPT questions
+  const parts = text.split(/___+/);
+
+  if (parts.length === 1) {
+    // No underscores found, return as is
+    return text;
+  }
+
+  // Render with highlighted blank positions
+  return (
+    <>
+      {parts.map((part, index) => (
+        <span key={index}>
+          {part}
+          {index < parts.length - 1 && (
+            <span className="inline-block min-w-[3em] border-b-2 border-primary mx-1 text-center">
+              <span className="text-sm font-semibold text-primary">{blankPosition}</span>
+            </span>
+          )}
+        </span>
+      ))}
+    </>
+  );
 }
 
 export function QuestionCard({
@@ -27,14 +57,18 @@ export function QuestionCard({
   onSelectAnswer,
   onToggleFlag,
   className,
+  maxAudioReplays = 2,
 }: QuestionCardProps) {
+  const hasPassageImage = question.passage?.contentType === 'image' && question.passage?.mediaUrl;
+  const hasQuestionImage = question.mediaType === 'image' && question.mediaUrl;
+
   return (
     <div className={cn('space-y-6', className)}>
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <div className="text-sm text-muted-foreground">問題 {mondaiNumber}</div>
-          <div className="text-lg font-semibold">第 {questionNumber} 問</div>
+          <div className="text-lg font-semibold">問 {questionNumber}</div>
         </div>
         <Button
           variant={isFlagged ? 'default' : 'outline'}
@@ -47,8 +81,25 @@ export function QuestionCard({
         </Button>
       </div>
 
-      {/* Passage (if exists) */}
-      {question.passage && (
+      {/* Audio Passage (if exists) */}
+      {question.passage?.contentType === 'audio' && question.passage.mediaUrl && (
+        <JLPTAudioPlayer
+          src={question.passage.mediaUrl}
+          maxReplays={maxAudioReplays}
+        />
+      )}
+
+      {/* Image Passage (if exists) */}
+      {hasPassageImage && (
+        <ImageViewer
+          src={question.passage!.mediaUrl!}
+          alt={question.passage!.title || '問題資料'}
+          title={question.passage!.title || undefined}
+        />
+      )}
+
+      {/* Text Passage (if exists) */}
+      {question.passage?.contentType === 'text' && question.passage.contentText && (
         <div className="border rounded-lg p-4 bg-muted/50">
           {question.passage.title && (
             <div className="font-semibold mb-2">{question.passage.title}</div>
@@ -59,18 +110,27 @@ export function QuestionCard({
         </div>
       )}
 
+      {/* Question Image (if exists - standalone) */}
+      {hasQuestionImage && (
+        <ImageViewer
+          src={question.mediaUrl!}
+          alt="問題画像"
+          title={`問題 ${questionNumber}`}
+        />
+      )}
+
       {/* Question Text */}
       <div className="space-y-3">
         <div className="text-lg leading-relaxed">
           {question.blankPosition ? (
-            // Render with blank position highlighted
+            // Cloze test with blank position
             <div className="space-y-2">
-              <div className="whitespace-pre-wrap">{question.questionText}</div>
-              {question.blankPosition && (
-                <div className="text-sm text-muted-foreground">
-                  （下線部 {question.blankPosition} に入る最も適切なものを選びなさい）
-                </div>
-              )}
+              <div className="whitespace-pre-wrap">
+                {renderClozeText(question.questionText, question.blankPosition)}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                （下線部 {question.blankPosition} に入る最も適切なものを選びなさい）
+              </div>
             </div>
           ) : (
             <div className="whitespace-pre-wrap">{question.questionText}</div>
@@ -79,7 +139,7 @@ export function QuestionCard({
 
         {/* Answer Choices */}
         <div className="space-y-2 mt-4">
-          {shuffledChoices.map(choice => (
+          {shuffledChoices.map((choice, displayIndex) => (
             <button
               key={choice.id}
               onClick={() => onSelectAnswer(choice.choiceNumber)}
@@ -100,7 +160,7 @@ export function QuestionCard({
                       : 'border-muted-foreground/30'
                   )}
                 >
-                  {choice.choiceNumber}
+                  {displayIndex + 1}
                 </div>
                 <div className="flex-1 pt-1">
                   <div className="whitespace-pre-wrap">{choice.choiceText}</div>

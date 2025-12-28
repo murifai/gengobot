@@ -34,7 +34,7 @@ function addCorsHeaders(response: NextResponse, request: NextRequest): NextRespo
 const PROTECTED_ROUTES = [
   '/drill',
   '/kaiwa',
-  '/ujian',
+  '/jlpt',
   '/profile',
   '/onboarding',
   '/settings',
@@ -73,7 +73,8 @@ const LEGACY_REDIRECTS: Record<string, string> = {
   '/app': '/',
   '/app/drill': '/drill',
   '/app/kaiwa': '/kaiwa',
-  '/app/ujian': '/ujian',
+  '/app/jlpt': '/jlpt',
+  '/app/ujian': '/jlpt',
   '/app/profile': '/profile',
   '/app/onboarding': '/onboarding',
   '/app/settings': '/settings',
@@ -92,7 +93,10 @@ const PATTERN_REDIRECTS = [
   // Legacy /app/* pattern redirects
   { from: /^\/app\/drill\/(.+)$/, to: '/drill/$1' },
   { from: /^\/app\/kaiwa\/(.+)$/, to: '/kaiwa/$1' },
-  { from: /^\/app\/ujian\/(.+)$/, to: '/ujian/$1' },
+  { from: /^\/app\/jlpt\/(.+)$/, to: '/jlpt/$1' },
+  { from: /^\/app\/ujian\/(.+)$/, to: '/jlpt/$1' },
+  { from: /^\/ujian\/(.+)$/, to: '/jlpt/$1' },
+  { from: /^\/ujian$/, to: '/jlpt' },
   { from: /^\/app\/profile\/(.+)$/, to: '/profile/$1' },
   { from: /^\/app\/payment\/(.+)$/, to: '/payment/$1' },
   { from: /^\/app\/(.+)$/, to: '/$1' }, // Catch-all for any other /app/* routes

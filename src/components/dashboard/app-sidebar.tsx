@@ -30,7 +30,14 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { User } from '@/types/user';
 
 // Menu items - New simplified 4-item navigation
-const items = [
+type MenuItem = {
+  title: string;
+  url: string;
+  icon: typeof Home;
+  badge?: string;
+};
+
+const items: MenuItem[] = [
   {
     title: 'Beranda',
     url: '/',
@@ -47,10 +54,9 @@ const items = [
     icon: BookOpen,
   },
   {
-    title: 'Ujian',
-    url: '/ujian',
+    title: 'JLPT',
+    url: '/jlpt',
     icon: GraduationCap,
-    badge: 'Soon',
   },
 ];
 
@@ -112,7 +118,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                     <Link href={item.url} className="flex items-center gap-2">
                       <item.icon />
                       <span>{item.title}</span>
-                      {'badge' in item && (
+                      {item.badge && (
                         <span className="ml-auto text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                           {item.badge}
                         </span>

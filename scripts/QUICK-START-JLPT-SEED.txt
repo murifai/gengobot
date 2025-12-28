@@ -1,0 +1,43 @@
+JLPT Question Seed Script - Quick Start Guide
+==============================================
+
+1. Prerequisites
+   ✓ Database running
+   ✓ Schema up to date
+
+2. Run the seed script:
+   
+   npx tsx scripts/seed-jlpt-questions.ts
+
+3. What gets created:
+   
+   - 190 questions total (38 per level: N5, N4, N3, N2, N1)
+   - 760 answer choices (4 per question)
+   - 10 reading passages (2 per level)
+   - 190 analytics records
+   
+4. Question breakdown per level:
+   
+   Vocabulary (mondai1):  10 questions
+   Grammar (mondai2):     10 questions
+   Reading (mondai3):      8 questions (with passages)
+   Listening (mondai4):   10 questions (with audio)
+   ------------------------
+   Total per level:       38 questions
+
+5. Testing data:
+   
+   Questions: Single letters (A, B, C, etc.)
+   Choices:   a, b, c, d
+   Audio:     /audio/*.mp3 files
+   Passages:  Simple text passages
+
+6. Verify seeded data:
+   
+   npx prisma studio
+
+7. Re-run anytime:
+   
+   The script safely clears and re-seeds all data.
+
+For detailed documentation, see: scripts/README-JLPT-SEED.md

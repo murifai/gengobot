@@ -1004,9 +1004,10 @@ model JLPTQuestion {
   questionNumber Int
 
   // Question Content
-  questionText  String  @db.Text
-  blankPosition String?
-  questionType  String  @default("standard")
+  questionText      String  @db.Text
+  mondaiExplanation String? @db.Text // Explanation/instruction shown at the start of each mondai
+  blankPosition     String?
+  questionType      String  @default("standard")
 
   // Standalone Media
   mediaUrl  String?

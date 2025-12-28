@@ -11,9 +11,19 @@ import type { SectionType } from '@/lib/jlpt/types';
  *   attemptId: string;
  *   sectionType: 'vocabulary' | 'grammar_reading' | 'listening';
  *   timeSpentSeconds: number;
+ *   answers: Array<{
+ *     questionId: string;
+ *     selectedAnswer: number | null;
+ *     isFlagged?: boolean;
+ *   }>;
  * }
  */
 export async function POST(request: NextRequest) {
+  let attemptId: string | undefined;
+  let sectionType: string | undefined;
+  let timeSpentSeconds: number | undefined;
+  let answers: any[] | undefined;
+
   try {
     // Check authentication
     const session = await auth();
@@ -24,7 +34,10 @@ export async function POST(request: NextRequest) {
 
     const userId = session.user.id;
     const body = await request.json();
-    const { attemptId, sectionType, timeSpentSeconds } = body;
+    attemptId = body.attemptId;
+    sectionType = body.sectionType;
+    timeSpentSeconds = body.timeSpentSeconds;
+    answers = body.answers;
 
     if (!attemptId || !sectionType) {
       return NextResponse.json({ error: '無効なリクエストデータです' }, { status: 400 });
@@ -69,6 +82,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'このセクションは既に提出されています' }, { status: 400 });
     }
 
+    // Save answers if provided
+    if (answers && Array.isArray(answers) && attemptId) {
+      const upsertPromises = answers.map(answer =>
+        prisma.jLPTUserAnswer.upsert({
+          where: {
+            testAttemptId_questionId: {
+              testAttemptId: attemptId!,
+              questionId: answer.questionId,
+            },
+          },
+          create: {
+            testAttemptId: attemptId!,
+            questionId: answer.questionId,
+            selectedAnswer: answer.selectedAnswer,
+            isFlagged: answer.isFlagged ?? false,
+            answeredAt: new Date(),
+          },
+          update: {
+            selectedAnswer: answer.selectedAnswer,
+            isFlagged: answer.isFlagged ?? false,
+            answeredAt: new Date(),
+          },
+        })
+      );
+
+      await Promise.all(upsertPromises);
+    }
+
     // Create section submission record
     const submission = await prisma.jLPTSectionSubmission.create({
       data: {
@@ -79,6 +120,129 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Check if all sections are now submitted
+    const allSubmissions = await prisma.jLPTSectionSubmission.findMany({
+      where: { testAttemptId: attemptId },
+      select: { sectionType: true },
+    });
+
+    const submittedSections = new Set(allSubmissions.map(s => s.sectionType));
+    const allSections: SectionType[] = ['vocabulary', 'grammar_reading', 'listening'];
+    const allSectionsCompleted = allSections.every(s => submittedSections.has(s));
+
+    // If all sections are completed, calculate scores and update attempt status
+    if (allSectionsCompleted) {
+      // Calculate scores for each section
+      const allAnswers = await prisma.jLPTUserAnswer.findMany({
+        where: { testAttemptId: attemptId },
+        include: {
+          question: {
+            select: {
+              sectionType: true,
+              correctAnswer: true,
+            },
+          },
+        },
+      });
+
+      // Group by section and calculate scores
+      const sectionScoresData: { sectionType: string; correct: number; total: number }[] = [];
+      const sections: SectionType[] = ['vocabulary', 'grammar_reading', 'listening'];
+
+      for (const section of sections) {
+        const sectionAnswers = allAnswers.filter(a => a.question.sectionType === section);
+        const correctCount = sectionAnswers.filter(
+          a => a.selectedAnswer === a.question.correctAnswer
+        ).length;
+
+        sectionScoresData.push({
+          sectionType: section,
+          correct: correctCount,
+          total: sectionAnswers.length,
+        });
+
+        // Save section score
+        if (sectionAnswers.length > 0) {
+          const rawScore = correctCount;
+          const rawMaxScore = sectionAnswers.length;
+          const accuracy = correctCount / sectionAnswers.length;
+
+          // Simplified normalized score calculation (0-60 scale)
+          const normalizedScore = Math.round((correctCount / sectionAnswers.length) * 60);
+          const weightedScore = normalizedScore; // For now, same as normalized
+
+          // Section passing criteria (typically 19/60 for JLPT)
+          const sectionPassed = normalizedScore >= 19;
+
+          // Determine reference grade based on accuracy
+          let referenceGrade: 'A' | 'B' | 'C';
+          if (accuracy >= 0.8) {
+            referenceGrade = 'A';
+          } else if (accuracy >= 0.6) {
+            referenceGrade = 'B';
+          } else {
+            referenceGrade = 'C';
+          }
+
+          await prisma.jLPTSectionScore.upsert({
+            where: {
+              testAttemptId_sectionType: {
+                testAttemptId: attemptId,
+                sectionType: section,
+              },
+            },
+            create: {
+              testAttemptId: attemptId,
+              sectionType: section,
+              rawScore,
+              rawMaxScore,
+              weightedScore,
+              normalizedScore,
+              isPassed: sectionPassed,
+              referenceGrade,
+            },
+            update: {
+              rawScore,
+              rawMaxScore,
+              weightedScore,
+              normalizedScore,
+              isPassed: sectionPassed,
+              referenceGrade,
+            },
+          });
+        }
+      }
+
+      // Calculate total score and pass/fail
+      const totalCorrect = sectionScoresData.reduce((sum, s) => sum + s.correct, 0);
+      const totalQuestions = sectionScoresData.reduce((sum, s) => sum + s.total, 0);
+      const totalScore = Math.round((totalCorrect / totalQuestions) * 180);
+
+      // JLPT N5 passing criteria: typically 80/180 (simplified)
+      const isPassed = totalScore >= 80;
+
+      // Update test attempt with scores
+      await prisma.jLPTTestAttempt.update({
+        where: { id: attemptId },
+        data: {
+          status: 'completed',
+          completedAt: new Date(),
+          totalScore,
+          isPassed,
+        },
+      });
+
+      // Mark answers as correct/incorrect
+      for (const answer of allAnswers) {
+        await prisma.jLPTUserAnswer.update({
+          where: { id: answer.id },
+          data: {
+            isCorrect: answer.selectedAnswer === answer.question.correctAnswer,
+          },
+        });
+      }
+    }
+
     return NextResponse.json({
       success: true,
       submission: {
@@ -87,11 +251,22 @@ export async function POST(request: NextRequest) {
         submittedAt: submission.submittedAt,
         timeSpentSeconds: submission.timeSpentSeconds,
       },
+      testCompleted: allSectionsCompleted,
     });
   } catch (error) {
     console.error('Error submitting section:', error);
+    console.error('Error details:', {
+      attemptId,
+      sectionType,
+      answersCount: answers?.length,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      errorStack: error instanceof Error ? error.stack : undefined,
+    });
     return NextResponse.json(
-      { error: 'セクションの提出中にエラーが発生しました' },
+      {
+        error: 'セクションの提出中にエラーが発生しました',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
