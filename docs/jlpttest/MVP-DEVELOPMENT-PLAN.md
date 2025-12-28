@@ -481,6 +481,32 @@ export function getShuffledChoices(questionId: string, shuffleSeed: string): num
    - [ ] Reference grades display
    - [ ] Basic charts (radar, bar)
 
+6. **Question Review Interface**
+   - [ ] Show all questions with user's answers
+   - [ ] Display correct answers
+   - [ ] Mark correct/incorrect visually
+   - [ ] Show explanations (if available)
+   - [ ] Filter by section/mondai
+   - [ ] Highlight flagged questions
+
+7. **Time Tracking**
+   - [ ] Record section start times
+   - [ ] Calculate time spent per section
+   - [ ] Display time analytics in results
+   - [ ] Show average time per question
+
+8. **End-to-End Testing**
+   - [ ] Test initialization flow (Playwright)
+   - [ ] Complete N5 test walkthrough (all sections)
+   - [ ] Auto-save functionality verification
+   - [ ] Section submission locks validation
+   - [ ] Timer countdown and auto-submit
+   - [ ] Score calculation accuracy
+   - [ ] Results display verification
+   - [ ] Error handling scenarios (network failures, session timeout)
+   - [ ] Mobile responsive testing
+   - [ ] Accessibility compliance (WCAG AA)
+
 **Deliverables**:
 
 - ✅ Working N5 test end-to-end
