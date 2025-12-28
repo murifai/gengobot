@@ -10,23 +10,23 @@ datasource db {
 
 // Task model - Primary feature for structured learning
 model Task {
-  id                 String   @id @default(cuid())
-  title              String
-  description        String   @db.Text
-  category           String // Restaurant, Shopping, Travel, etc.
-  subcategoryId      String? // Reference to TaskSubcategory
-  difficulty         String // N1-N5 JLPT levels
-  scenario             String @db.Text
-  learningObjectives   Json // Array of learning goals
-  conversationExample  String @db.Text // Example conversation dialog (T: teacher, G: student)
-  estimatedDuration    Int // Minutes
-  maxMessages        Int      @default(30) // Maximum messages per attempt
-  isActive           Boolean  @default(true)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  createdBy          String? // Admin who created the task
-  usageCount         Int      @default(0)
-  averageScore       Float? // Average completion score
+  id                  String   @id @default(cuid())
+  title               String
+  description         String   @db.Text
+  category            String // Restaurant, Shopping, Travel, etc.
+  subcategoryId       String? // Reference to TaskSubcategory
+  difficulty          String // N1-N5 JLPT levels
+  scenario            String   @db.Text
+  learningObjectives  Json // Array of learning goals
+  conversationExample String   @db.Text // Example conversation dialog (T: teacher, G: student)
+  estimatedDuration   Int // Minutes
+  maxMessages         Int      @default(30) // Maximum messages per attempt
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  createdBy           String? // Admin who created the task
+  usageCount          Int      @default(0)
+  averageScore        Float? // Average completion score
 
   // Voice settings (replaces characterId)
   prompt        String  @default("") @db.Text // AI system prompt for the task
@@ -70,15 +70,15 @@ model TaskAttempt {
   endTime   DateTime?
 
   // Simplified Feedback System
-  feedback                  String?  @db.Text // JSON: SimplifiedAssessment
-  conversationHistory       Json                // { messages: [...] }
-  isCompleted               Boolean  @default(false)
-  retryCount                Int      @default(0)
+  feedback            String? @db.Text // JSON: SimplifiedAssessment
+  conversationHistory Json // { messages: [...] }
+  isCompleted         Boolean @default(false)
+  retryCount          Int     @default(0)
 
   // Objective Tracking
-  objectiveCompletionStatus Json?               // ObjectiveTracking[]
-  totalMessages             Int      @default(0)
-  completionDuration        Int?                // seconds
+  objectiveCompletionStatus Json? // ObjectiveTracking[]
+  totalMessages             Int       @default(0)
+  completionDuration        Int? // seconds
   completionSuggestedAt     DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -130,25 +130,25 @@ model User {
   updatedAt               DateTime  @updatedAt
 
   // Profile fields
-  fullName                String?   // Nama Lengkap
-  nickname                String?   // Nama Panggilan
-  domicile                String?   // Domisili
-  institution             String?   // Institusi
-  subscriptionPlan        String    @default("free") // free, premium
+  fullName         String? // Nama Lengkap
+  nickname         String? // Nama Panggilan
+  domicile         String? // Domisili
+  institution      String? // Institusi
+  subscriptionPlan String  @default("free") // free, premium
 
   // Onboarding fields
-  onboardingCompleted     Boolean   @default(false)
-  ageRange                String?   // "10-19", "20-29", "30-39", "40-49", "50+"
-  gender                  String?   // "male", "female"
-  learningDuration        String?   // Duration of Japanese study
-  learningGoals           Json?     // Array of learning goals
-  japaneseUsageOpportunities Json?  // Array of usage opportunities
-  hasAppExperience        Boolean?  // Has used Japanese learning apps
-  previousApps            String?   // Names of previous apps used
-  conversationPracticeExp String?   // Frequency of conversation practice
-  appOpinion              String?   @db.Text // Opinion about previous apps
-  hasLivedInJapan         Boolean?  // Has lived in Japan
-  japanStayDuration       String?   // Duration of stay in Japan
+  onboardingCompleted        Boolean  @default(false)
+  ageRange                   String? // "10-19", "20-29", "30-39", "40-49", "50+"
+  gender                     String? // "male", "female"
+  learningDuration           String? // Duration of Japanese study
+  learningGoals              Json? // Array of learning goals
+  japaneseUsageOpportunities Json? // Array of usage opportunities
+  hasAppExperience           Boolean? // Has used Japanese learning apps
+  previousApps               String? // Names of previous apps used
+  conversationPracticeExp    String? // Frequency of conversation practice
+  appOpinion                 String?  @db.Text // Opinion about previous apps
+  hasLivedInJapan            Boolean? // Has lived in Japan
+  japanStayDuration          String? // Duration of stay in Japan
 
   accounts           Account[]
   sessions           Session[]
@@ -168,6 +168,8 @@ model User {
   favoriteDecks      UserFavorite[]
   studyingDecks      UserStudyingDeck[]
   extensionToken     ExtensionToken?
+  jlptTestAttempts   JLPTTestAttempt[]
+  jlptOfflineResults JLPTOfflineTestResult[]
 
   @@index([email])
 }
@@ -176,7 +178,7 @@ model User {
 model Admin {
   id        String    @id @default(cuid())
   email     String    @unique
-  password  String    // Hashed password
+  password  String // Hashed password
   name      String
   role      AdminRole @default(ADMIN)
   isActive  Boolean   @default(true)
@@ -190,8 +192,10 @@ model Admin {
   updatedAt DateTime @updatedAt
 
   // Relations
-  decks     Deck[]
-  adminLogs AdminLog[]
+  decks         Deck[]
+  adminLogs     AdminLog[]
+  jlptQuestions JLPTQuestion[]
+  jlptPassages  JLPTPassage[]
 
   @@index([email])
   @@index([role])
@@ -248,11 +252,11 @@ model VerificationToken {
 
 // Email Verification Token model (for email verification)
 model EmailVerificationToken {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   email      String
-  token      String   @unique
+  token      String    @unique
   expires    DateTime
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
   verifiedAt DateTime?
 
   @@index([email])
@@ -261,11 +265,11 @@ model EmailVerificationToken {
 
 // Password Reset Token model (for password reset)
 model PasswordResetToken {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   email     String
-  token     String   @unique
+  token     String    @unique
   expires   DateTime
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   usedAt    DateTime?
 
   @@index([email])
@@ -275,7 +279,7 @@ model PasswordResetToken {
 // Character model - For free-chat scenarios
 model Character {
   id                 String  @id @default(cuid())
-  name               String  // Stored in Katakana/Kanji
+  name               String // Stored in Katakana/Kanji
   nameRomaji         String? // Original romaji input for reference
   description        String? @db.Text
   avatar             String? // Avatar image URL
@@ -285,10 +289,10 @@ model Character {
   relationshipCustom String? // For custom "lainnya" input
   isUserCreated      Boolean @default(true)
 
-  userId             String?
-  user               User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  conversations      Conversation[]
-  freeConversations  FreeConversation[]
+  userId            String?
+  user              User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversations     Conversation[]
+  freeConversations FreeConversation[]
 
   @@index([userId])
 }
@@ -356,8 +360,8 @@ model Deck {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  creator       User?             @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-  adminCreator  Admin?            @relation(fields: [createdByAdmin], references: [id], onDelete: Cascade)
+  creator       User?              @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  adminCreator  Admin?             @relation(fields: [createdByAdmin], references: [id], onDelete: Cascade)
   flashcards    Flashcard[]
   studySessions StudySession[]
   taskDecks     TaskDeck[]
@@ -475,9 +479,9 @@ model StudySession {
   hafalCount      Int @default(0)
 
   // Progress tracking for resume functionality
-  currentCardIndex Int     @default(0) // Current position in the deck
-  cardOrder        Json?   // Array of flashcard IDs in study order
-  reviewedCardIds  Json?   // Array of already reviewed card IDs
+  currentCardIndex Int   @default(0) // Current position in the deck
+  cardOrder        Json? // Array of flashcard IDs in study order
+  reviewedCardIds  Json? // Array of already reviewed card IDs
 
   startTime   DateTime  @default(now())
   endTime     DateTime?
@@ -592,8 +596,8 @@ model Subscription {
   customCharactersUsed Int @default(0)
 
   // Scheduled tier change (for downgrades)
-  scheduledTier        SubscriptionTier?
-  scheduledTierStartAt DateTime?
+  scheduledTier           SubscriptionTier?
+  scheduledTierStartAt    DateTime?
   scheduledDurationMonths Int?
 
   // Metadata
@@ -654,9 +658,9 @@ model Voucher {
   currentUses Int  @default(0)
 
   // Validity
-  startDate DateTime @default(now())
+  startDate DateTime  @default(now())
   endDate   DateTime?
-  isActive  Boolean  @default(true)
+  isActive  Boolean   @default(true)
 
   // Eligibility
   newUsersOnly    Boolean            @default(false)
@@ -713,15 +717,15 @@ model VoucherRedemption {
 model SubscriptionTierConfig {
   id           String           @id @default(cuid())
   name         SubscriptionTier @unique
-  priceMonthly Int              // Base price in Rupiah (harga dasar bulanan)
-  features     String[]         // feature list
+  priceMonthly Int // Base price in Rupiah (harga dasar bulanan)
+  features     String[] // feature list
   isActive     Boolean          @default(true)
   credits      Int              @default(0) // Monthly credits allocation
 
   // Duration discount percentages (0-100)
-  discount3Months  Int @default(10)  // Diskon 3 bulan (default 10%)
-  discount6Months  Int @default(20)  // Diskon 6 bulan (default 20%)
-  discount12Months Int @default(30)  // Diskon 12 bulan (default 30%)
+  discount3Months  Int @default(10) // Diskon 3 bulan (default 10%)
+  discount6Months  Int @default(20) // Diskon 6 bulan (default 20%)
+  discount12Months Int @default(30) // Diskon 12 bulan (default 30%)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -775,32 +779,32 @@ enum RedemptionStatus {
 
 // Payment System Models
 model PendingPayment {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Invoice details
-  externalId    String   @unique
-  invoiceId     String   @unique
-  invoiceUrl    String
+  externalId String @unique
+  invoiceId  String @unique
+  invoiceUrl String
 
   // Subscription details
-  tier          SubscriptionTier
+  tier           SubscriptionTier
   durationMonths Int
-  amount        Int      // Amount in IDR
+  amount         Int // Amount in IDR
 
   // Status
-  status        PaymentStatus @default(PENDING)
+  status PaymentStatus @default(PENDING)
 
   // Payment details
-  paidAt        DateTime?
-  paymentMethod String?
+  paidAt         DateTime?
+  paymentMethod  String?
   paymentChannel String?
 
   // Metadata
-  metadata      Json?
-  expiresAt     DateTime
+  metadata  Json?
+  expiresAt DateTime
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -811,10 +815,10 @@ model PendingPayment {
 }
 
 model MockInvoice {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  invoiceId  String   @unique
-  externalId String   @unique
+  invoiceId  String @unique
+  externalId String @unique
   data       Json
 
   createdAt DateTime @default(now())
@@ -842,15 +846,15 @@ model Notification {
   message String           @db.Text
 
   // Action
-  actionUrl String?
+  actionUrl   String?
   actionLabel String?
 
   // Status
-  isRead    Boolean  @default(false)
-  readAt    DateTime?
+  isRead Boolean   @default(false)
+  readAt DateTime?
 
   // Metadata
-  metadata  Json?
+  metadata Json?
 
   createdAt DateTime @default(now())
 
@@ -889,28 +893,28 @@ enum NotificationType {
 
 // Dictionary Entry model - JMDict vocabulary data for in-chat lookup
 model DictionaryEntry {
-  id            String   @id @default(cuid())
-  entryId       Int      @unique // JMdict ent_seq
+  id      String @id @default(cuid())
+  entryId Int    @unique // JMdict ent_seq
 
   // Readings
-  kanji         String[] // Array of kanji writings
-  readings      String[] // Array of kana readings
+  kanji    String[] // Array of kanji writings
+  readings String[] // Array of kana readings
 
   // Meanings
-  meaningsEn    String[] // English meanings (from JMDict)
-  meaningsId    String[] // Indonesian (from static mapping)
+  meaningsEn String[] // English meanings (from JMDict)
+  meaningsId String[] // Indonesian (from static mapping)
 
   // Part of speech
   partsOfSpeech String[] // noun, verb, adj-i, etc.
 
   // JLPT Level (if available)
-  jlptLevel     String?  // N5, N4, N3, N2, N1
+  jlptLevel String? // N5, N4, N3, N2, N1
 
   // Frequency/Priority
-  priority      Int      @default(0) // Higher = more common
+  priority Int @default(0) // Higher = more common
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([kanji])
   @@index([readings])
@@ -936,23 +940,23 @@ model ExtensionToken {
 // When a user registers, we record their email. If they delete account
 // and re-register with same email, we can deny trial.
 model TrialHistory {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   // User relation (optional - user may have deleted account)
-  userId    String?  @unique
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   // Email is the primary identifier for anti-abuse
-  email     String   @unique
+  email String @unique
 
   // Trial tracking
-  trialStartedAt    DateTime
-  trialEndedAt      DateTime?
-  trialCreditsUsed  Int       @default(0)
+  trialStartedAt   DateTime
+  trialEndedAt     DateTime?
+  trialCreditsUsed Int       @default(0)
 
   // Status
-  hasUsedTrial      Boolean   @default(true)
-  wasUpgraded       Boolean   @default(false) // User upgraded to paid at some point
+  hasUsedTrial Boolean @default(true)
+  wasUpgraded  Boolean @default(false) // User upgraded to paid at some point
 
   // Metadata
   createdAt DateTime @default(now())
@@ -960,4 +964,294 @@ model TrialHistory {
 
   @@index([email])
   @@index([userId])
+}
+
+// ============================================
+// JLPT TRYOUT SYSTEM
+// ============================================
+
+// JLPT Passage - Content for reading, listening, images
+model JLPTPassage {
+  id          String  @id @default(cuid())
+  contentType String // text, audio, image
+  contentText String? @db.Text
+  mediaUrl    String?
+  title       String? @db.Text
+
+  createdBy String? // Admin ID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
+
+  admin          Admin?             @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  questions      JLPTQuestion[]
+  primaryUnits   JLPTQuestionUnit[] @relation("PrimaryPassage")
+  secondaryUnits JLPTQuestionUnit[] @relation("SecondaryPassage")
+
+  @@index([isActive])
+  @@index([createdBy])
+}
+
+// JLPT Question
+model JLPTQuestion {
+  id        String  @id @default(cuid())
+  passageId String?
+
+  // JLPT Structure
+  level          String // N1, N2, N3, N4, N5
+  sectionType    String // vocabulary, grammar_reading, listening
+  mondaiNumber   Int
+  questionNumber Int
+
+  // Question Content
+  questionText  String  @db.Text
+  blankPosition String?
+  questionType  String  @default("standard")
+
+  // Standalone Media
+  mediaUrl  String?
+  mediaType String?
+
+  // Answer
+  correctAnswer Int // 1-4
+  difficulty    String @default("medium")
+
+  createdBy String? // Admin ID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
+
+  passage       JLPTPassage?           @relation(fields: [passageId], references: [id], onDelete: SetNull)
+  admin         Admin?                 @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  answerChoices JLPTAnswerChoice[]
+  unitQuestions JLPTUnitQuestion[]
+  userAnswers   JLPTUserAnswer[]
+  analytics     JLPTQuestionAnalytics?
+
+  @@index([level, sectionType, mondaiNumber, isActive])
+  @@index([passageId])
+  @@index([difficulty])
+  @@index([createdBy])
+}
+
+// JLPT Answer Choice
+model JLPTAnswerChoice {
+  id         String @id @default(cuid())
+  questionId String
+
+  choiceNumber   Int // 1-4 (static answer key)
+  choiceType     String  @default("text")
+  choiceText     String? @db.Text
+  choiceMediaUrl String?
+  orderIndex     Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  question JLPTQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, choiceNumber])
+  @@index([questionId, choiceNumber])
+}
+
+// JLPT Question Unit (for grouped questions)
+model JLPTQuestionUnit {
+  id String @id @default(cuid())
+
+  level        String
+  sectionType  String
+  mondaiNumber Int
+  unitType     String // cloze_test, reading_comp, long_reading, etc.
+
+  passageId          String
+  passageIdSecondary String? // For A-B comparison
+
+  difficulty String   @default("medium")
+  createdAt  DateTime @default(now())
+  isActive   Boolean  @default(true)
+
+  passage          JLPTPassage        @relation("PrimaryPassage", fields: [passageId], references: [id], onDelete: Cascade)
+  passageSecondary JLPTPassage?       @relation("SecondaryPassage", fields: [passageIdSecondary], references: [id], onDelete: Cascade)
+  unitQuestions    JLPTUnitQuestion[]
+
+  @@index([level, sectionType, mondaiNumber, isActive])
+  @@index([passageId])
+}
+
+// JLPT Unit-Question Mapping
+model JLPTUnitQuestion {
+  unitId     String
+  questionId String
+
+  unit     JLPTQuestionUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  question JLPTQuestion     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@id([unitId, questionId])
+  @@index([unitId])
+  @@index([questionId])
+}
+
+// JLPT Test Attempt
+model JLPTTestAttempt {
+  id     String @id @default(cuid())
+  userId String
+
+  level             String
+  testMode          String @default("full_test")
+  questionsSnapshot Json // Embedded question IDs per section/mondai
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  status      String    @default("in_progress")
+
+  totalScore  Float?
+  isPassed    Boolean?
+  shuffleSeed String   @default(cuid())
+
+  user               User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sectionSubmissions JLPTSectionSubmission[]
+  userAnswers        JLPTUserAnswer[]
+  sectionScores      JLPTSectionScore[]
+
+  @@index([userId, startedAt(sort: Desc)])
+  @@index([userId, status])
+  @@index([userId, level, completedAt(sort: Desc)])
+}
+
+// JLPT Section Submission
+model JLPTSectionSubmission {
+  id            String @id @default(cuid())
+  testAttemptId String
+  sectionType   String
+
+  submittedAt      DateTime @default(now())
+  timeSpentSeconds Int?
+  isLocked         Boolean  @default(true)
+
+  testAttempt JLPTTestAttempt @relation(fields: [testAttemptId], references: [id], onDelete: Cascade)
+
+  @@unique([testAttemptId, sectionType])
+  @@index([testAttemptId])
+}
+
+// JLPT User Answer
+model JLPTUserAnswer {
+  id            String @id @default(cuid())
+  testAttemptId String
+  questionId    String
+
+  selectedAnswer Int? // 1-4 (choice_number, not display position)
+  isCorrect      Boolean?
+  isFlagged      Boolean  @default(false)
+
+  timeSpentSeconds Int?
+  answeredAt       DateTime @default(now())
+
+  testAttempt JLPTTestAttempt @relation(fields: [testAttemptId], references: [id], onDelete: Cascade)
+  question    JLPTQuestion    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([testAttemptId, questionId])
+  @@index([testAttemptId])
+  @@index([questionId, isCorrect])
+}
+
+// JLPT Section Score
+model JLPTSectionScore {
+  id            String @id @default(cuid())
+  testAttemptId String
+  sectionType   String
+
+  rawScore        Int
+  weightedScore   Float
+  rawMaxScore     Float
+  normalizedScore Float // 0-60 scale
+
+  isPassed       Boolean
+  referenceGrade String? // A, B, or C
+
+  testAttempt JLPTTestAttempt @relation(fields: [testAttemptId], references: [id], onDelete: Cascade)
+
+  @@unique([testAttemptId, sectionType])
+  @@index([testAttemptId])
+  @@index([sectionType, normalizedScore(sort: Desc)])
+}
+
+// JLPT Question Analytics (Phase 1 - MVP)
+model JLPTQuestionAnalytics {
+  questionId String @id
+
+  timesPresented Int    @default(0)
+  timesCorrect   Int    @default(0)
+  successRate    Float?
+
+  averageTimeSpent    Int?
+  discriminationIndex Float?
+
+  isTooEasy   Boolean @default(false)
+  isTooHard   Boolean @default(false)
+  needsReview Boolean @default(false)
+
+  lastUpdated DateTime @default(now())
+
+  question JLPTQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([successRate, needsReview])
+}
+
+// JLPT Offline Test Result (Calculator)
+model JLPTOfflineTestResult {
+  id     String @id @default(cuid())
+  userId String
+
+  level    String
+  source   String? // Sou Matome, Kanzen Master, etc.
+  userNote String? @db.Text
+
+  totalScore Float
+  isPassed   Boolean
+
+  rawInputs Json // Preserves original mondai scores
+
+  createdAt DateTime @default(now())
+
+  user          User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sectionScores JLPTOfflineSectionScore[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, level])
+}
+
+// JLPT Offline Section Score
+model JLPTOfflineSectionScore {
+  id                  String @id @default(cuid())
+  offlineTestResultId String
+  sectionType         String
+
+  rawScore        Int
+  weightedScore   Float
+  rawMaxScore     Float
+  normalizedScore Float
+
+  isPassed       Boolean
+  referenceGrade String?
+
+  offlineTestResult JLPTOfflineTestResult @relation(fields: [offlineTestResultId], references: [id], onDelete: Cascade)
+
+  @@unique([offlineTestResultId, sectionType])
+  @@index([offlineTestResultId])
+}
+
+// JLPT Scoring Config (moved from static config for easier updates)
+model JLPTScoringConfig {
+  id          String @id @default(cuid())
+  level       String // N1-N5
+  sectionType String
+
+  rawMaxScore          Float
+  overallPassingScore  Int
+  sectionPassingScore  Int
+  hasDualNormalization Boolean @default(false)
+  combinedWithSection  String?
+
+  @@unique([level, sectionType])
+  @@index([level, sectionType])
 }
