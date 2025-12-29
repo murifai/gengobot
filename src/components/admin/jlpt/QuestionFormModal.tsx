@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -21,6 +20,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { MondaiConfig } from '@/config/jlpt-mondai-config';
+import { AudioUpload } from '@/components/upload/AudioUpload';
+import { ImageUpload } from '@/components/upload/ImageUpload';
+import { RichTextEditor } from '@/components/ui/RichTextEditor';
 
 interface Question {
   id?: string;
@@ -39,6 +41,7 @@ interface Question {
   answerChoices?: Array<{
     choiceNumber: number;
     choiceText?: string;
+    choiceMediaUrl?: string;
   }>;
 }
 
@@ -60,7 +63,7 @@ interface PassageFormData {
 
 interface QuestionFormData {
   question_text: string;
-  choices: Array<{ choice_number: number; choice_text: string }>;
+  choices: Array<{ choice_number: number; choice_text: string; choice_image_url?: string }>;
   correct_answer: number;
 }
 
@@ -144,18 +147,21 @@ export function QuestionFormModal({
   const typeInfo = getMondaiTypeInfo();
 
   // Normalize answer choices from database format to form format
-  const normalizeChoices = (choices?: Array<{ choiceNumber: number; choiceText?: string }>) => {
+  const normalizeChoices = (
+    choices?: Array<{ choiceNumber: number; choiceText?: string; choiceMediaUrl?: string }>
+  ) => {
     if (!choices || choices.length === 0) {
       return [
-        { choice_number: 1, choice_text: '' },
-        { choice_number: 2, choice_text: '' },
-        { choice_number: 3, choice_text: '' },
-        { choice_number: 4, choice_text: '' },
+        { choice_number: 1, choice_text: '', choice_image_url: '' },
+        { choice_number: 2, choice_text: '', choice_image_url: '' },
+        { choice_number: 3, choice_text: '', choice_image_url: '' },
+        { choice_number: 4, choice_text: '', choice_image_url: '' },
       ];
     }
     return choices.map(c => ({
       choice_number: c.choiceNumber,
       choice_text: c.choiceText || '',
+      choice_image_url: c.choiceMediaUrl || '',
     }));
   };
 
@@ -218,6 +224,7 @@ export function QuestionFormModal({
           answer_choices: Array<{
             choice_number: number;
             choice_text: string;
+            choice_media_url?: string;
           }>;
         }>;
       }
@@ -236,6 +243,7 @@ export function QuestionFormModal({
           answer_choices: q.choices.map((c, idx) => ({
             choice_number: idx + 1,
             choice_text: c.choice_text,
+            choice_media_url: c.choice_image_url || undefined,
           })),
         })),
       };
@@ -265,6 +273,10 @@ export function QuestionFormModal({
 
           if (contentType === 'text') {
             passageAData.content_text = passageA.passage_content;
+            // For reading passages, also include media_url if provided
+            if (passageA.passage_media_url.trim()) {
+              passageAData.media_url = passageA.passage_media_url;
+            }
           } else {
             passageAData.media_url = passageA.passage_media_url;
           }
@@ -297,6 +309,10 @@ export function QuestionFormModal({
 
             if (contentType === 'text') {
               passageBData.content_text = passageB.passage_content;
+              // For reading passages, also include media_url if provided
+              if (passageB.passage_media_url.trim()) {
+                passageBData.media_url = passageB.passage_media_url;
+              }
             } else {
               passageBData.media_url = passageB.passage_media_url;
             }
@@ -338,6 +354,15 @@ export function QuestionFormModal({
     setQuestions(newQuestions);
   };
 
+  const updateChoiceImage = (questionIndex: number, choiceIndex: number, imageUrl: string) => {
+    const newQuestions = [...questions];
+    newQuestions[questionIndex].choices[choiceIndex] = {
+      ...newQuestions[questionIndex].choices[choiceIndex],
+      choice_image_url: imageUrl,
+    };
+    setQuestions(newQuestions);
+  };
+
   const updateQuestionText = (questionIndex: number, text: string) => {
     const newQuestions = [...questions];
     newQuestions[questionIndex].question_text = text;
@@ -351,8 +376,8 @@ export function QuestionFormModal({
   };
 
   return (
-    <Dialog open={true} onClose={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={true} onClose={onClose} size="2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {question ? 'Edit Question' : 'Add Questions'} - {level} / Mondai {mondai}
@@ -449,48 +474,57 @@ export function QuestionFormModal({
                   />
                 </div>
 
-                {typeInfo.isAudio || typeInfo.isImage ? (
+                {typeInfo.isAudio ? (
                   <div className="space-y-2">
-                    <Label htmlFor="passage_a_media_url">
-                      {typeInfo.isAudio ? 'Audio' : 'Image'} URL *
-                    </Label>
-                    <Input
-                      id="passage_a_media_url"
-                      type="url"
-                      value={passageA.passage_media_url}
-                      onChange={e =>
-                        setPassageA({ ...passageA, passage_media_url: e.target.value })
-                      }
-                      placeholder={
-                        typeInfo.isAudio
-                          ? 'https://example.com/audio/listening-n5-mondai1.mp3'
-                          : 'https://example.com/images/chart-n5-mondai1.jpg'
-                      }
-                      required={typeInfo.needsPassage}
+                    <Label>Audio File *</Label>
+                    <AudioUpload
+                      currentUrl={passageA.passage_media_url}
+                      onUploadComplete={url => setPassageA({ ...passageA, passage_media_url: url })}
+                    />
+                  </div>
+                ) : typeInfo.isImage ? (
+                  <div className="space-y-2">
+                    <Label>Image File *</Label>
+                    <ImageUpload
+                      currentUrl={passageA.passage_media_url}
+                      onUploadComplete={url => setPassageA({ ...passageA, passage_media_url: url })}
                     />
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="passage_a_content">
-                      Passage Content *
-                      {mondaiConfig.mondaiType === 'cloze_test' && (
-                        <span className="ml-2 text-sm text-gray-600">(Use _____ for blanks)</span>
-                      )}
-                    </Label>
-                    <Textarea
-                      id="passage_a_content"
-                      value={passageA.passage_content}
-                      onChange={e => setPassageA({ ...passageA, passage_content: e.target.value })}
-                      placeholder={
-                        mondaiConfig.mondaiType === 'cloze_test'
-                          ? 'Enter passage with _____ marking blank positions...'
-                          : 'Enter the reading passage...'
-                      }
-                      rows={8}
-                      required={typeInfo.needsPassage}
-                      className="font-mono text-sm"
-                    />
-                  </div>
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="passage_a_content">
+                        Passage Content *
+                        {mondaiConfig.mondaiType === 'cloze_test' && (
+                          <span className="ml-2 text-sm text-gray-600">(Use _____ for blanks)</span>
+                        )}
+                      </Label>
+                      <RichTextEditor
+                        id="passage_a_content"
+                        value={passageA.passage_content}
+                        onChange={value => setPassageA({ ...passageA, passage_content: value })}
+                        placeholder={
+                          mondaiConfig.mondaiType === 'cloze_test'
+                            ? 'Enter passage with _____ marking blank positions...'
+                            : 'Enter the reading passage...'
+                        }
+                        rows={8}
+                        required={typeInfo.needsPassage}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Passage Image (optional)</Label>
+                      <p className="text-xs text-gray-600">
+                        Upload an image if the passage includes charts, diagrams, or visual elements
+                      </p>
+                      <ImageUpload
+                        currentUrl={passageA.passage_media_url}
+                        onUploadComplete={url =>
+                          setPassageA({ ...passageA, passage_media_url: url })
+                        }
+                      />
+                    </div>
+                  </>
                 )}
               </div>
 
@@ -563,41 +597,52 @@ export function QuestionFormModal({
                     />
                   </div>
 
-                  {typeInfo.isAudio || typeInfo.isImage ? (
+                  {typeInfo.isAudio ? (
                     <div className="space-y-2">
-                      <Label htmlFor="passage_b_media_url">
-                        {typeInfo.isAudio ? 'Audio' : 'Image'} URL *
-                      </Label>
-                      <Input
-                        id="passage_b_media_url"
-                        type="url"
-                        value={passageB.passage_media_url}
-                        onChange={e =>
-                          setPassageB({ ...passageB, passage_media_url: e.target.value })
+                      <Label>Audio File *</Label>
+                      <AudioUpload
+                        currentUrl={passageB.passage_media_url}
+                        onUploadComplete={url =>
+                          setPassageB({ ...passageB, passage_media_url: url })
                         }
-                        placeholder={
-                          typeInfo.isAudio
-                            ? 'https://example.com/audio/listening-passage-b.mp3'
-                            : 'https://example.com/images/chart-b.jpg'
+                      />
+                    </div>
+                  ) : typeInfo.isImage ? (
+                    <div className="space-y-2">
+                      <Label>Image File *</Label>
+                      <ImageUpload
+                        currentUrl={passageB.passage_media_url}
+                        onUploadComplete={url =>
+                          setPassageB({ ...passageB, passage_media_url: url })
                         }
-                        required={typeInfo.needsMultiplePassages}
                       />
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      <Label htmlFor="passage_b_content">Passage B Content *</Label>
-                      <Textarea
-                        id="passage_b_content"
-                        value={passageB.passage_content}
-                        onChange={e =>
-                          setPassageB({ ...passageB, passage_content: e.target.value })
-                        }
-                        placeholder="Enter the second passage for comparison..."
-                        rows={8}
-                        required={typeInfo.needsMultiplePassages}
-                        className="font-mono text-sm"
-                      />
-                    </div>
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="passage_b_content">Passage B Content *</Label>
+                        <RichTextEditor
+                          id="passage_b_content"
+                          value={passageB.passage_content}
+                          onChange={value => setPassageB({ ...passageB, passage_content: value })}
+                          placeholder="Enter the second passage for comparison..."
+                          rows={8}
+                          required={typeInfo.needsMultiplePassages}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Passage B Image (optional)</Label>
+                        <p className="text-xs text-gray-600">
+                          Upload an image if passage B includes charts, diagrams, or visual elements
+                        </p>
+                        <ImageUpload
+                          currentUrl={passageB.passage_media_url}
+                          onUploadComplete={url =>
+                            setPassageB({ ...passageB, passage_media_url: url })
+                          }
+                        />
+                      </div>
+                    </>
                   )}
                 </div>
               )}
@@ -641,10 +686,10 @@ export function QuestionFormModal({
                       </span>
                     )}
                   </Label>
-                  <Textarea
+                  <RichTextEditor
                     id={`question_text_${qIndex}`}
                     value={q.question_text}
-                    onChange={e => updateQuestionText(qIndex, e.target.value)}
+                    onChange={value => updateQuestionText(qIndex, value)}
                     placeholder={
                       typeInfo.needsPassage
                         ? 'e.g., このお知らせによると、どうしなければなりませんか。'
@@ -656,17 +701,34 @@ export function QuestionFormModal({
                 </div>
 
                 {/* Answer Choices */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <Label>Answer Choices *</Label>
                   {q.choices.map((choice, cIndex) => (
-                    <div key={cIndex} className="flex items-center gap-2">
-                      <span className="text-sm font-medium w-8">{cIndex + 1}.</span>
-                      <Input
-                        value={choice.choice_text}
-                        onChange={e => updateChoice(qIndex, cIndex, e.target.value)}
-                        placeholder={`Choice ${cIndex + 1}`}
-                        required
-                      />
+                    <div
+                      key={cIndex}
+                      className="space-y-2 p-3 bg-white rounded-lg border border-gray-200"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium w-8">{cIndex + 1}.</span>
+                        <Input
+                          value={choice.choice_text}
+                          onChange={e => updateChoice(qIndex, cIndex, e.target.value)}
+                          placeholder={`Choice ${cIndex + 1} text`}
+                        />
+                      </div>
+                      {/* Image upload only for Chokai (listening) section */}
+                      {section === 'listening' && (
+                        <div className="ml-8">
+                          <Label className="text-xs text-gray-600">
+                            Image for choice {cIndex + 1} (optional - replaces text)
+                          </Label>
+                          <ImageUpload
+                            currentUrl={choice.choice_image_url}
+                            onUploadComplete={url => updateChoiceImage(qIndex, cIndex, url)}
+                            maxSizeMB={5}
+                          />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
