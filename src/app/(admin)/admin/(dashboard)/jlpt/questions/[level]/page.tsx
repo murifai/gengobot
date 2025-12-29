@@ -2,8 +2,8 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 
 const SECTIONS = [
   {
@@ -32,36 +32,36 @@ const SECTIONS = [
 // Section question counts per level
 const SECTION_COUNTS: Record<string, Record<string, { questions: number; mondai: number }>> = {
   N5: {
-    vocabulary: { questions: 30, mondai: 4 },
+    vocabulary: { questions: 35, mondai: 4 },
     grammar_reading: { questions: 32, mondai: 6 },
     listening: { questions: 24, mondai: 4 },
   },
   N4: {
-    vocabulary: { questions: 30, mondai: 5 },
-    grammar_reading: { questions: 35, mondai: 6 },
-    listening: { questions: 40, mondai: 4 },
+    vocabulary: { questions: 35, mondai: 5 },
+    grammar_reading: { questions: 45, mondai: 6 },
+    listening: { questions: 28, mondai: 4 },
   },
   N3: {
-    vocabulary: { questions: 30, mondai: 5 },
+    vocabulary: { questions: 35, mondai: 5 },
     grammar_reading: { questions: 39, mondai: 7 },
-    listening: { questions: 35, mondai: 4 },
+    listening: { questions: 25, mondai: 4 },
   },
   N2: {
-    vocabulary: { questions: 27, mondai: 5 },
-    grammar_reading: { questions: 73, mondai: 11 },
-    listening: { questions: 4, mondai: 0 },
+    vocabulary: { questions: 59, mondai: 5 },
+    grammar_reading: { questions: 54, mondai: 11 },
+    listening: { questions: 32, mondai: 5 },
   },
   N1: {
-    vocabulary: { questions: 25, mondai: 4 },
-    grammar_reading: { questions: 72, mondai: 11 },
-    listening: { questions: 13, mondai: 2 },
+    vocabulary: { questions: 41, mondai: 4 },
+    grammar_reading: { questions: 45, mondai: 11 },
+    listening: { questions: 37, mondai: 5 },
   },
 };
 
 export default function JLPTQuestionSectionSelectionPage() {
   const router = useRouter();
   const params = useParams();
-  const level = params.level as string;
+  const level = params?.level as string;
 
   const sectionData = SECTION_COUNTS[level] || {};
 
@@ -80,16 +80,14 @@ export default function JLPTQuestionSectionSelectionPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {SECTIONS.map((section) => {
+        {SECTIONS.map(section => {
           const counts = sectionData[section.section] || { questions: 0, mondai: 0 };
 
           return (
             <Card
               key={section.section}
               className={`cursor-pointer transition-all ${section.color} border-2`}
-              onClick={() =>
-                router.push(`/admin/jlpt/questions/${level}/${section.section}`)
-              }
+              onClick={() => router.push(`/admin/jlpt/questions/${level}/${section.section}`)}
             >
               <CardHeader>
                 <div className="flex items-center gap-3">

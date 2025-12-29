@@ -53,9 +53,12 @@ export function parseExcelFile(buffer: Buffer): ParseResult {
     // Parse Passages sheet (optional)
     if (workbook.SheetNames.includes('Passages')) {
       const passagesSheet = workbook.Sheets['Passages'];
-      const passagesData = XLSX.utils.sheet_to_json(passagesSheet, { defval: '' });
+      const passagesData = XLSX.utils.sheet_to_json(passagesSheet, { defval: '' }) as Record<
+        string,
+        unknown
+      >[];
 
-      passagesData.forEach((row: any, index: number) => {
+      passagesData.forEach((row, index: number) => {
         const rowNum = index + 2; // Excel row number (header is row 1)
 
         // Validate required fields
@@ -69,7 +72,7 @@ export function parseExcelFile(buffer: Buffer): ParseResult {
           return;
         }
 
-        const contentType = row.content_type.toLowerCase();
+        const contentType = (row.content_type as string).toLowerCase();
         if (!['text', 'audio', 'image'].includes(contentType)) {
           errors.push(
             `Row ${rowNum} in Passages: content_type must be "text", "audio", or "image"`
@@ -84,18 +87,16 @@ export function parseExcelFile(buffer: Buffer): ParseResult {
         }
 
         if ((contentType === 'audio' || contentType === 'image') && !row.media_url) {
-          errors.push(
-            `Row ${rowNum} in Passages: media_url is required for audio/image passages`
-          );
+          errors.push(`Row ${rowNum} in Passages: media_url is required for audio/image passages`);
           return;
         }
 
         passages.push({
           passage_id: row.passage_id.toString(),
           content_type: contentType as 'text' | 'audio' | 'image',
-          title: row.title || undefined,
-          content_text: row.content_text || undefined,
-          media_url: row.media_url || undefined,
+          title: (row.title as string | undefined) || undefined,
+          content_text: (row.content_text as string | undefined) || undefined,
+          media_url: (row.media_url as string | undefined) || undefined,
         });
       });
     }
@@ -103,9 +104,12 @@ export function parseExcelFile(buffer: Buffer): ParseResult {
     // Parse Questions sheet (required)
     if (workbook.SheetNames.includes('Questions')) {
       const questionsSheet = workbook.Sheets['Questions'];
-      const questionsData = XLSX.utils.sheet_to_json(questionsSheet, { defval: '' });
+      const questionsData = XLSX.utils.sheet_to_json(questionsSheet, { defval: '' }) as Record<
+        string,
+        unknown
+      >[];
 
-      questionsData.forEach((row: any, index: number) => {
+      questionsData.forEach((row, index: number) => {
         const rowNum = index + 2;
 
         // Validate required fields
@@ -132,7 +136,7 @@ export function parseExcelFile(buffer: Buffer): ParseResult {
             choices.push({
               choice_number: i,
               choice_text: choiceText.toString(),
-              choice_media_url: row[`choice_${i}_media`] || undefined,
+              choice_media_url: (row[`choice_${i}_media`] as string | undefined) || undefined,
             });
           }
         }
@@ -155,7 +159,7 @@ export function parseExcelFile(buffer: Buffer): ParseResult {
         // Determine question type
         let questionType: QuestionData['question_type'] = 'standard';
         if (row.question_type) {
-          const type = row.question_type.toLowerCase();
+          const type = (row.question_type as string).toLowerCase();
           if (['standard', 'cloze', 'comparison', 'graphic'].includes(type)) {
             questionType = type as QuestionData['question_type'];
           } else {
@@ -168,7 +172,7 @@ export function parseExcelFile(buffer: Buffer): ParseResult {
         // Determine difficulty
         let difficulty: QuestionData['difficulty'] = 'medium';
         if (row.difficulty) {
-          const diff = row.difficulty.toLowerCase();
+          const diff = (row.difficulty as string).toLowerCase();
           if (['easy', 'medium', 'hard'].includes(diff)) {
             difficulty = diff as QuestionData['difficulty'];
           } else {
@@ -186,8 +190,8 @@ export function parseExcelFile(buffer: Buffer): ParseResult {
           question_number: parseInt(row.question_number.toString()),
           question_text: row.question_text.toString(),
           question_type: questionType,
-          blank_position: row.blank_position || undefined,
-          media_url: row.media_url || undefined,
+          blank_position: (row.blank_position as string | undefined) || undefined,
+          media_url: (row.media_url as string | undefined) || undefined,
           correct_answer: correctAnswer,
           difficulty,
           choices,
@@ -198,7 +202,7 @@ export function parseExcelFile(buffer: Buffer): ParseResult {
     }
 
     // Cross-validate passage references
-    const passageIds = new Set(passages.map((p) => p.passage_id));
+    const passageIds = new Set(passages.map(p => p.passage_id));
     questions.forEach((q, index) => {
       if (q.passage_id && !passageIds.has(q.passage_id)) {
         warnings.push(
@@ -214,7 +218,7 @@ export function parseExcelFile(buffer: Buffer): ParseResult {
 
     // Validate duplicate passage IDs
     const passageIdCounts = new Map<string, number>();
-    passages.forEach((p) => {
+    passages.forEach(p => {
       passageIdCounts.set(p.passage_id, (passageIdCounts.get(p.passage_id) || 0) + 1);
     });
     for (const [passageId, count] of passageIdCounts.entries()) {
@@ -225,19 +229,17 @@ export function parseExcelFile(buffer: Buffer): ParseResult {
 
     // Validate duplicate question numbers
     const questionNumCounts = new Map<number, number>();
-    questions.forEach((q) => {
-      questionNumCounts.set(
-        q.question_number,
-        (questionNumCounts.get(q.question_number) || 0) + 1
-      );
+    questions.forEach(q => {
+      questionNumCounts.set(q.question_number, (questionNumCounts.get(q.question_number) || 0) + 1);
     });
     for (const [questionNum, count] of questionNumCounts.entries()) {
       if (count > 1) {
         errors.push(`Duplicate question_number found: ${questionNum} appears ${count} times`);
       }
     }
-  } catch (error: any) {
-    errors.push(`Failed to parse Excel file: ${error.message}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    errors.push(`Failed to parse Excel file: ${message}`);
   }
 
   return { passages, questions, errors, warnings };
@@ -257,7 +259,7 @@ export function generateExcelTemplate(mondaiConfig: {
 
   // Create Passages sheet (if needed)
   if (mondaiConfig.requiresPassage) {
-    const passageData: any[] = [];
+    const passageData: Record<string, unknown>[] = [];
     const passageCount = mondaiConfig.passageCount || 1;
 
     for (let i = 1; i <= passageCount; i++) {
@@ -276,9 +278,9 @@ export function generateExcelTemplate(mondaiConfig: {
   }
 
   // Create Questions sheet
-  const questionsData: any[] = [];
+  const questionsData: Record<string, unknown>[] = [];
   mondaiConfig.questionNumbers.forEach((questionNum, index) => {
-    const row: any = {
+    const row: Record<string, unknown> = {
       passage_id: '',
       passage_id_secondary: '',
       question_number: questionNum,

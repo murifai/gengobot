@@ -72,9 +72,8 @@ export async function POST(request: NextRequest) {
       select: {
         id: true,
         mondaiNumber: true,
-        questionNumber: true,
       },
-      orderBy: [{ mondaiNumber: 'asc' }, { questionNumber: 'asc' }],
+      orderBy: [{ mondaiNumber: 'asc' }, { createdAt: 'asc' }],
     });
 
     const grammarReadingQuestions = await prisma.jLPTQuestion.findMany({
@@ -86,9 +85,8 @@ export async function POST(request: NextRequest) {
       select: {
         id: true,
         mondaiNumber: true,
-        questionNumber: true,
       },
-      orderBy: [{ mondaiNumber: 'asc' }, { questionNumber: 'asc' }],
+      orderBy: [{ mondaiNumber: 'asc' }, { createdAt: 'asc' }],
     });
 
     const listeningQuestions = await prisma.jLPTQuestion.findMany({
@@ -100,9 +98,8 @@ export async function POST(request: NextRequest) {
       select: {
         id: true,
         mondaiNumber: true,
-        questionNumber: true,
       },
-      orderBy: [{ mondaiNumber: 'asc' }, { questionNumber: 'asc' }],
+      orderBy: [{ mondaiNumber: 'asc' }, { createdAt: 'asc' }],
     });
 
     // Validate question counts

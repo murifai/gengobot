@@ -59,7 +59,6 @@ export function MondaiExplanationPage({
 
           {/* Example Question Text */}
           <div className="mb-4">
-            <div className="text-sm text-muted-foreground mb-2">第 {exampleQuestion.questionNumber} 問</div>
             <div className="text-base leading-relaxed whitespace-pre-wrap">
               {exampleQuestion.questionText}
             </div>

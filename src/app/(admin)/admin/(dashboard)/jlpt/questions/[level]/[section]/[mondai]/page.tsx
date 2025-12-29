@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Plus, Upload, Download } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import {
   Table,
   TableBody,
@@ -13,14 +13,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/ui/Badge';
 import { getMondaiConfig } from '@/config/jlpt-mondai-config';
 import { QuestionFormModal } from '@/components/admin/jlpt/QuestionFormModal';
 import { BulkImportModal } from '@/components/admin/jlpt/BulkImportModal';
 
 interface Question {
   id: string;
-  questionNumber: number;
   questionText: string;
   questionType: string;
   correctAnswer: number;
@@ -38,9 +37,9 @@ interface Question {
 export default function JLPTQuestionManagementPage() {
   const router = useRouter();
   const params = useParams();
-  const level = params.level as string;
-  const section = params.section as string;
-  const mondai = parseInt(params.mondai as string);
+  const level = params?.level as string;
+  const section = params?.section as string;
+  const mondai = parseInt((params?.mondai as string) || '0');
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
@@ -159,10 +158,12 @@ export default function JLPTQuestionManagementPage() {
               <Upload className="mr-2 h-4 w-4" />
               Bulk Import
             </Button>
-            <Button onClick={() => {
-              setEditingQuestion(null);
-              setShowQuestionForm(true);
-            }}>
+            <Button
+              onClick={() => {
+                setEditingQuestion(null);
+                setShowQuestionForm(true);
+              }}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Add Question
             </Button>
@@ -184,10 +185,7 @@ export default function JLPTQuestionManagementPage() {
           <CardHeader className="pb-2">
             <CardDescription>Completion</CardDescription>
             <CardTitle className="text-2xl">
-              {Math.round(
-                (questions.length / mondaiConfig.questionNumbers.length) * 100
-              )}
-              %
+              {Math.round((questions.length / mondaiConfig.questionNumbers.length) * 100)}%
             </CardTitle>
           </CardHeader>
         </Card>
@@ -232,9 +230,9 @@ export default function JLPTQuestionManagementPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {questions.map((question) => (
+                {questions.map((question, index) => (
                   <TableRow key={question.id}>
-                    <TableCell className="font-medium">{question.questionNumber}</TableCell>
+                    <TableCell className="font-medium">{index + 1}</TableCell>
                     <TableCell className="max-w-md">
                       <div className="truncate" title={question.questionText}>
                         {question.questionText}
@@ -298,7 +296,7 @@ export default function JLPTQuestionManagementPage() {
           section={section}
           mondai={mondai}
           mondaiConfig={mondaiConfig}
-          question={editingQuestion}
+          question={editingQuestion || undefined}
           onClose={() => {
             setShowQuestionForm(false);
             setEditingQuestion(null);

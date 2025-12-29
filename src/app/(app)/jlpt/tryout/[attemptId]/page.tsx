@@ -51,9 +51,9 @@ export default function TryoutTestPage() {
   const [questions, setQuestions] = useState<QuestionWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [shuffledChoicesMap, setShuffledChoicesMap] = useState<
-    Record<string, JLPTAnswerChoice[]>
-  >({});
+  const [shuffledChoicesMap, setShuffledChoicesMap] = useState<Record<string, JLPTAnswerChoice[]>>(
+    {}
+  );
   const [showMondaiExplanation, setShowMondaiExplanation] = useState(false);
   const [viewedMondais, setViewedMondais] = useState<Set<number>>(new Set());
   const [sectionStarted, setSectionStarted] = useState(false);
@@ -153,23 +153,9 @@ export default function TryoutTestPage() {
     loadQuestions();
   }, [sessionAttemptId, currentSection, shuffleSeed]);
 
-  // Sort questions by mondai and question number for display order
-  const sortedQuestions = [...questions].sort((a, b) => {
-    if (a.mondaiNumber !== b.mondaiNumber) {
-      return a.mondaiNumber - b.mondaiNumber;
-    }
-    return a.questionNumber - b.questionNumber;
-  });
-
-  // Map sorted index to original index
-  const sortedToOriginalIndex = sortedQuestions.map(q =>
-    questions.findIndex(oq => oq.id === q.id)
-  );
-
-  // Get current question based on sorted order
-  const currentSortedIndex = currentQuestionIndex;
-  const currentOriginalIndex = sortedToOriginalIndex[currentSortedIndex];
-  const currentQuestion = questions[currentOriginalIndex];
+  // Questions are already randomized per mondai by the backend
+  // Use them in the order they're provided
+  const currentQuestion = questions[currentQuestionIndex];
 
   const currentShuffledChoices = currentQuestion
     ? shuffledChoicesMap[currentQuestion.id] || []
@@ -181,14 +167,13 @@ export default function TryoutTestPage() {
 
     const mondaiNum = currentQuestion.mondaiNumber;
     const isFirstInMondai =
-      currentSortedIndex === 0 ||
-      sortedQuestions[currentSortedIndex - 1]?.mondaiNumber !== mondaiNum;
+      currentQuestionIndex === 0 || questions[currentQuestionIndex - 1]?.mondaiNumber !== mondaiNum;
 
     // Show explanation if it's first question in mondai AND we haven't viewed this mondai yet
     if (isFirstInMondai && !viewedMondais.has(mondaiNum) && currentQuestion.mondaiExplanation) {
       setShowMondaiExplanation(true);
     }
-  }, [currentQuestion, currentSortedIndex, sortedQuestions, viewedMondais, sectionStarted]);
+  }, [currentQuestion, currentQuestionIndex, questions, viewedMondais, sectionStarted]);
 
   const handleStartSection = () => {
     setSectionStarted(true);
@@ -205,14 +190,14 @@ export default function TryoutTestPage() {
   };
 
   const handlePrevious = () => {
-    if (currentSortedIndex > 0) {
-      setCurrentQuestionIndex(currentSortedIndex - 1);
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
   };
 
   const handleNext = () => {
-    if (currentSortedIndex < sortedQuestions.length - 1) {
-      setCurrentQuestionIndex(currentSortedIndex + 1);
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
 
@@ -249,9 +234,7 @@ export default function TryoutTestPage() {
   };
 
   const handleExitTest = () => {
-    const confirmed = window.confirm(
-      'テストを終了しますか？進行状況は自動保存されています。'
-    );
+    const confirmed = window.confirm('テストを終了しますか？進行状況は自動保存されています。');
     if (confirmed) {
       router.push('/jlpt/tryout');
     }
@@ -287,7 +270,7 @@ export default function TryoutTestPage() {
       return;
     }
 
-    const unansweredCount = sortedQuestions.filter(q => !answers[q.id]).length;
+    const unansweredCount = questions.filter(q => !answers[q.id]).length;
 
     if (unansweredCount > 0) {
       const confirmed = window.confirm(
@@ -344,7 +327,8 @@ export default function TryoutTestPage() {
       }
     } catch (error) {
       console.error('Error submitting section:', error);
-      const errorMessage = error instanceof Error ? error.message : 'セクションの提出に失敗しました';
+      const errorMessage =
+        error instanceof Error ? error.message : 'セクションの提出に失敗しました';
       toast.error(errorMessage);
     } finally {
       setSubmitting(false);
@@ -408,20 +392,26 @@ export default function TryoutTestPage() {
     );
   }
 
-  const answeredCount = sortedQuestions.filter(q => answers[q.id] !== undefined).length;
-  const flaggedCount = sortedQuestions.filter(q => flaggedQuestions.has(q.id)).length;
+  const answeredCount = questions.filter(q => answers[q.id] !== undefined).length;
+  const flaggedCount = questions.filter(q => flaggedQuestions.has(q.id)).length;
 
-  const questionsForNav = sortedQuestions.map(q => ({
+  const questionsForNav = questions.map(q => ({
     id: q.id,
     isAnswered: answers[q.id] !== undefined && answers[q.id] !== null,
     isFlagged: flaggedQuestions.has(q.id),
     mondaiNumber: q.mondaiNumber,
-    questionNumber: q.questionNumber,
   }));
 
   // Calculate display question number (position within mondai, starting from 1)
-  const currentMondaiQuestions = sortedQuestions.filter(q => q.mondaiNumber === currentQuestion.mondaiNumber);
-  const displayQuestionNumber = currentMondaiQuestions.findIndex(q => q.id === currentQuestion.id) + 1;
+  const currentMondaiQuestions = questions.filter(
+    q => q.mondaiNumber === currentQuestion.mondaiNumber
+  );
+  const displayQuestionNumber =
+    currentMondaiQuestions.findIndex(q => q.id === currentQuestion.id) + 1;
+
+  // Calculate current index in all questions
+  const currentSortedIndex = questions.findIndex(q => q.id === currentQuestion.id);
+  const sortedQuestions = questions;
 
   // Show mondai explanation page
   if (showMondaiExplanation && currentQuestion.mondaiExplanation) {

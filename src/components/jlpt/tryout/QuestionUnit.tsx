@@ -83,19 +83,16 @@ export function QuestionUnit({
           return (
             <div
               key={question.id}
-              className={cn(
-                'p-6 rounded-lg border-2',
-                index > 0 && 'border-t-4 border-t-muted'
-              )}
+              className={cn('p-6 rounded-lg border-2', index > 0 && 'border-t-4 border-t-muted')}
             >
               <QuestionCard
                 question={question}
-                questionNumber={question.questionNumber}
+                questionNumber={index + 1}
                 mondaiNumber={mondaiNumber}
                 shuffledChoices={shuffledChoices}
                 selectedAnswer={selectedAnswer}
                 isFlagged={isFlagged}
-                onSelectAnswer={(choiceNumber) => onSelectAnswer(question.id, choiceNumber)}
+                onSelectAnswer={choiceNumber => onSelectAnswer(question.id, choiceNumber)}
                 onToggleFlag={() => onToggleFlag(question.id)}
                 maxAudioReplays={maxAudioReplays}
               />
@@ -110,12 +107,7 @@ export function QuestionUnit({
 // Helper function to render passage based on content type
 function renderPassage(passage: JLPTPassage, maxAudioReplays: number) {
   if (passage.contentType === 'audio' && passage.mediaUrl) {
-    return (
-      <JLPTAudioPlayer
-        src={passage.mediaUrl}
-        maxReplays={maxAudioReplays}
-      />
-    );
+    return <JLPTAudioPlayer src={passage.mediaUrl} maxReplays={maxAudioReplays} />;
   }
 
   if (passage.contentType === 'image' && passage.mediaUrl) {
@@ -134,9 +126,7 @@ function renderPassage(passage: JLPTPassage, maxAudioReplays: number) {
         {passage.title && (
           <div className="font-bold text-lg mb-4 text-primary">{passage.title}</div>
         )}
-        <div className="whitespace-pre-wrap text-base leading-relaxed">
-          {passage.contentText}
-        </div>
+        <div className="whitespace-pre-wrap text-base leading-relaxed">{passage.contentText}</div>
       </div>
     );
   }

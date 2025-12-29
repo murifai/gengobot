@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Import data in transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async tx => {
       const passageMap = new Map<string, string>(); // Excel passage_id -> DB passage.id
       const questionUnits: string[] = [];
 
@@ -66,13 +66,11 @@ export async function POST(request: NextRequest) {
       // Step 2: Create question units (if needed)
       // For A-B comparison, create one unit with both passages
       const abComparisonQuestions = parseResult.questions.filter(
-        (q) => q.passage_id && q.passage_id_secondary
+        q => q.passage_id && q.passage_id_secondary
       );
       if (abComparisonQuestions.length > 0) {
         const primaryPassageId = passageMap.get(abComparisonQuestions[0].passage_id!);
-        const secondaryPassageId = passageMap.get(
-          abComparisonQuestions[0].passage_id_secondary!
-        );
+        const secondaryPassageId = passageMap.get(abComparisonQuestions[0].passage_id_secondary!);
 
         const unit = await tx.jLPTQuestionUnit.create({
           data: {
@@ -88,7 +86,7 @@ export async function POST(request: NextRequest) {
       } else if (parseResult.passages.length > 0) {
         // For other passage-based mondai, create units per passage
         for (const [excelPassageId, dbPassageId] of passageMap.entries()) {
-          const unitType = parseResult.questions.some((q) => q.question_type === 'cloze')
+          const unitType = parseResult.questions.some(q => q.question_type === 'cloze')
             ? 'cloze_test'
             : 'reading_comp';
 
@@ -107,7 +105,7 @@ export async function POST(request: NextRequest) {
 
       // Step 3: Create questions
       const createdQuestions = await Promise.all(
-        parseResult.questions.map(async (q) => {
+        parseResult.questions.map(async q => {
           // Map passage IDs from Excel to database
           const primaryPassageId = q.passage_id ? passageMap.get(q.passage_id) : undefined;
           const secondaryPassageId = q.passage_id_secondary
@@ -120,7 +118,6 @@ export async function POST(request: NextRequest) {
               sectionType: section,
               mondaiNumber: mondai,
               passageId: primaryPassageId,
-              questionNumber: q.question_number,
               questionText: q.question_text,
               questionType: q.question_type,
               blankPosition: q.blank_position,
@@ -133,7 +130,7 @@ export async function POST(request: NextRequest) {
 
           // Create answer choices
           await tx.jLPTAnswerChoice.createMany({
-            data: q.choices.map((c) => ({
+            data: q.choices.map(c => ({
               questionId: question.id,
               choiceNumber: c.choice_number,
               choiceText: c.choice_text,
@@ -175,7 +172,7 @@ export async function POST(request: NextRequest) {
         questions_created: createdQuestions.length,
         passage_ids: Array.from(passageMap.values()),
         unit_ids: questionUnits,
-        question_ids: createdQuestions.map((q) => q.id),
+        question_ids: createdQuestions.map(q => q.id),
       };
     });
 
@@ -185,11 +182,9 @@ export async function POST(request: NextRequest) {
       warnings: parseResult.warnings,
       data: result,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Bulk import error:', error);
-    return NextResponse.json(
-      { error: 'Import failed', details: error.message },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: 'Import failed', details: message }, { status: 500 });
   }
 }

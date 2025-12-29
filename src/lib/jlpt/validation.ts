@@ -130,7 +130,6 @@ export const CreateQuestionSchema = z.object({
   level: JLPTLevelSchema,
   sectionType: SectionTypeSchema,
   mondaiNumber: z.number().int().min(1).max(14),
-  questionNumber: z.number().int().min(1),
   questionText: z.string().min(1),
   blankPosition: z.string().optional(),
   questionType: QuestionTypeSchema.default('standard'),

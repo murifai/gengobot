@@ -54,7 +54,6 @@ interface QuestionNavigationProps {
     isAnswered: boolean;
     isFlagged: boolean;
     mondaiNumber: number;
-    questionNumber: number;
   }>;
   currentIndex: number;
   onNavigate: (index: number) => void;
@@ -68,30 +67,42 @@ export function QuestionNavigation({
   className,
 }: QuestionNavigationProps) {
   // Group questions by mondai
-  const groupedByMondai = questions.reduce((acc, question, index) => {
-    const mondai = question.mondaiNumber;
-    if (!acc[mondai]) {
-      acc[mondai] = [];
-    }
-    acc[mondai].push({ ...question, originalIndex: index });
-    return acc;
-  }, {} as Record<number, Array<{ id: string; isAnswered: boolean; isFlagged: boolean; mondaiNumber: number; questionNumber: number; originalIndex: number }>>);
+  const groupedByMondai = questions.reduce(
+    (acc, question, index) => {
+      const mondai = question.mondaiNumber;
+      if (!acc[mondai]) {
+        acc[mondai] = [];
+      }
+      acc[mondai].push({ ...question, originalIndex: index });
+      return acc;
+    },
+    {} as Record<
+      number,
+      Array<{
+        id: string;
+        isAnswered: boolean;
+        isFlagged: boolean;
+        mondaiNumber: number;
+        originalIndex: number;
+      }>
+    >
+  );
 
-  const mondaiNumbers = Object.keys(groupedByMondai).map(Number).sort((a, b) => a - b);
+  const mondaiNumbers = Object.keys(groupedByMondai)
+    .map(Number)
+    .sort((a, b) => a - b);
 
   return (
     <div className={cn('space-y-4', className)}>
       <div className="text-sm font-medium">問題一覧</div>
       <div className="space-y-3">
         {mondaiNumbers.map(mondaiNum => {
-          // Sort questions within mondai by questionNumber to show in order 1,2,3,4...
-          const mondaiQuestions = groupedByMondai[mondaiNum].sort((a, b) => a.questionNumber - b.questionNumber);
+          // Questions are already in randomized order, keep them as-is
+          const mondaiQuestions = groupedByMondai[mondaiNum];
 
           return (
             <div key={mondaiNum} className="space-y-1.5">
-              <div className="text-xs font-medium text-muted-foreground px-1">
-                問題 {mondaiNum}
-              </div>
+              <div className="text-xs font-medium text-muted-foreground px-1">問題 {mondaiNum}</div>
               <div className="grid grid-cols-10 gap-1.5">
                 {mondaiQuestions.map((question, displayIndex) => (
                   <button
@@ -100,9 +111,14 @@ export function QuestionNavigation({
                     className={cn(
                       'relative aspect-square rounded border text-xs font-medium transition-colors',
                       'hover:bg-accent hover:border-accent-foreground/20',
-                      currentIndex === question.originalIndex && 'bg-primary text-primary-foreground border-primary',
-                      currentIndex !== question.originalIndex && question.isAnswered && 'bg-green-50 border-green-600',
-                      currentIndex !== question.originalIndex && !question.isAnswered && 'bg-background',
+                      currentIndex === question.originalIndex &&
+                        'bg-primary text-primary-foreground border-primary',
+                      currentIndex !== question.originalIndex &&
+                        question.isAnswered &&
+                        'bg-green-50 border-green-600',
+                      currentIndex !== question.originalIndex &&
+                        !question.isAnswered &&
+                        'bg-background',
                       question.isFlagged && 'ring-2 ring-orange-500'
                     )}
                   >

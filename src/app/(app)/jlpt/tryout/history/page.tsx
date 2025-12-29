@@ -2,15 +2,30 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Calendar, TrendingUp, Award, Clock, Filter, ChevronRight } from 'lucide-react';
+import { Calendar, Award, Clock, Filter, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
-import { JLPTLoadingState, TestHistoryLoadingSkeleton } from '@/components/jlpt/common/LoadingState';
+import { TestHistoryLoadingSkeleton } from '@/components/jlpt/common/LoadingState';
 import { JLPTErrorState } from '@/components/jlpt/common/ErrorState';
 import type { JLPTLevel, TestStatus } from '@/lib/jlpt/types';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
+import { TrendingUp } from 'lucide-react';
+
+interface SectionScore {
+  normalizedScore: number;
+  isPassed: boolean;
+  referenceGrade: string | null;
+}
 
 interface TestAttempt {
   id: string;
@@ -20,11 +35,10 @@ interface TestAttempt {
   isPassed: boolean | null;
   startedAt: string;
   completedAt: string | null;
-  sectionScores: Record<string, any>;
+  sectionScores: Record<string, SectionScore>;
 }
 
 export default function TestHistoryPage() {
-  const router = useRouter();
   const [attempts, setAttempts] = useState<TestAttempt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -104,9 +118,7 @@ export default function TestHistoryPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">受験履歴</h1>
-        <p className="text-muted-foreground">
-          これまでの受験記録とスコアの推移を確認できます
-        </p>
+        <p className="text-muted-foreground">これまでの受験記録とスコアの推移を確認できます</p>
       </div>
 
       {/* Filters */}
@@ -119,7 +131,7 @@ export default function TestHistoryPage() {
         {/* Level Filter */}
         <select
           value={selectedLevel}
-          onChange={(e) => setSelectedLevel(e.target.value as JLPTLevel | 'all')}
+          onChange={e => setSelectedLevel(e.target.value as JLPTLevel | 'all')}
           className="px-3 py-1.5 border-2 border-border rounded-md text-sm bg-background"
         >
           <option value="all">全レベル</option>
@@ -133,7 +145,7 @@ export default function TestHistoryPage() {
         {/* Status Filter */}
         <select
           value={selectedStatus}
-          onChange={(e) => setSelectedStatus(e.target.value as TestStatus | 'all')}
+          onChange={e => setSelectedStatus(e.target.value as TestStatus | 'all')}
           className="px-3 py-1.5 border-2 border-border rounded-md text-sm bg-background"
         >
           <option value="all">全ステータス</option>
@@ -143,9 +155,7 @@ export default function TestHistoryPage() {
         </select>
 
         {attempts.length > 0 && (
-          <div className="ml-auto text-sm text-muted-foreground">
-            {attempts.length} 件の記録
-          </div>
+          <div className="ml-auto text-sm text-muted-foreground">{attempts.length} 件の記録</div>
         )}
       </div>
 
@@ -207,12 +217,8 @@ export default function TestHistoryPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {attempts.map((attempt) => (
-            <Link
-              key={attempt.id}
-              href={`/jlpt/results/${attempt.id}`}
-              className="block"
-            >
+          {attempts.map(attempt => (
+            <Link key={attempt.id} href={`/jlpt/results/${attempt.id}`} className="block">
               <div className="border-2 border-border rounded-lg p-4 hover:border-primary transition-colors cursor-pointer bg-card">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -224,20 +230,22 @@ export default function TestHistoryPage() {
                         attempt.status === 'completed'
                           ? 'default'
                           : attempt.status === 'in_progress'
-                          ? 'secondary'
-                          : 'outline'
+                            ? 'secondary'
+                            : 'outline'
                       }
                     >
-                      {attempt.status === 'completed' ? '完了' : attempt.status === 'in_progress' ? '進行中' : '中断'}
+                      {attempt.status === 'completed'
+                        ? '完了'
+                        : attempt.status === 'in_progress'
+                          ? '進行中'
+                          : '中断'}
                     </Badge>
                   </div>
 
                   {attempt.isPassed !== null && (
                     <Badge
                       variant={attempt.isPassed ? 'default' : 'outline'}
-                      className={cn(
-                        attempt.isPassed && 'bg-green-600 hover:bg-green-700'
-                      )}
+                      className={cn(attempt.isPassed && 'bg-green-600 hover:bg-green-700')}
                     >
                       {attempt.isPassed ? '合格' : '不合格'}
                     </Badge>

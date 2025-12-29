@@ -10,6 +10,7 @@ const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 // Admin session data structure
 export interface AdminSession {
   id: string;
+  adminId: string; // Alias for id for backward compatibility
   email: string;
   name: string;
   role: AdminRole;
@@ -29,6 +30,7 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 export async function createAdminSession(admin: Admin): Promise<string> {
   const sessionData: AdminSession = {
     id: admin.id,
+    adminId: admin.id, // Same as id for backward compatibility
     email: admin.email,
     name: admin.name,
     role: admin.role,
@@ -73,6 +75,11 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     const sessionData = JSON.parse(
       Buffer.from(sessionToken, 'base64').toString('utf-8')
     ) as AdminSession;
+
+    // Ensure adminId is set for backward compatibility
+    if (!sessionData.adminId && sessionData.id) {
+      sessionData.adminId = sessionData.id;
+    }
 
     // Verify admin still exists and is active
     const admin = await prisma.admin.findUnique({

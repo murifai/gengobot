@@ -1001,7 +1001,6 @@ model JLPTQuestion {
   level          String // N1, N2, N3, N4, N5
   sectionType    String // vocabulary, grammar_reading, listening
   mondaiNumber   Int
-  questionNumber Int
 
   // Question Content
   questionText      String  @db.Text

@@ -131,7 +131,6 @@ export async function GET(
         answers: answers.map(answer => ({
           questionId: answer.questionId,
           mondaiNumber: answer.question.mondaiNumber,
-          questionNumber: answer.question.questionNumber,
           questionText: answer.question.questionText,
           selectedAnswer: answer.selectedAnswer,
           correctAnswer: answer.question.correctAnswer,

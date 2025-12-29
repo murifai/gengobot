@@ -8,6 +8,7 @@ import {
   Ticket,
   UserCog,
   Settings,
+  ClipboardList,
   type LucideIcon,
 } from 'lucide-react';
 import type { Permission } from '@/lib/auth/admin-rbac';
@@ -78,6 +79,12 @@ export const adminNavigation: NavSection[] = [
         href: '/admin/dek',
         icon: Layers,
         permission: 'decks.view',
+      },
+      {
+        title: 'JLPT',
+        href: '/admin/jlpt/questions',
+        icon: ClipboardList,
+        permission: 'tasks.view',
       },
     ],
   },

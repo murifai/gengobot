@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import prisma from '@/lib/prisma';
+import { auth } from '@/lib/auth/auth';
+import { prisma } from '@/lib/prisma';
 import type { JLPTLevel, TestStatus } from '@/lib/jlpt/types';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -19,7 +18,7 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0', 10);
 
     // Build where clause
-    const where: any = {
+    const where: Record<string, unknown> = {
       userId: session.user.id,
     };
 
@@ -52,15 +51,21 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Format response
-    const formattedAttempts = attempts.map((attempt) => {
-      const sectionScores = attempt.sectionScores.reduce((acc, score) => {
-        acc[score.sectionType] = {
-          normalizedScore: score.normalizedScore,
-          isPassed: score.isPassed,
-          referenceGrade: score.referenceGrade,
-        };
-        return acc;
-      }, {} as Record<string, any>);
+    const formattedAttempts = attempts.map(attempt => {
+      const sectionScores = attempt.sectionScores.reduce(
+        (acc, score) => {
+          acc[score.sectionType] = {
+            normalizedScore: score.normalizedScore,
+            isPassed: score.isPassed,
+            referenceGrade: score.referenceGrade,
+          };
+          return acc;
+        },
+        {} as Record<
+          string,
+          { normalizedScore: number; isPassed: boolean; referenceGrade: string | null }
+        >
+      );
 
       return {
         id: attempt.id,
@@ -81,9 +86,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching test history:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch test history' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch test history' }, { status: 500 });
   }
 }

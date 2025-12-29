@@ -37,16 +37,17 @@ export async function GET(request: NextRequest) {
 
     const filename = `jlpt_${level}_${section}_mondai${mondai}_template.xlsx`;
 
-    return new NextResponse(buffer, {
+    return new NextResponse(Buffer.from(buffer), {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Content-Disposition': `attachment; filename="${filename}"`,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error generating template:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to generate template', details: error.message },
+      { error: 'Failed to generate template', details: message },
       { status: 500 }
     );
   }

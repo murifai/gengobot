@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Upload, Download, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui/Dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { MondaiConfig } from '@/config/jlpt-mondai-config';
 
@@ -35,7 +35,17 @@ export function BulkImportModal({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{
+    success: boolean;
+    created?: number;
+    errors?: string[];
+    warnings?: string[];
+    data?: {
+      questions_created: number;
+      passages_created: number;
+      units_created: number;
+    };
+  } | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -106,7 +116,7 @@ export function BulkImportModal({
   };
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
+    <Dialog open={true} onClose={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
@@ -163,9 +173,7 @@ export function BulkImportModal({
                   </Button>
                 </label>
                 {file && (
-                  <p className="mt-4 text-sm text-muted-foreground">
-                    Selected: {file.name}
-                  </p>
+                  <p className="mt-4 text-sm text-muted-foreground">Selected: {file.name}</p>
                 )}
               </div>
             </div>
@@ -214,15 +222,17 @@ export function BulkImportModal({
                     <CheckCircle className="h-4 w-4" />
                     <AlertDescription>
                       <strong>Successfully imported!</strong>
-                      <ul className="list-disc pl-5 mt-2">
-                        <li>{result.data.questions_created} questions created</li>
-                        {result.data.passages_created > 0 && (
-                          <li>{result.data.passages_created} passages created</li>
-                        )}
-                        {result.data.units_created > 0 && (
-                          <li>{result.data.units_created} question units created</li>
-                        )}
-                      </ul>
+                      {result.data && (
+                        <ul className="list-disc pl-5 mt-2">
+                          <li>{result.data.questions_created} questions created</li>
+                          {result.data.passages_created > 0 && (
+                            <li>{result.data.passages_created} passages created</li>
+                          )}
+                          {result.data.units_created > 0 && (
+                            <li>{result.data.units_created} question units created</li>
+                          )}
+                        </ul>
+                      )}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -232,22 +242,14 @@ export function BulkImportModal({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={loading}
-          >
+          <Button variant="outline" onClick={onClose} disabled={loading}>
             {result && errors.length === 0 ? 'Close' : 'Cancel'}
           </Button>
           <Button
             onClick={result && errors.length === 0 ? onSuccess : handleImport}
             disabled={!file || loading}
           >
-            {loading
-              ? 'Importing...'
-              : result && errors.length === 0
-                ? 'Done'
-                : 'Import Questions'}
+            {loading ? 'Importing...' : result && errors.length === 0 ? 'Done' : 'Import Questions'}
           </Button>
         </DialogFooter>
       </DialogContent>

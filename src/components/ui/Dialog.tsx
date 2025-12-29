@@ -80,3 +80,21 @@ export function DialogDescription({
     </HeadlessDialog.Description>
   );
 }
+
+export function DialogContent({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return <div className={cn('mt-4', className)}>{children}</div>;
+}
+
+export function DialogHeader({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={cn('mb-4', className)}>{children}</div>;
+}
+
+export function DialogFooter({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={cn('mt-6 flex justify-end gap-3', className)}>{children}</div>;
+}

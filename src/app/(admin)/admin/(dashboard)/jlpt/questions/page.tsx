@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 
 const LEVELS = [
   {
@@ -9,35 +9,30 @@ const LEVELS = [
     totalQuestions: 86,
     totalMondai: 14,
     description: 'Beginner Level',
-    color: 'bg-emerald-100 hover:bg-emerald-200 border-emerald-300',
   },
   {
     level: 'N4',
     totalQuestions: 105,
     totalMondai: 15,
     description: 'Elementary Level',
-    color: 'bg-blue-100 hover:bg-blue-200 border-blue-300',
   },
   {
     level: 'N3',
     totalQuestions: 104,
     totalMondai: 16,
     description: 'Intermediate Level',
-    color: 'bg-amber-100 hover:bg-amber-200 border-amber-300',
   },
   {
     level: 'N2',
     totalQuestions: 104,
     totalMondai: 16,
     description: 'Upper-Intermediate Level',
-    color: 'bg-orange-100 hover:bg-orange-200 border-orange-300',
   },
   {
     level: 'N1',
     totalQuestions: 110,
     totalMondai: 17,
     description: 'Advanced Level',
-    color: 'bg-red-100 hover:bg-red-200 border-red-300',
   },
 ];
 
@@ -52,10 +47,10 @@ export default function JLPTQuestionLevelSelectionPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {LEVELS.map((levelData) => (
+        {LEVELS.map(levelData => (
           <Card
             key={levelData.level}
-            className={`cursor-pointer transition-all ${levelData.color} border-2`}
+            className="cursor-pointer transition-all hover:shadow-lg"
             onClick={() => router.push(`/admin/jlpt/questions/${levelData.level}`)}
           >
             <CardHeader>

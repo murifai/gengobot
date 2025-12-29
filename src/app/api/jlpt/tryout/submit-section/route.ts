@@ -18,11 +18,18 @@ import type { SectionType } from '@/lib/jlpt/types';
  *   }>;
  * }
  */
+interface SubmitAnswer {
+  questionId: string;
+  userAnswer?: string | null;
+  selectedAnswer?: number | null;
+  isFlagged?: boolean;
+}
+
 export async function POST(request: NextRequest) {
   let attemptId: string | undefined;
   let sectionType: string | undefined;
   let timeSpentSeconds: number | undefined;
-  let answers: any[] | undefined;
+  let answers: SubmitAnswer[] | undefined;
 
   try {
     // Check authentication
@@ -265,7 +272,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'セクションの提出中にエラーが発生しました',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

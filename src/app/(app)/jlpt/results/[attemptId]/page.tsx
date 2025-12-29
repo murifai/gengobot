@@ -7,7 +7,12 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/Accordion';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/Accordion';
 import { CheckCircle2, XCircle, Clock, TrendingUp, ArrowLeft, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -24,7 +29,6 @@ interface SectionScore {
 interface Answer {
   questionId: string;
   mondaiNumber: number;
-  questionNumber: number;
   questionText: string;
   selectedAnswer: number | null;
   correctAnswer: number;
@@ -84,13 +88,8 @@ const groupByMondai = (answers: Answer[]) => {
     grouped.get(answer.mondaiNumber)!.push(answer);
   });
 
-  // Sort questions within each mondai by questionNumber
-  grouped.forEach((questions, mondaiNumber) => {
-    grouped.set(
-      mondaiNumber,
-      questions.sort((a, b) => a.questionNumber - b.questionNumber)
-    );
-  });
+  // Questions are already in their randomized order from the test
+  // No need to sort them
 
   return Array.from(grouped.entries()).sort((a, b) => a[0] - b[0]);
 };
@@ -303,152 +302,158 @@ export default function ResultsPage() {
             {currentSectionReview && (
               <TabsContent value={selectedSection} className="mt-6">
                 <Accordion type="multiple" className="space-y-2">
-                  {groupByMondai(currentSectionReview.answers).map(([mondaiNumber, mondaiAnswers]) => {
-                    const correctCount = mondaiAnswers.filter(a => a.isCorrect).length;
-                    const totalCount = mondaiAnswers.length;
-                    const accuracy = Math.round((correctCount / totalCount) * 100);
+                  {groupByMondai(currentSectionReview.answers).map(
+                    ([mondaiNumber, mondaiAnswers]) => {
+                      const correctCount = mondaiAnswers.filter(a => a.isCorrect).length;
+                      const totalCount = mondaiAnswers.length;
+                      const accuracy = Math.round((correctCount / totalCount) * 100);
 
-                    return (
-                      <AccordionItem
-                        key={mondaiNumber}
-                        value={`mondai-${mondaiNumber}`}
-                        className="border rounded-lg px-4 bg-card"
-                      >
-                        <AccordionTrigger className="hover:no-underline">
-                          <div className="flex items-center gap-3 w-full">
-                            <h3 className="text-lg font-bold">問題 {mondaiNumber}</h3>
-                            <Badge variant="outline" className="text-sm">
-                              {mondaiAnswers.length}問
-                            </Badge>
-                            <div className="flex items-center gap-2 ml-auto mr-4">
-                              <span className="text-sm text-muted-foreground">
-                                正解率: {accuracy}%
-                              </span>
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  'text-sm',
-                                  accuracy >= 80
-                                    ? 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300'
-                                    : accuracy >= 60
-                                    ? 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300'
-                                    : 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/30 dark:text-red-300'
-                                )}
-                              >
-                                {correctCount}/{totalCount}
-                              </Badge>
-                            </div>
-                          </div>
-                        </AccordionTrigger>
-
-                        <AccordionContent>
-                          <div className="space-y-4 pt-4">
-                            {mondaiAnswers.map((answer, index) => (
-                        <Card
-                          key={answer.questionId}
-                          className={cn(
-                            'border-2',
-                            answer.isCorrect
-                              ? 'border-green-200 bg-green-50/30 dark:border-green-800 dark:bg-green-950/20'
-                              : 'border-red-200 bg-red-50/30 dark:border-red-800 dark:bg-red-950/20'
-                          )}
+                      return (
+                        <AccordionItem
+                          key={mondaiNumber}
+                          value={`mondai-${mondaiNumber}`}
+                          className="border rounded-lg px-4 bg-card"
                         >
-                          <CardHeader className="pb-3">
-                            <div className="flex items-start justify-between">
-                              <CardTitle className="text-base">
-                                第{index + 1}問
-                              </CardTitle>
-                              {answer.isCorrect ? (
+                          <AccordionTrigger className="hover:no-underline">
+                            <div className="flex items-center gap-3 w-full">
+                              <h3 className="text-lg font-bold">問題 {mondaiNumber}</h3>
+                              <Badge variant="outline" className="text-sm">
+                                {mondaiAnswers.length}問
+                              </Badge>
+                              <div className="flex items-center gap-2 ml-auto mr-4">
+                                <span className="text-sm text-muted-foreground">
+                                  正解率: {accuracy}%
+                                </span>
                                 <Badge
-                                  className="bg-green-100 text-green-800 border-green-300 gap-1 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700"
                                   variant="outline"
+                                  className={cn(
+                                    'text-sm',
+                                    accuracy >= 80
+                                      ? 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300'
+                                      : accuracy >= 60
+                                        ? 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300'
+                                        : 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/30 dark:text-red-300'
+                                  )}
                                 >
-                                  <CheckCircle2 className="h-3 w-3" />
-                                  正解
+                                  {correctCount}/{totalCount}
                                 </Badge>
-                              ) : (
-                                <Badge
-                                  className="bg-red-100 text-red-800 border-red-300 gap-1 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700"
-                                  variant="outline"
-                                >
-                                  <XCircle className="h-3 w-3" />
-                                  不正解
-                                </Badge>
-                              )}
-                            </div>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            {/* Passage if exists */}
-                            {answer.passage && (
-                              <div className="bg-card p-4 rounded-lg border">
-                                {answer.passage.title && (
-                                  <p className="font-semibold mb-2">{answer.passage.title}</p>
-                                )}
-                                <p className="text-sm whitespace-pre-wrap">{answer.passage.content}</p>
                               </div>
-                            )}
+                            </div>
+                          </AccordionTrigger>
 
-                            {/* Question */}
-                            <div>
-                              <p className="font-medium mb-3">{answer.questionText}</p>
-
-                              {/* Answer Choices */}
-                              <div className="space-y-2">
-                                {answer.answerChoices.map(choice => {
-                                  const isCorrect = choice.choiceNumber === answer.correctAnswer;
-                                  const isSelected = choice.choiceNumber === answer.selectedAnswer;
-                                  const isWrong = isSelected && !isCorrect;
-
-                                  return (
-                                    <div
-                                      key={choice.choiceNumber}
-                                      className={cn(
-                                        'p-3 rounded-lg border-2 flex items-start gap-2 transition-colors',
-                                        isCorrect &&
-                                          'border-green-500 bg-green-50 dark:border-green-700 dark:bg-green-950/30',
-                                        isWrong &&
-                                          'border-red-500 bg-red-50 dark:border-red-700 dark:bg-red-950/30',
-                                        !isCorrect && !isWrong && 'border-border bg-card'
-                                      )}
-                                    >
-                                      <span className="font-semibold min-w-[24px]">
-                                        {choice.choiceNumber}.
-                                      </span>
-                                      <span className="flex-1">{choice.choiceText}</span>
-                                      {isCorrect && (
-                                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
-                                      )}
-                                      {isWrong && (
-                                        <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                          <AccordionContent>
+                            <div className="space-y-4 pt-4">
+                              {mondaiAnswers.map((answer, index) => (
+                                <Card
+                                  key={answer.questionId}
+                                  className={cn(
+                                    'border-2',
+                                    answer.isCorrect
+                                      ? 'border-green-200 bg-green-50/30 dark:border-green-800 dark:bg-green-950/20'
+                                      : 'border-red-200 bg-red-50/30 dark:border-red-800 dark:bg-red-950/20'
+                                  )}
+                                >
+                                  <CardHeader className="pb-3">
+                                    <div className="flex items-start justify-between">
+                                      <CardTitle className="text-base">第{index + 1}問</CardTitle>
+                                      {answer.isCorrect ? (
+                                        <Badge
+                                          className="bg-green-100 text-green-800 border-green-300 gap-1 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700"
+                                          variant="outline"
+                                        >
+                                          <CheckCircle2 className="h-3 w-3" />
+                                          正解
+                                        </Badge>
+                                      ) : (
+                                        <Badge
+                                          className="bg-red-100 text-red-800 border-red-300 gap-1 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700"
+                                          variant="outline"
+                                        >
+                                          <XCircle className="h-3 w-3" />
+                                          不正解
+                                        </Badge>
                                       )}
                                     </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
+                                  </CardHeader>
+                                  <CardContent className="space-y-4">
+                                    {/* Passage if exists */}
+                                    {answer.passage && (
+                                      <div className="bg-card p-4 rounded-lg border">
+                                        {answer.passage.title && (
+                                          <p className="font-semibold mb-2">
+                                            {answer.passage.title}
+                                          </p>
+                                        )}
+                                        <p className="text-sm whitespace-pre-wrap">
+                                          {answer.passage.content}
+                                        </p>
+                                      </div>
+                                    )}
 
-                            {/* Explanation */}
-                            {answer.explanation && (
-                              <>
-                                <Separator />
-                                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
-                                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">
-                                    解説
-                                  </p>
-                                  <p className="text-sm whitespace-pre-wrap">
-                                    {answer.explanation}
-                                  </p>
-                                </div>
-                              </>
-                            )}
-                          </CardContent>
-                        </Card>
-                            ))}
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    );
-                  })}
+                                    {/* Question */}
+                                    <div>
+                                      <p className="font-medium mb-3">{answer.questionText}</p>
+
+                                      {/* Answer Choices */}
+                                      <div className="space-y-2">
+                                        {answer.answerChoices.map(choice => {
+                                          const isCorrect =
+                                            choice.choiceNumber === answer.correctAnswer;
+                                          const isSelected =
+                                            choice.choiceNumber === answer.selectedAnswer;
+                                          const isWrong = isSelected && !isCorrect;
+
+                                          return (
+                                            <div
+                                              key={choice.choiceNumber}
+                                              className={cn(
+                                                'p-3 rounded-lg border-2 flex items-start gap-2 transition-colors',
+                                                isCorrect &&
+                                                  'border-green-500 bg-green-50 dark:border-green-700 dark:bg-green-950/30',
+                                                isWrong &&
+                                                  'border-red-500 bg-red-50 dark:border-red-700 dark:bg-red-950/30',
+                                                !isCorrect && !isWrong && 'border-border bg-card'
+                                              )}
+                                            >
+                                              <span className="font-semibold min-w-[24px]">
+                                                {choice.choiceNumber}.
+                                              </span>
+                                              <span className="flex-1">{choice.choiceText}</span>
+                                              {isCorrect && (
+                                                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                                              )}
+                                              {isWrong && (
+                                                <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+
+                                    {/* Explanation */}
+                                    {answer.explanation && (
+                                      <>
+                                        <Separator />
+                                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+                                          <p className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">
+                                            解説
+                                          </p>
+                                          <p className="text-sm whitespace-pre-wrap">
+                                            {answer.explanation}
+                                          </p>
+                                        </div>
+                                      </>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      );
+                    }
+                  )}
                 </Accordion>
               </TabsContent>
             )}

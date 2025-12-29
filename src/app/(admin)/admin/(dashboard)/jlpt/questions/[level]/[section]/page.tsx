@@ -2,16 +2,16 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 import { getSectionMondais } from '@/config/jlpt-mondai-config';
 
 export default function JLPTQuestionMondaiSelectionPage() {
   const router = useRouter();
   const params = useParams();
-  const level = params.level as string;
-  const section = params.section as string;
+  const level = params?.level as string;
+  const section = params?.section as string;
 
   // Get all mondai for this section
   const mondais = getSectionMondais(level, section);
@@ -46,7 +46,7 @@ export default function JLPTQuestionMondaiSelectionPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {mondais.map((mondaiConfig) => {
+        {mondais.map(mondaiConfig => {
           const totalQuestions = mondaiConfig.questionNumbers.length;
 
           return (
