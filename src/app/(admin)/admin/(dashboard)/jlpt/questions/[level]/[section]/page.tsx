@@ -67,7 +67,7 @@ export default function JLPTQuestionMondaiSelectionPage() {
                   </div>
                   {mondaiConfig.requiresPassage && (
                     <Badge variant="secondary" className="text-xs">
-                      📄
+                      Passage
                     </Badge>
                   )}
                 </div>

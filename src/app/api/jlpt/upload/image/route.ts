@@ -5,6 +5,8 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
+    const level = formData.get('level') as string | null;
+    const section = formData.get('section') as string | null;
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -33,8 +35,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Upload to R2 in jlpt/images folder
-    const result = await uploadFileToR2(file, 'jlpt/images');
+    // Build folder path with optional level and section organization
+    let folder = 'jlpt/images';
+    if (level && section) {
+      folder = `jlpt/images/${level}/${section}`;
+    } else if (level) {
+      folder = `jlpt/images/${level}`;
+    }
+
+    // Upload to R2 with organized folder structure
+    const result = await uploadFileToR2(file, folder);
 
     return NextResponse.json({
       success: true,

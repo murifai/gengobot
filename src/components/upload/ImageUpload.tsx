@@ -9,6 +9,8 @@ interface ImageUploadProps {
   currentUrl?: string;
   className?: string;
   maxSizeMB?: number;
+  level?: string;
+  section?: string;
 }
 
 export function ImageUpload({
@@ -16,6 +18,8 @@ export function ImageUpload({
   currentUrl,
   className = '',
   maxSizeMB = 10,
+  level,
+  section,
 }: ImageUploadProps) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -69,6 +73,8 @@ export function ImageUpload({
     try {
       const formData = new FormData();
       formData.append('file', file);
+      if (level) formData.append('level', level);
+      if (section) formData.append('section', section);
 
       const response = await fetch('/api/jlpt/upload/image', {
         method: 'POST',

@@ -9,6 +9,8 @@ interface AudioUploadProps {
   currentUrl?: string;
   className?: string;
   maxSizeMB?: number;
+  level?: string;
+  section?: string;
 }
 
 export function AudioUpload({
@@ -16,6 +18,8 @@ export function AudioUpload({
   currentUrl,
   className = '',
   maxSizeMB = 50,
+  level,
+  section,
 }: AudioUploadProps) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -62,6 +66,8 @@ export function AudioUpload({
     try {
       const formData = new FormData();
       formData.append('file', file);
+      if (level) formData.append('level', level);
+      if (section) formData.append('section', section);
 
       const response = await fetch('/api/jlpt/upload/audio', {
         method: 'POST',
